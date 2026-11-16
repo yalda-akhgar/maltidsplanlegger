@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone C (data model) – done. Waiting for the product owner's review and "fortsett" before milestone D (recipes + snacks).**
+**Phase 1, milestone D (recipes + snacks) – done. Waiting for the product owner's review and "fortsett" before milestone E (planner logic + tests).**
+
+Milestone D delivered: seed catalogue (`src/data/seed/ingredients.ts`, ~60 ingredients, nutrition per 100 g) and 14 recipes + 13 snacks (`src/data/seed/recipes.ts`, nb/de/en), loaded once via `SEED_VERSION` in the repository. `nutrition.ts` (protein/kcal per portion from ingredients, tags), `amounts.ts` (household portions, rounding #84, formatting). Recipes screen: search, filter chips, cards with heart and badges, detail sheet with portion stepper, form page `/recipes/new` + `/recipes/:id/edit` with ingredient picker and "new ingredient", delete with undo toast. Decisions #74–#89. Language is now a device preference (schema v2). Tests: `src/data/recipes.test.ts` (every seed recipe within ±3 g of the prototype protein value).
 
 Milestone C delivered: `src/data/types.ts` (all types), `defaults.ts` (built-in categories, default household), `localize.ts`, `week.ts` (ISO week helpers), async `repository.ts` with schema version 1 + migration of the old language key, tests in `src/data/data.test.ts` (`npx vitest run`). Decisions #62–#73.
 Repo: https://github.com/yalda-akhgar/maltidsplanlegger (public). Git identity (repo-local): `Yalda Akhgar` / `357414314+yalda-akhgar@users.noreply.github.com`. ⚠️ Never use the NTNU address – it is the *global* git e-mail on this PC. `gh` lives at `C:\Program Files\GitHub CLI\gh.exe` if not on PATH.
@@ -110,6 +112,6 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A–C** done; milestone **D (recipes + snacks)** next.
+**Phase 1 – Foundation**, milestones **A–D** done; milestone **E (planner logic + tests)** next.
 
 Milestones: A setup/GitHub · B design system + app shell · C data model · D recipes + snacks · E planner logic + tests · F week-plan screen · G onboarding + settings · H documentation.

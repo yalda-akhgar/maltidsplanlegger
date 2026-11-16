@@ -14,7 +14,10 @@
   "common": {
     "close": "Lukk",
     "selected": "valgt",
-    "comingSoon": "Kommer snart"
+    "comingSoon": "Kommer snart",
+    "back": "Tilbake",
+    "cancel": "Avbryt",
+    "undo": "Angre"
   },
   "screens": {
     "week": {
@@ -102,5 +105,130 @@
     "toastText": "Oppskrift lagret",
     "swapLabel": "Bytt rett",
     "favoriteLabel": "Favoritt"
+  },
+  "units": {
+    "short": {
+      "g": "g",
+      "kg": "kg",
+      "ml": "ml",
+      "dl": "dl",
+      "l": "l",
+      "tbsp": "ss",
+      "tsp": "ts",
+      "pcs": "stk",
+      "pinch": "klype",
+      "pack": "pk",
+      "can": "boks"
+    },
+    "long": {
+      "g": "gram",
+      "kg": "kilo",
+      "ml": "milliliter",
+      "dl": "desiliter",
+      "l": "liter",
+      "tbsp": "spiseskje",
+      "tsp": "teskje",
+      "pcs": "stykk",
+      "pinch": "klype",
+      "pack": "pakke",
+      "can": "boks"
+    }
+  },
+  "storeSections": {
+    "produce": "Frukt og grønt",
+    "meatFish": "Kjøtt og fisk",
+    "dairy": "Meieri og kjøl",
+    "bread": "Brød",
+    "dryGoods": "Tørrvarer",
+    "frozen": "Frys"
+  },
+  "recipes": {
+    "recipeCount_one": "{{count}} oppskrift",
+    "recipeCount_other": "{{count}} oppskrifter",
+    "favoriteCount_one": "{{count}} favoritt",
+    "favoriteCount_other": "{{count}} favoritter",
+    "newRecipe": "Ny oppskrift",
+    "search": "Søk i oppskrifter",
+    "searchPlaceholder": "Søk i oppskrifter …",
+    "filters": "Filtre",
+    "all": "Alle",
+    "favorites": "Favoritter",
+    "kidFriendly": "Barnevennlig",
+    "healthy": "Sunn",
+    "cheat": "Cheat",
+    "nutritionMissing": "Næring mangler",
+    "showing_one": "Viser {{count}} oppskrift",
+    "showing_other": "Viser {{count}} oppskrifter",
+    "empty": "Ingen oppskrifter passer. Prøv et annet søk eller filter.",
+    "minutes": "{{count}} min",
+    "proteinG": "{{value}} g protein",
+    "favorite": "Favoritt: {{name}}",
+    "deleted": "«{{name}}» er slettet",
+    "saved": "Oppskriften er lagret",
+    "detail": {
+      "protein": "protein per porsjon",
+      "time": "tid",
+      "kcal": "kcal per porsjon",
+      "grams": "{{value}} g",
+      "portions": "Porsjoner",
+      "portionsHint": "Voksen = 1 porsjon, barn = ½.",
+      "fewer": "Færre porsjoner",
+      "more": "Flere porsjoner",
+      "ingredients": "Ingredienser",
+      "steps": "Slik gjør du",
+      "nutritionMissing": "Noen ingredienser mangler næringsdata, så tallene kan være for lave.",
+      "edit": "Rediger",
+      "delete": "Slett",
+      "favorite": "Favoritt"
+    },
+    "form": {
+      "newTitle": "Ny oppskrift",
+      "editTitle": "Rediger oppskrift",
+      "notFound": "Fant ikke oppskriften. Den kan ha blitt slettet.",
+      "name": "Navn",
+      "categories": "Kategori",
+      "time": "Tid (minutter)",
+      "servings": "Porsjoner",
+      "servingsHint": "Hvor mange voksenporsjoner mengdene gjelder for.",
+      "kidFriendly": "Barnevennlig",
+      "snackKind": "Type snacks",
+      "ingredients": "Ingredienser",
+      "addIngredient": "Legg til ingrediens",
+      "amount": "Mengde",
+      "amountFor": "Mengde {{name}}",
+      "unit": "Enhet",
+      "unitFor": "Enhet {{name}}",
+      "removeIngredient": "Fjern {{name}}",
+      "noIngredients": "Ingen ingredienser ennå.",
+      "steps": "Steg",
+      "step": "Steg {{n}}",
+      "addStep": "Legg til steg",
+      "removeStep": "Fjern steg {{n}}",
+      "save": "Lagre oppskrift",
+      "errorSummary": "Noe mangler. Se feltene som er merket.",
+      "errors": {
+        "name": "Skriv inn et navn.",
+        "categories": "Velg minst én kategori.",
+        "number": "Skriv inn et tall større enn 0.",
+        "amounts": "Skriv inn en mengde større enn 0 for alle ingrediensene."
+      }
+    },
+    "picker": {
+      "title": "Velg ingrediens",
+      "search": "Søk etter ingrediens",
+      "noResults": "Fant ingen ingrediens med det navnet.",
+      "createNamed": "Ny ingrediens: «{{name}}»",
+      "create": "Ny ingrediens"
+    },
+    "newIngredient": {
+      "title": "Ny ingrediens",
+      "name": "Navn",
+      "storeSection": "Butikkavdeling",
+      "protein": "Protein per 100 g (valgfritt)",
+      "kcal": "Kcal per 100 g (valgfritt)",
+      "hint": "Fyll inn både protein og kcal for å få næringsberegning. Ellers merkes oppskriften «Næring mangler».",
+      "save": "Legg til ingrediens",
+      "nameRequired": "Skriv inn et navn."
+    }
   }
 }

@@ -14,6 +14,8 @@
  */
 
 import { DEFAULT_CATEGORIES, defaultHousehold } from './defaults'
+import { SEED_INGREDIENTS } from './seed/ingredients'
+import { SEED_RECIPES } from './seed/recipes'
 import {
   LANGUAGES,
   type Category,
@@ -30,10 +32,14 @@ import {
 /** Bump when the stored format changes, and add a migration below (#73). */
 export const SCHEMA_VERSION = 2
 
+/** Bump when new seed recipes/ingredients should be added to existing installs. */
+export const SEED_VERSION = 1
+
 const PREFIX = 'mp:'
 
 const KEYS = {
   schemaVersion: 'schemaVersion',
+  seedVersion: 'seedVersion',
   household: 'household',
   categories: 'categories',
   ingredients: 'ingredients',
@@ -141,6 +147,25 @@ export function createRepository(storage: KeyValueStorage) {
     write(KEYS.schemaVersion, SCHEMA_VERSION)
   }
   ensureInitialized()
+
+  /**
+   * Adds the seed ingredients and recipes once (#11, #76). Records that
+   * already exist are left alone, so user edits are kept, and a deleted seed
+   * recipe does not come back (#78).
+   */
+  function ensureSeeded(): void {
+    if (read<number>(KEYS.seedVersion, 0) >= SEED_VERSION) return
+    for (const [key, seeds] of [
+      [KEYS.ingredients, SEED_INGREDIENTS],
+      [KEYS.recipes, SEED_RECIPES],
+    ] as const) {
+      const existing = read<{ id: Id }[]>(key, [])
+      const ids = new Set(existing.map((r) => r.id))
+      write(key, [...existing, ...seeds.filter((s) => !ids.has(s.id))])
+    }
+    write(KEYS.seedVersion, SEED_VERSION)
+  }
+  ensureSeeded()
 
   // Small helpers for collections stored as arrays of records with an id.
   const list = <T extends { id: Id }>(key: string) => read<T[]>(key, [])

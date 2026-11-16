@@ -14,7 +14,10 @@
   "common": {
     "close": "Schließen",
     "selected": "ausgewählt",
-    "comingSoon": "Demnächst"
+    "comingSoon": "Demnächst",
+    "back": "Zurück",
+    "cancel": "Abbrechen",
+    "undo": "Rückgängig"
   },
   "screens": {
     "week": {
@@ -71,5 +74,130 @@
     "manualStep1": "Öffne das Browsermenü (⋮ oder ⋯).",
     "manualStep2": "Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.",
     "manualNote": "Keine solche Option? Dann unterstützt dieser Browser keine Installation. Probiere Chrome, Edge oder Samsung Internet, oder Safari auf dem iPhone."
+  },
+  "units": {
+    "short": {
+      "g": "g",
+      "kg": "kg",
+      "ml": "ml",
+      "dl": "dl",
+      "l": "l",
+      "tbsp": "EL",
+      "tsp": "TL",
+      "pcs": "Stk.",
+      "pinch": "Prise",
+      "pack": "Pck.",
+      "can": "Dose"
+    },
+    "long": {
+      "g": "Gramm",
+      "kg": "Kilogramm",
+      "ml": "Milliliter",
+      "dl": "Deziliter",
+      "l": "Liter",
+      "tbsp": "Esslöffel",
+      "tsp": "Teelöffel",
+      "pcs": "Stück",
+      "pinch": "Prise",
+      "pack": "Packung",
+      "can": "Dose"
+    }
+  },
+  "storeSections": {
+    "produce": "Obst und Gemüse",
+    "meatFish": "Fleisch und Fisch",
+    "dairy": "Molkerei und Kühlregal",
+    "bread": "Brot",
+    "dryGoods": "Trockenwaren",
+    "frozen": "Tiefkühl"
+  },
+  "recipes": {
+    "recipeCount_one": "{{count}} Rezept",
+    "recipeCount_other": "{{count}} Rezepte",
+    "favoriteCount_one": "{{count}} Favorit",
+    "favoriteCount_other": "{{count}} Favoriten",
+    "newRecipe": "Neues Rezept",
+    "search": "Rezepte durchsuchen",
+    "searchPlaceholder": "Rezepte durchsuchen …",
+    "filters": "Filter",
+    "all": "Alle",
+    "favorites": "Favoriten",
+    "kidFriendly": "Kinderfreundlich",
+    "healthy": "Gesund",
+    "cheat": "Cheat",
+    "nutritionMissing": "Nährwerte fehlen",
+    "showing_one": "{{count}} Rezept wird angezeigt",
+    "showing_other": "{{count}} Rezepte werden angezeigt",
+    "empty": "Keine passenden Rezepte. Versuche eine andere Suche oder einen anderen Filter.",
+    "minutes": "{{count}} Min.",
+    "proteinG": "{{value}} g Protein",
+    "favorite": "Favorit: {{name}}",
+    "deleted": "„{{name}}“ wurde gelöscht",
+    "saved": "Rezept gespeichert",
+    "detail": {
+      "protein": "Protein pro Portion",
+      "time": "Zeit",
+      "kcal": "kcal pro Portion",
+      "grams": "{{value}} g",
+      "portions": "Portionen",
+      "portionsHint": "Erwachsene = 1 Portion, Kinder = ½.",
+      "fewer": "Weniger Portionen",
+      "more": "Mehr Portionen",
+      "ingredients": "Zutaten",
+      "steps": "Zubereitung",
+      "nutritionMissing": "Für einige Zutaten fehlen Nährwerte, die Angaben können daher zu niedrig sein.",
+      "edit": "Bearbeiten",
+      "delete": "Löschen",
+      "favorite": "Favorit"
+    },
+    "form": {
+      "newTitle": "Neues Rezept",
+      "editTitle": "Rezept bearbeiten",
+      "notFound": "Rezept nicht gefunden. Es wurde vielleicht gelöscht.",
+      "name": "Name",
+      "categories": "Kategorie",
+      "time": "Zeit (Minuten)",
+      "servings": "Portionen",
+      "servingsHint": "Für wie viele Erwachsenenportionen die Mengen gelten.",
+      "kidFriendly": "Kinderfreundlich",
+      "snackKind": "Art des Snacks",
+      "ingredients": "Zutaten",
+      "addIngredient": "Zutat hinzufügen",
+      "amount": "Menge",
+      "amountFor": "Menge {{name}}",
+      "unit": "Einheit",
+      "unitFor": "Einheit {{name}}",
+      "removeIngredient": "{{name}} entfernen",
+      "noIngredients": "Noch keine Zutaten.",
+      "steps": "Schritte",
+      "step": "Schritt {{n}}",
+      "addStep": "Schritt hinzufügen",
+      "removeStep": "Schritt {{n}} entfernen",
+      "save": "Rezept speichern",
+      "errorSummary": "Es fehlt etwas. Bitte prüfe die markierten Felder.",
+      "errors": {
+        "name": "Bitte einen Namen eingeben.",
+        "categories": "Bitte mindestens eine Kategorie wählen.",
+        "number": "Bitte eine Zahl größer als 0 eingeben.",
+        "amounts": "Bitte für alle Zutaten eine Menge größer als 0 eingeben."
+      }
+    },
+    "picker": {
+      "title": "Zutat wählen",
+      "search": "Zutat suchen",
+      "noResults": "Keine Zutat mit diesem Namen gefunden.",
+      "createNamed": "Neue Zutat: „{{name}}“",
+      "create": "Neue Zutat"
+    },
+    "newIngredient": {
+      "title": "Neue Zutat",
+      "name": "Name",
+      "storeSection": "Abteilung im Geschäft",
+      "protein": "Protein pro 100 g (optional)",
+      "kcal": "kcal pro 100 g (optional)",
+      "hint": "Gib Protein und kcal an, damit Nährwerte berechnet werden. Sonst wird das Rezept mit „Nährwerte fehlen“ markiert.",
+      "save": "Zutat hinzufügen",
+      "nameRequired": "Bitte einen Namen eingeben."
+    }
   }
 }

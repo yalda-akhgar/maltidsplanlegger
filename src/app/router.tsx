@@ -1,5 +1,6 @@
 import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { PantryScreen } from '@/features/pantry/PantryScreen'
+import { RecipeFormScreen } from '@/features/recipes/RecipeFormScreen'
 import { RecipesScreen } from '@/features/recipes/RecipesScreen'
 import { SettingsScreen } from '@/features/settings/SettingsScreen'
 import { ShoppingScreen } from '@/features/shopping/ShoppingScreen'
@@ -12,6 +13,8 @@ const children: RouteObject[] = [
   { path: 'shopping', element: <ShoppingScreen /> },
   { path: 'pantry', element: <PantryScreen /> },
   { path: 'recipes', element: <RecipesScreen /> },
+  { path: 'recipes/new', element: <RecipeFormScreen /> },
+  { path: 'recipes/:id/edit', element: <RecipeFormScreen /> },
   { path: 'settings', element: <SettingsScreen /> },
   { path: '*', element: <Navigate to="/week" replace /> },
 ]

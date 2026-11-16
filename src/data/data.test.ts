@@ -65,17 +65,32 @@ describe('repository', () => {
       createdAt: '2026-11-16T00:00:00.000Z',
       updatedAt: '2026-11-16T00:00:00.000Z',
     }
+    const before = (await repo.listRecipes()).length
     await repo.saveRecipe(recipe)
     await repo.saveRecipe({ ...recipe, favorite: true })
-    expect(await repo.listRecipes()).toHaveLength(1)
+    expect(await repo.listRecipes()).toHaveLength(before + 1)
     expect((await repo.getRecipe(recipe.id))?.favorite).toBe(true)
     await repo.deleteRecipe(recipe.id)
-    expect(await repo.listRecipes()).toHaveLength(0)
+    expect(await repo.listRecipes()).toHaveLength(before)
   })
 
   it('survives corrupt stored data', async () => {
-    const repo = createRepository(memoryStorage({ 'mp:schemaVersion': '1', 'mp:recipes': '{not json' }))
+    const repo = createRepository(
+      memoryStorage({ 'mp:schemaVersion': '2', 'mp:seedVersion': '1', 'mp:recipes': '{not json' }),
+    )
     expect(await repo.listRecipes()).toEqual([])
+  })
+
+  it('adds the seed recipes once and keeps deleted ones deleted', async () => {
+    const storage = memoryStorage()
+    const repo = createRepository(storage)
+    const recipes = await repo.listRecipes()
+    expect(recipes.filter((r) => !r.categoryIds.includes('snack'))).toHaveLength(14)
+    expect(recipes.filter((r) => r.snackKind === 'healthy')).toHaveLength(10)
+    expect(recipes.filter((r) => r.snackKind === 'cheat')).toHaveLength(3)
+    await repo.deleteRecipe(recipes[0].id)
+    const again = createRepository(storage)
+    expect(await again.listRecipes()).toHaveLength(recipes.length - 1)
   })
 })
 

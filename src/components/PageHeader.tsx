@@ -18,8 +18,9 @@ export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   }, [title, appName])
 
   return (
-    <header className="mb-6 flex items-start justify-between gap-4">
-      <div className="min-w-0">
+    // The actions wrap below the title on narrow screens instead of squeezing it.
+    <header className="mb-6 flex flex-wrap items-start justify-between gap-x-4 gap-y-3">
+      <div className="max-w-full shrink-0 grow">
         <h1 className="text-2xl font-bold tracking-tight break-words sm:text-3xl">{title}</h1>
         {subtitle ? <p className="mt-1 text-muted-foreground">{subtitle}</p> : null}
       </div>

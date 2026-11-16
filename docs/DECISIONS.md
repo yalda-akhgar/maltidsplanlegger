@@ -539,3 +539,101 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Per whole day.
 - **Rationale:** Matches real life; the data model already stores it per meal.
 - **Consequences:** Milestone F needs a per-meal action for this.
+
+## 76. Seed snacks: 10 healthy + 3 cheat
+- **Date:** 2026-11-16
+- **Decision:** Healthy: skyr with vanilla, skyr with blueberries, skyr with mango, Greek yoghurt with walnuts, cottage cheese with pineapple, 2 boiled eggs, mixed nuts, edamame, quark with apple and cinnamon, carrot and cucumber with hummus. Cheat: nachos with cheese and salsa, ice cream with berries, popcorn.
+- **Alternatives:** 5 + 2 snacks; a list written by the product owner.
+- **Rationale:** Enough variety for a week of evening snacks (#21, #22).
+- **Consequences:** More snacks can be added in the app.
+
+## 77. Kid-friendly marking of seed recipes
+- **Date:** 2026-11-16
+- **Decision:** All seed recipes are marked kid-friendly except chicken tikka (spicy) and the lentil and chickpea stew. The user can change it in the app.
+- **Alternatives:** Mark none and let the user do it.
+- **Rationale:** Useful from day one; easy to correct.
+- **Consequences:** None.
+
+## 78. Seed recipes are editable and deletable
+- **Date:** 2026-11-16
+- **Decision:** Seed recipes behave like the user's own: they can be edited and deleted.
+- **Alternatives:** Read-only seeds that can only be copied.
+- **Rationale:** Simplest for the user.
+- **Consequences:** A deleted seed recipe does not come back by itself ("restore seed recipes" could be added later).
+
+## 79. Recipe filters
+- **Date:** 2026-11-16
+- **Decision:** Filter chips: All · Breakfast · Lunch · Dinner · Snacks · Favourites · Kid-friendly (meal order of the day).
+- **Alternatives:** The prototype order without Snacks/Kid-friendly.
+- **Rationale:** Matches the day; kid-friendly is useful for families.
+- **Consequences:** None.
+
+## 80. Recipe card initial tile in light purple
+- **Date:** 2026-11-16
+- **Decision:** Every recipe card shows a light purple tile with the purple first letter.
+- **Alternatives:** One colour per category.
+- **Rationale:** Safe contrast in both themes without new colours.
+- **Consequences:** None.
+
+## 81. Text badges on recipe cards
+- **Date:** 2026-11-16
+- **Decision:** Cards show text badges "Kid-friendly" and "Healthy"/"Cheat" (snacks).
+- **Alternatives:** Badges only in the detail view.
+- **Rationale:** Visible at a glance; text, not colour alone (WCAG).
+- **Consequences:** None.
+
+## 82. Recipes sorted alphabetically
+- **Date:** 2026-11-16
+- **Decision:** The recipe list is sorted alphabetically (in the current language).
+- **Alternatives:** Favourites first; newest first.
+- **Rationale:** Predictable and easy to scan.
+- **Consequences:** None.
+
+## 83. Portion stepper in the recipe detail
+- **Date:** 2026-11-16
+- **Decision:** The detail sheet has a −/+ portion stepper. It starts at the household size (adult = 1, child = ½), or at the recipe's servings if no household is set up yet.
+- **Alternatives:** Only the recipe's own servings.
+- **Rationale:** Works before onboarding (milestone G) and is useful afterwards.
+- **Consequences:** None.
+
+## 84. Rounding of scaled amounts
+- **Date:** 2026-11-16
+- **Decision:** Pieces are rounded to the nearest half, except eggs, which are always whole. Grams are rounded to 5 or 10, dl and l to one decimal.
+- **Alternatives:** No rounding; eggs to the nearest half.
+- **Rationale:** Amounts you can actually measure; nobody uses half an egg.
+- **Consequences:** Ingredients get a "whole units only" flag (set for eggs).
+
+## 85. Recipe form on its own page
+- **Date:** 2026-11-16
+- **Decision:** Adding and editing recipes happens on a separate page with a back button.
+- **Alternatives:** A large bottom sheet.
+- **Rationale:** Long forms are hard to use in a sheet on small screens.
+- **Consequences:** Routes `/recipes/new` and `/recipes/:id/edit`.
+
+## 86. "New recipe" goes straight to the form
+- **Date:** 2026-11-16
+- **Decision:** The button opens the form directly; import from link/photo comes in phase 6.
+- **Alternatives:** A sheet with three options, two marked "Coming soon".
+- **Rationale:** No dead ends.
+- **Consequences:** The choice sheet is added in phase 6.
+
+## 87. One field per recipe step
+- **Date:** 2026-11-16
+- **Decision:** Each step has its own field, with "+ Add step" and a delete button.
+- **Alternatives:** One large text field, one step per line.
+- **Rationale:** Clearer and easier with a screen reader.
+- **Consequences:** None.
+
+## 88. Delete with undo
+- **Date:** 2026-11-16
+- **Decision:** Deleting a recipe happens immediately and shows a toast "Recipe deleted · Undo".
+- **Alternatives:** A confirmation dialog first.
+- **Rationale:** Faster; mistakes are easy to undo.
+- **Consequences:** None.
+
+## 89. New ingredients: nutrition optional
+- **Date:** 2026-11-16
+- **Decision:** A new ingredient needs only a name and a store section. Protein and kcal can be filled in; if left empty the recipe is marked "nutrition missing".
+- **Alternatives:** All nutrition fields required.
+- **Rationale:** Quick to add; honest about missing data (#63).
+- **Consequences:** None.

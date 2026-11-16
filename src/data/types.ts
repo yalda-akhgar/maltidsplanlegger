@@ -71,6 +71,8 @@ export interface Ingredient {
    * { dl: 35 } for oats, { ml: 1.03 } for milk. `g` and `kg` are implicit.
    */
   gramsPerUnit: Partial<Record<Unit, number>>
+  /** Can only be used in whole pieces, e.g. eggs: scaled amounts round to whole units (#84). */
+  wholeUnitsOnly?: boolean
   /** Main protein source, used for the variety rule (#23), e.g. "chicken". */
   proteinSource?: string
   /** Tags used for exclusions, e.g. ["pork"], ["fish"], ["nuts"] (#68). */

@@ -14,7 +14,10 @@
   "common": {
     "close": "Close",
     "selected": "selected",
-    "comingSoon": "Coming soon"
+    "comingSoon": "Coming soon",
+    "back": "Back",
+    "cancel": "Cancel",
+    "undo": "Undo"
   },
   "screens": {
     "week": {
@@ -71,5 +74,130 @@
     "manualStep1": "Open the browser menu (⋮ or ⋯).",
     "manualStep2": "Choose “Install app” or “Add to Home screen”.",
     "manualNote": "Don't see the option? Then this browser doesn't support installing. Try Chrome, Edge or Samsung Internet, or Safari on iPhone."
+  },
+  "units": {
+    "short": {
+      "g": "g",
+      "kg": "kg",
+      "ml": "ml",
+      "dl": "dl",
+      "l": "l",
+      "tbsp": "tbsp",
+      "tsp": "tsp",
+      "pcs": "pcs",
+      "pinch": "pinch",
+      "pack": "pack",
+      "can": "can"
+    },
+    "long": {
+      "g": "grams",
+      "kg": "kilograms",
+      "ml": "millilitres",
+      "dl": "decilitres",
+      "l": "litres",
+      "tbsp": "tablespoon",
+      "tsp": "teaspoon",
+      "pcs": "pieces",
+      "pinch": "pinch",
+      "pack": "pack",
+      "can": "can"
+    }
+  },
+  "storeSections": {
+    "produce": "Fruit and vegetables",
+    "meatFish": "Meat and fish",
+    "dairy": "Dairy and chilled",
+    "bread": "Bread",
+    "dryGoods": "Dry goods",
+    "frozen": "Frozen"
+  },
+  "recipes": {
+    "recipeCount_one": "{{count}} recipe",
+    "recipeCount_other": "{{count}} recipes",
+    "favoriteCount_one": "{{count}} favourite",
+    "favoriteCount_other": "{{count}} favourites",
+    "newRecipe": "New recipe",
+    "search": "Search recipes",
+    "searchPlaceholder": "Search recipes …",
+    "filters": "Filters",
+    "all": "All",
+    "favorites": "Favourites",
+    "kidFriendly": "Kid-friendly",
+    "healthy": "Healthy",
+    "cheat": "Cheat",
+    "nutritionMissing": "Nutrition missing",
+    "showing_one": "Showing {{count}} recipe",
+    "showing_other": "Showing {{count}} recipes",
+    "empty": "No matching recipes. Try another search or filter.",
+    "minutes": "{{count}} min",
+    "proteinG": "{{value}} g protein",
+    "favorite": "Favourite: {{name}}",
+    "deleted": "“{{name}}” deleted",
+    "saved": "Recipe saved",
+    "detail": {
+      "protein": "protein per portion",
+      "time": "time",
+      "kcal": "kcal per portion",
+      "grams": "{{value}} g",
+      "portions": "Portions",
+      "portionsHint": "Adult = 1 portion, child = ½.",
+      "fewer": "Fewer portions",
+      "more": "More portions",
+      "ingredients": "Ingredients",
+      "steps": "Method",
+      "nutritionMissing": "Some ingredients have no nutrition data, so the numbers may be too low.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "favorite": "Favourite"
+    },
+    "form": {
+      "newTitle": "New recipe",
+      "editTitle": "Edit recipe",
+      "notFound": "Recipe not found. It may have been deleted.",
+      "name": "Name",
+      "categories": "Category",
+      "time": "Time (minutes)",
+      "servings": "Portions",
+      "servingsHint": "How many adult portions the amounts are for.",
+      "kidFriendly": "Kid-friendly",
+      "snackKind": "Snack type",
+      "ingredients": "Ingredients",
+      "addIngredient": "Add ingredient",
+      "amount": "Amount",
+      "amountFor": "Amount {{name}}",
+      "unit": "Unit",
+      "unitFor": "Unit {{name}}",
+      "removeIngredient": "Remove {{name}}",
+      "noIngredients": "No ingredients yet.",
+      "steps": "Steps",
+      "step": "Step {{n}}",
+      "addStep": "Add step",
+      "removeStep": "Remove step {{n}}",
+      "save": "Save recipe",
+      "errorSummary": "Something is missing. Check the marked fields.",
+      "errors": {
+        "name": "Enter a name.",
+        "categories": "Choose at least one category.",
+        "number": "Enter a number greater than 0.",
+        "amounts": "Enter an amount greater than 0 for every ingredient."
+      }
+    },
+    "picker": {
+      "title": "Choose ingredient",
+      "search": "Search for an ingredient",
+      "noResults": "No ingredient with that name.",
+      "createNamed": "New ingredient: “{{name}}”",
+      "create": "New ingredient"
+    },
+    "newIngredient": {
+      "title": "New ingredient",
+      "name": "Name",
+      "storeSection": "Store section",
+      "protein": "Protein per 100 g (optional)",
+      "kcal": "kcal per 100 g (optional)",
+      "hint": "Fill in both protein and kcal to get nutrition values. Otherwise the recipe is marked “Nutrition missing”.",
+      "save": "Add ingredient",
+      "nameRequired": "Enter a name."
+    }
   }
 }
