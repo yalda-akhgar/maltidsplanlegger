@@ -6,7 +6,9 @@ Repo: https://github.com/yalda-akhgar/maltidsplanlegger (public). Git identity (
 
 Milestone B delivered: brand + dark tokens (`src/index.css`), base components (button, card, chip, bottom sheet, toast, switch, input, badge), app shell with bottom nav / sidebar, routing, i18n (nb/de/en), "Coming soon" screens, Settings (language, theme, install guide), PWA (manifest, icons, auto-updating service worker), Android back button closes sheets, safe areas. Dev-only component overview at `/design`.
 
-**Awaiting product-owner confirmation** (made during B without asking first – log in DECISIONS.md once confirmed): shadcn "Maia" preset on Radix; dark toasts (as in the Figma prototype); pill-shaped chips; manifest/status-bar colour = page background; English route paths (`/week`, …); dev server exposed on the local network (`host: true`). Also flagged: white text on dark-mode purple `#8B5CF6` has contrast ~4.2:1 (below WCAG AA 4.5:1 for small text).
+**Awaiting product-owner confirmation** (made during B without asking first – log in DECISIONS.md once confirmed): shadcn "Maia" preset on Radix; dark toasts (as in the Figma prototype); pill-shaped chips; manifest/status-bar colour = page background; English route paths (`/week`, …); dev server exposed on the local network (`host: true`).
+
+Accessibility pass done (2026-11-16): WCAG 2.2 AA is a requirement (decision #53); dark purple is now `#8453F6` (#54); `npm run check:contrast` passes.
 
 <details><summary>Milestone A log</summary>
 
@@ -98,8 +100,10 @@ CLAUDE.md                This file
 Conventions:
 - All UI text comes from `src/i18n/locales/*.json` (nb is the fallback). Never hard-code UI text.
 - Bottom sheets use `components/ui/bottom-sheet.tsx` (swipe, close button, Android back button).
-- Colours only via design tokens (`bg-primary`, `text-muted-foreground`, …), never raw hex in components.
+- Colours only via design tokens (`bg-primary`, `text-muted-foreground`, …), never raw hex in components. Purple **text** uses `text-primary-text` (not `text-primary`). After changing colours, run `npm run check:contrast`.
 - Touch targets ≥ 44 px (`h-11` / `min-h-11`). Respect safe areas with `env(safe-area-inset-*)`.
+- **Accessibility – WCAG 2.2 AA is a requirement** (decision #53): contrast in both themes; colour never the only signal; `aria-label` on icon-only buttons; full keyboard use with visible focus (`focus-visible:ring-2 ring-ring`); text sizes in rem; reduced motion respected (global rule in `index.css`). Each screen sets its title via `PageHeader`.
+- **Editing files on Windows:** never use PowerShell 5.1 `Get-Content`/`Set-Content` to edit source files – it corrupts UTF-8 (æøå, –, ↻) and adds a BOM. Use the Edit/Write tools or Node.
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase

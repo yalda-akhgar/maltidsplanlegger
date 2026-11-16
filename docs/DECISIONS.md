@@ -369,3 +369,24 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Just "Coming soon".
 - **Rationale:** Testers understand the product vision and can give feedback on it.
 - **Consequences:** Texts live in the translation files.
+
+## 53. Accessibility: WCAG 2.2 level AA for the whole app
+- **Date:** 2026-11-16
+- **Decision:** The whole app must meet WCAG 2.2 level AA. In practice:
+  - **Contrast** in both light and dark mode: text ≥ 4.5:1, UI component boundaries and meaningful icons ≥ 3:1.
+  - **Colour is never the only signal** (e.g. selected chips also show a check mark; the active menu item is also bold).
+  - **Screen readers:** every icon-only button has an `aria-label`; decorative icons are hidden; correct landmarks, headings, page titles and `lang`.
+  - **Full keyboard use** with a clearly visible focus indicator.
+  - **Touch targets at least 44 × 44 px** (stricter than AA's 24 px).
+  - **Larger text:** sizes in `rem`, no fixed text heights, works at 200 % text size and at 320 px width.
+  - **Reduced motion:** animations are switched off when the device asks for reduced motion.
+- **Alternatives:** WCAG 2.1 AA; best effort without a formal level.
+- **Rationale:** The app is for whole families, including people with impaired vision or motor skills. Accessibility is also a legal requirement for many digital services in the EU (European Accessibility Act) and a strong signal of quality to employers.
+- **Consequences:** `npm run check:contrast` verifies all colour pairs in both themes and must pass. Every new component is checked against this list. To meet the contrast rules, input/switch borders were darkened (`#8A8699` light, `#746E8A` dark), the error red was darkened to `#B91C1C`, and purple text uses its own token (`--primary-text`: `#7C3AED` light, `#C4B5FD` dark), so the purple fill can be darker than purple text in dark mode.
+
+## 54. Darker dark-mode purple: `#8453F6`
+- **Date:** 2026-11-16
+- **Decision:** The dark-mode primary purple changes from `#8B5CF6` to `#8453F6` (amends #44).
+- **Alternatives:** Keep `#8B5CF6` (white text only 4.2:1); use dark text on the purple.
+- **Rationale:** White text on `#8453F6` reaches 4.6:1 (WCAG AA), while the colour looks almost identical.
+- **Consequences:** Focus rings in dark mode keep the lighter `#8B5CF6`, which only needs 3:1.

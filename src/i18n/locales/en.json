@@ -13,6 +13,7 @@
   },
   "common": {
     "close": "Close",
+    "selected": "selected",
     "comingSoon": "Coming soon"
   },
   "screens": {

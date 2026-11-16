@@ -8,10 +8,12 @@ import { InstallGuide } from '@/features/install/InstallGuide'
 
 const THEMES = ['system', 'light', 'dark'] as const
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border bg-card p-4 sm:p-5">
-      <h2 className="mb-3 font-semibold">{title}</h2>
+    <section aria-labelledby={id} className="rounded-2xl border bg-card p-4 sm:p-5">
+      <h2 id={id} className="mb-3 font-semibold">
+        {title}
+      </h2>
       {children}
     </section>
   )
@@ -30,8 +32,8 @@ export function SettingsScreen() {
     <>
       <PageHeader title={t('settings.title')} />
       <div className="space-y-4">
-        <Section title={t('settings.language.title')}>
-          <div className="flex flex-wrap gap-2">
+        <Section id="settings-language" title={t('settings.language.title')}>
+          <div role="group" aria-labelledby="settings-language" className="flex flex-wrap gap-2">
             {SUPPORTED_LANGUAGES.map((language) => (
               <Chip
                 key={language}
@@ -45,8 +47,8 @@ export function SettingsScreen() {
           </div>
         </Section>
 
-        <Section title={t('settings.appearance.title')}>
-          <div className="flex flex-wrap gap-2">
+        <Section id="settings-appearance" title={t('settings.appearance.title')}>
+          <div role="group" aria-labelledby="settings-appearance" className="flex flex-wrap gap-2">
             {THEMES.map((value) => (
               <Chip key={value} selected={(theme ?? 'system') === value} onClick={() => setTheme(value)}>
                 {t(`settings.appearance.${value}`)}
@@ -55,7 +57,7 @@ export function SettingsScreen() {
           </div>
         </Section>
 
-        <Section title={t('settings.install.title')}>
+        <Section id="settings-install" title={t('settings.install.title')}>
           <InstallGuide />
         </Section>
       </div>

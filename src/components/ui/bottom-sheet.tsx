@@ -31,7 +31,8 @@ function BottomSheet({ open, onOpenChange, title, description, footer, children 
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
+      {/* Without a description, tell Radix not to expect one (avoids a broken aria-describedby). */}
+      <DrawerContent {...(description ? {} : { 'aria-describedby': undefined })}>
         <DrawerHeader className="relative pr-14 text-left md:text-left">
           <DrawerTitle className="text-left">{title}</DrawerTitle>
           {description ? <DrawerDescription className="text-left">{description}</DrawerDescription> : null}

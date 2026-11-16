@@ -39,9 +39,9 @@ export function AppShell() {
               to={path}
               className={({ isActive }) =>
                 cn(
-                  'flex min-h-11 items-center gap-3 rounded-xl px-3 font-medium transition-colors',
+                  'flex min-h-11 items-center gap-3 rounded-xl px-3 font-medium transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   isActive
-                    ? 'bg-sidebar-accent text-sidebar-accent-foreground'
+                    ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
                     : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
                 )
               }
@@ -73,8 +73,11 @@ export function AppShell() {
                 to={path}
                 className={({ isActive }) =>
                   cn(
-                    'flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-[11px] leading-tight font-medium transition-colors',
-                    isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground',
+                    // rem-based label size so it grows with the user's text size setting
+                    'flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-1.5 text-center text-[0.6875rem] leading-tight transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                    isActive
+                      ? 'font-semibold text-primary-text'
+                      : 'font-medium text-muted-foreground hover:text-foreground',
                   )
                 }
               >
@@ -88,7 +91,7 @@ export function AppShell() {
                     >
                       <Icon className="size-5" aria-hidden />
                     </span>
-                    <span className="max-w-full truncate">{t(labelKey)}</span>
+                    <span className="max-w-full break-words hyphens-auto">{t(labelKey)}</span>
                   </>
                 )}
               </NavLink>

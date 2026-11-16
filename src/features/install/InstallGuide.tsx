@@ -12,7 +12,7 @@ export function InstallGuide() {
   if (mode === 'installed') {
     return (
       <p className="flex items-center gap-2 text-muted-foreground">
-        <CheckCircle2Icon className="size-5 text-primary" aria-hidden />
+        <CheckCircle2Icon className="size-5 shrink-0 text-primary-text" aria-hidden />
         {t('install.installed')}
       </p>
     )

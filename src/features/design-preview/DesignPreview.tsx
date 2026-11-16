@@ -37,7 +37,7 @@ export function DesignPreview() {
             <Button variant="outline">{t('designPreview.outline')}</Button>
             <Button variant="ghost">{t('designPreview.ghost')}</Button>
             <Button variant="destructive">{t('designPreview.destructive')}</Button>
-            <Button size="icon" variant="outline" aria-label="↻">
+            <Button size="icon" variant="outline" aria-label={t('designPreview.swapLabel')}>
               <RefreshCwIcon />
             </Button>
           </div>
@@ -49,8 +49,8 @@ export function DesignPreview() {
               <CardTitle>{t('designPreview.cardTitle')}</CardTitle>
               <CardDescription>{t('designPreview.cardText')}</CardDescription>
               <CardAction>
-                <Button size="icon" variant="ghost" aria-label="♥">
-                  <HeartIcon className="fill-primary text-primary" />
+                <Button size="icon" variant="ghost" aria-label={t('designPreview.favoriteLabel')} aria-pressed>
+                  <HeartIcon className="fill-primary-text text-primary-text" />
                 </Button>
               </CardAction>
             </CardHeader>

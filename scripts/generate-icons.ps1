@@ -1,4 +1,4 @@
-﻿# Renders the PWA PNG icons from the SVG sources using headless Microsoft Edge.
+# Renders the PWA PNG icons from the SVG sources using headless Microsoft Edge.
 # Run from the project root:  powershell -File scripts/generate-icons.ps1
 $edge = "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 $root = (Resolve-Path "$PSScriptRoot\..").Path

@@ -13,6 +13,7 @@
   },
   "common": {
     "close": "Lukk",
+    "selected": "valgt",
     "comingSoon": "Kommer snart"
   },
   "screens": {
@@ -98,6 +99,8 @@
     "sheetText": "Dra ned, trykk utenfor, trykk Lukk eller bruk tilbakeknappen på Android for å lukke.",
     "toast": "Toast",
     "showToast": "Vis toast",
-    "toastText": "Oppskrift lagret"
+    "toastText": "Oppskrift lagret",
+    "swapLabel": "Bytt rett",
+    "favoriteLabel": "Favoritt"
   }
 }

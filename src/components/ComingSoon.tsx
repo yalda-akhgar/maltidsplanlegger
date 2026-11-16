@@ -15,7 +15,7 @@ export function ComingSoon({ icon: Icon, description }: ComingSoonProps) {
       <div className="mb-4 flex size-16 items-center justify-center rounded-2xl bg-accent text-accent-foreground">
         <Icon className="size-8" aria-hidden />
       </div>
-      <Badge variant="secondary" className="mb-3 h-6 px-3 text-sm">
+      <Badge variant="secondary" className="mb-3 h-auto px-3 py-1 text-sm">
         {t('common.comingSoon')}
       </Badge>
       <p className="max-w-sm text-muted-foreground">{description}</p>

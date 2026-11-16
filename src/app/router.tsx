@@ -1,4 +1,4 @@
-﻿import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
+import { createBrowserRouter, Navigate, type RouteObject } from 'react-router'
 import { PantryScreen } from '@/features/pantry/PantryScreen'
 import { RecipesScreen } from '@/features/recipes/RecipesScreen'
 import { SettingsScreen } from '@/features/settings/SettingsScreen'
