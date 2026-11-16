@@ -390,3 +390,54 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Keep `#8B5CF6` (white text only 4.2:1); use dark text on the purple.
 - **Rationale:** White text on `#8453F6` reaches 4.6:1 (WCAG AA), while the colour looks almost identical.
 - **Consequences:** Focus rings in dark mode keep the lighter `#8B5CF6`, which only needs 3:1.
+
+## 55. Search engines blocked (`robots.txt`)
+- **Date:** 2026-11-16
+- **Decision:** `robots.txt` asks all search engines not to index the app.
+- **Alternatives:** Allow indexing; postpone until publishing in phase 7.
+- **Rationale:** A private family tool with no public content worth finding. Employers find the project via GitHub and the README.
+- **Consequences:** Fixes the Lighthouse SEO finding. To be reconsidered in phase 7.
+
+> Decisions #56–#61 were made by Claude Code during milestone B without asking first, and approved afterwards by the product owner on 2026-11-16. Going forward, such choices – including small design choices – are asked about **before** they are made (#34).
+
+## 56. shadcn/ui "Maia" style on Radix
+- **Date:** 2026-11-16
+- **Decision:** Use the shadcn/ui "Maia" preset (soft, rounded, generous spacing) built on Radix primitives.
+- **Alternatives:** Other presets (Vega, Nova, Lyra, Mira …), which are sharper or denser.
+- **Rationale:** Closest match to the brief: rounded corners, lots of white space, calm look.
+- **Consequences:** Component defaults were adjusted to the brand tokens and 44 px targets.
+
+## 57. Dark toasts
+- **Date:** 2026-11-16
+- **Decision:** Toasts are dark with light text (inverted relative to the page), as in the Figma prototype.
+- **Alternatives:** Toasts in the card colour.
+- **Rationale:** Stands out clearly from the content without being alarming.
+- **Consequences:** In dark mode the toast is light.
+
+## 58. Pill-shaped chips
+- **Date:** 2026-11-16
+- **Decision:** Chips (filters, choices) are fully rounded pills; buttons and inputs use 14 px corners.
+- **Alternatives:** Chips with 14 px corners like buttons.
+- **Rationale:** Visually separates "choose" (chips) from "act" (buttons).
+- **Consequences:** None.
+
+## 59. Status bar colour matches the page background
+- **Date:** 2026-11-16
+- **Decision:** The phone status bar / installed-app title bar uses the page background colour (light or dark), not purple.
+- **Alternatives:** Purple status bar.
+- **Rationale:** Calm, seamless look; follows the active theme.
+- **Consequences:** Updated automatically when the theme changes.
+
+## 60. English URL paths
+- **Date:** 2026-11-16
+- **Decision:** Routes use English paths (`/week`, `/shopping`, `/pantry`, `/recipes`, `/settings`).
+- **Alternatives:** Norwegian paths (`/uke`, …); paths per language.
+- **Rationale:** Language-neutral for a multilingual app; users rarely see URLs.
+- **Consequences:** None.
+
+## 61. Dev server reachable on the local network
+- **Date:** 2026-11-16
+- **Decision:** The development server listens on the local network (`host: true`).
+- **Alternatives:** Localhost only.
+- **Rationale:** Allows testing on real phones on the same Wi-Fi.
+- **Consequences:** Others on the same network can open the dev version while it runs; Windows may ask for firewall permission.

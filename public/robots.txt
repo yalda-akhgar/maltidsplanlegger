@@ -1,0 +1,3 @@
+# Private family app – search engines are asked not to index it (docs/DECISIONS.md #55).
+User-agent: *
+Disallow: /

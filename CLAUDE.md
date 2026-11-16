@@ -6,7 +6,7 @@ Repo: https://github.com/yalda-akhgar/maltidsplanlegger (public). Git identity (
 
 Milestone B delivered: brand + dark tokens (`src/index.css`), base components (button, card, chip, bottom sheet, toast, switch, input, badge), app shell with bottom nav / sidebar, routing, i18n (nb/de/en), "Coming soon" screens, Settings (language, theme, install guide), PWA (manifest, icons, auto-updating service worker), Android back button closes sheets, safe areas. Dev-only component overview at `/design`.
 
-**Awaiting product-owner confirmation** (made during B without asking first – log in DECISIONS.md once confirmed): shadcn "Maia" preset on Radix; dark toasts (as in the Figma prototype); pill-shaped chips; manifest/status-bar colour = page background; English route paths (`/week`, …); dev server exposed on the local network (`host: true`).
+Choices made during B without asking were approved afterwards (#56–#61). ⚠️ The product owner reminded: ask BEFORE every choice, including small design choices. `robots.txt` blocks indexing (#55). Lighthouse results in `docs/LIGHTHOUSE.md`.
 
 Accessibility pass done (2026-11-16): WCAG 2.2 AA is a requirement (decision #53); dark purple is now `#8453F6` (#54); `npm run check:contrast` passes.
 

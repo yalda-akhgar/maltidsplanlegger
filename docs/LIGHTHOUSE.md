@@ -42,7 +42,7 @@ Total page weight: 231 KiB.
 **For comparison – development server** (measured by the product owner): Performance 40, Accessibility 100, Best Practices 96, SEO 91. The gap in Performance and Best Practices comes from development-mode code, not the app itself.
 
 **Remaining findings:**
-- **SEO – `robots.txt` missing.** The single-page-app fallback returns the HTML page for `/robots.txt`, which Lighthouse reports as invalid. Fix: add a `robots.txt` (pending product-owner decision on whether search engines may index the app).
+- **SEO – `robots.txt` missing.** The single-page-app fallback returned the HTML page for `/robots.txt`, which Lighthouse reports as invalid. **Fixed after this audit:** a `robots.txt` that blocks indexing was added (decision #55).
 - **Performance – unused JavaScript (~84 KiB).** All screens are in one bundle. Can be addressed by loading screens on demand when the app grows.
 
 **Notes:** Scores were measured locally; results on real hosting (phase 7, Vercel with HTTPS, compression and CDN) will differ and should be re-measured then.
