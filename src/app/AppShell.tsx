@@ -74,7 +74,7 @@ export function AppShell() {
                 className={({ isActive }) =>
                   cn(
                     // rem-based label size so it grows with the user's text size setting
-                    'flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-1.5 text-center text-[0.6875rem] leading-tight transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                    'flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl px-0.5 py-1.5 text-center text-[0.6875rem] leading-tight max-[359px]:text-[0.625rem] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
                     isActive
                       ? 'font-semibold text-primary-text'
                       : 'font-medium text-muted-foreground hover:text-foreground',

@@ -637,3 +637,38 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** All nutrition fields required.
 - **Rationale:** Quick to add; honest about missing data (#63).
 - **Consequences:** None.
+
+## 90. Page header: actions below the title on mobile
+- **Date:** 2026-11-16
+- **Decision:** Buttons in the page header (e.g. "New recipe") wrap below the title on narrow screens.
+- **Alternatives:** A small round "+" button next to the title.
+- **Rationale:** The title never breaks mid-word, and the button keeps a clear text label.
+- **Consequences:** Applies to every screen that uses `PageHeader`.
+
+## 91. Smaller bottom-nav labels on the narrowest screens
+- **Date:** 2026-11-16
+- **Decision:** Below 360 px width the bottom-nav labels use 0.625rem instead of 0.6875rem.
+- **Alternatives:** Shorter nav labels.
+- **Rationale:** Keeps the familiar names; Norwegian and English labels now fit on one line at 320 px.
+- **Consequences:** The German labels "Einkaufsliste" and "Einstellungen" still wrap at 320 px (open question).
+
+## 92. Recipe search also matches ingredients
+- **Date:** 2026-11-16
+- **Decision:** The search on the recipes screen matches the recipe name and its ingredient names, in the current UI language.
+- **Alternatives:** Recipe name only.
+- **Rationale:** "What can I make with salmon?" is a common question.
+- **Consequences:** None.
+
+## 93. Warning before leaving a form with unsaved changes
+- **Date:** 2026-11-16
+- **Decision:** Leaving the recipe form with unsaved changes (Back, Cancel, bottom nav, Android/browser back) shows a centered dialog: "Discard changes?" with "Keep editing" (focused) and "Discard changes" (red). Reloading or closing the tab shows the browser's own warning.
+- **Alternatives:** Add it to the backlog; a bottom sheet; the browser's built-in confirm box.
+- **Rationale:** Losing a half-written recipe is frustrating. A dialog is the clearest warning and is translated.
+- **Consequences:** New shared component `components/ui/confirm-dialog.tsx` (Radix AlertDialog, already part of `radix-ui`). Can be reused by other forms.
+
+## 94. Bundle size is handled in milestone H
+- **Date:** 2026-11-16
+- **Decision:** The build warning about the JavaScript bundle (> 500 kB) is addressed in milestone H (code splitting).
+- **Alternatives:** Fix it now.
+- **Rationale:** It does not affect features; better to optimise once the screens exist.
+- **Consequences:** The warning remains until milestone H.

@@ -211,6 +211,12 @@
         "categories": "Velg minst én kategori.",
         "number": "Skriv inn et tall større enn 0.",
         "amounts": "Skriv inn en mengde større enn 0 for alle ingrediensene."
+      },
+      "unsaved": {
+        "title": "Forkaste endringene?",
+        "description": "Du har endringer som ikke er lagret. De forsvinner hvis du går ut.",
+        "keepEditing": "Fortsett å redigere",
+        "discard": "Forkast endringer"
       }
     },
     "picker": {

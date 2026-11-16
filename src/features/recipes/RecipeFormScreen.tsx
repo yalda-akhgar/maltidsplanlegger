@@ -2,11 +2,12 @@ import { ArrowLeftIcon, PlusIcon, XIcon } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type * as React from 'react'
 import { useTranslation } from 'react-i18next'
-import { useLocation, useNavigate, useParams } from 'react-router'
+import { useBlocker, useLocation, useNavigate, useParams } from 'react-router'
 import { toast } from 'sonner'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
+import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { Switch } from '@/components/ui/switch'
@@ -110,11 +111,26 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
   const language = useLanguage()
   const goBack = useGoBack()
   const uid = useId()
-  const [form, setForm] = useState<FormState>(() => initialState(recipe, language))
+  const [initial] = useState<FormState>(() => initialState(recipe, language))
+  const [form, setForm] = useState<FormState>(initial)
   const [submitted, setSubmitted] = useState(false)
   const [pickerOpen, setPickerOpen] = useState(false)
   const [ingredients, setIngredients] = useState(data.ingredients)
   const summaryRef = useRef<HTMLDivElement>(null)
+  const leavingAfterSave = useRef(false)
+
+  // Warn before unsaved changes are lost (#93): in-app navigation, Android back, reload/close.
+  const dirty = JSON.stringify(form) !== JSON.stringify(initial)
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      dirty && !leavingAfterSave.current && currentLocation.pathname !== nextLocation.pathname,
+  )
+  useEffect(() => {
+    if (!dirty) return
+    const onBeforeUnload = (event: BeforeUnloadEvent) => event.preventDefault()
+    window.addEventListener('beforeunload', onBeforeUnload)
+    return () => window.removeEventListener('beforeunload', onBeforeUnload)
+  }, [dirty])
   const focusStepKey = useRef<string | null>(null)
 
   const ingredientMap = new Map(ingredients.map((i) => [i.id, i]))
@@ -173,6 +189,7 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
     else delete saved.snackKind
     await repository.saveRecipe(saved)
     toast(t('recipes.saved'))
+    leavingAfterSave.current = true
     goBack()
   }
 
@@ -409,6 +426,16 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
           </Button>
         </div>
       </form>
+
+      <ConfirmDialog
+        open={blocker.state === 'blocked'}
+        title={t('recipes.form.unsaved.title')}
+        description={t('recipes.form.unsaved.description')}
+        cancelLabel={t('recipes.form.unsaved.keepEditing')}
+        confirmLabel={t('recipes.form.unsaved.discard')}
+        onCancel={() => blocker.reset?.()}
+        onConfirm={() => blocker.proceed?.()}
+      />
 
       <IngredientPicker
         open={pickerOpen}

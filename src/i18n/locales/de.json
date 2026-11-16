@@ -180,6 +180,12 @@
         "categories": "Bitte mindestens eine Kategorie wählen.",
         "number": "Bitte eine Zahl größer als 0 eingeben.",
         "amounts": "Bitte für alle Zutaten eine Menge größer als 0 eingeben."
+      },
+      "unsaved": {
+        "title": "Änderungen verwerfen?",
+        "description": "Du hast Änderungen, die nicht gespeichert sind. Sie gehen verloren, wenn du die Seite verlässt.",
+        "keepEditing": "Weiter bearbeiten",
+        "discard": "Änderungen verwerfen"
       }
     },
     "picker": {

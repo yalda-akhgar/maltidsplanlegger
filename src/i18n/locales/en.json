@@ -180,6 +180,12 @@
         "categories": "Choose at least one category.",
         "number": "Enter a number greater than 0.",
         "amounts": "Enter an amount greater than 0 for every ingredient."
+      },
+      "unsaved": {
+        "title": "Discard changes?",
+        "description": "You have changes that are not saved. They will be lost if you leave.",
+        "keepEditing": "Keep editing",
+        "discard": "Discard changes"
       }
     },
     "picker": {

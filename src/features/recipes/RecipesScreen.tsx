@@ -40,7 +40,10 @@ export function RecipesScreen() {
         if (filter.kind === 'category' && !r.categoryIds.includes(filter.id)) return false
         if (filter.kind === 'favorites' && !r.favorite) return false
         if (filter.kind === 'kidFriendly' && !r.kidFriendly) return false
-        return !q || localize(r.name, language).toLocaleLowerCase(language).includes(q)
+        if (!q) return true
+        // Matches the recipe name or any ingredient name in the current language (#92).
+        const names = [r.name, ...r.ingredients.map((line) => data.ingredientMap.get(line.ingredientId)?.name)]
+        return names.some((name) => localize(name, language).toLocaleLowerCase(language).includes(q))
       })
       .sort((a, b) => localize(a.name, language).localeCompare(localize(b.name, language), language)) // #82
   }, [data, query, filter, language])
