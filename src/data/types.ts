@@ -205,6 +205,21 @@ export interface PlannedMeal {
   portions: Record<Id, number>
   /** Extra guests eating this meal; each gets a standard adult portion (#31). */
   guests: number
+  /** What actually happened. Missing = still just planned. Used from phase 2 (#106). */
+  outcome?: MealOutcome
+}
+
+/**
+ * The outcome of a meal (#106), recorded for the whole household:
+ * - eaten:          eaten as planned
+ * - ateSomethingElse: something else was eaten – `recipeId` says what
+ * - skipped:        the meal was skipped
+ */
+export interface MealOutcome {
+  status: 'eaten' | 'ateSomethingElse' | 'skipped'
+  /** For "ateSomethingElse": the recipe that was eaten instead. */
+  recipeId?: Id
+  recordedAt: Timestamp
 }
 
 export interface DayPlan {

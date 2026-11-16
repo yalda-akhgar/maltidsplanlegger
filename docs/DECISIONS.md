@@ -749,3 +749,10 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Leftovers cannot be swapped.
 - **Rationale:** Gives the user control while keeping the amounts correct.
 - **Consequences:** When a dinner is swapped, the next day's lunch follows it only if that lunch is still leftovers.
+
+## 106. Meal outcome in the data model (eaten / ate something else / skipped)
+- **Date:** 2026-11-16
+- **Decision:** Each planned meal can record what actually happened: still planned (no outcome), eaten, "ate something else" (with a link to the recipe that was eaten instead) or skipped. Only the data model is added now; the feature comes in phase 2 together with the 👍/👎 rating: a "✓ Eaten" button, "I ate something else → choose recipe", and progress showing eaten protein next to planned protein.
+- **Alternatives:** Add the field when the feature is built in phase 2.
+- **Rationale:** Same reasoning as #25 – avoids migrating stored plans later.
+- **Consequences:** New optional `outcome` field on `PlannedMeal` (no data migration needed). Together with manual protein logging it forms a future "food diary" (backlog #7). The outcome is recorded for the whole household per meal, like the rating (#71).

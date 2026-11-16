@@ -10,6 +10,7 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 4 | German menu labels on small phones | German menu labels wrap on very small phones (320 px) – revisit after German testers have tried the app. | Later | Only affects German on the narrowest screens; real feedback first (#91). | 2026-11-16 |
 | 5 | Planner prefers fruit and vegetables | Planner actively prefers dishes with more fruit and vegetables. | Later | Kept the first planner simple; fruit/veg is shown in "Today's nutrition" (#99). | 2026-11-16 |
 | 6 | Longer weekend dinners | Longer weekend dinners (over 30 min). | Later | All dinners are ≤ 30 min in phase 1 (#97). | 2026-11-16 |
+| 7 | Food diary | "Manual protein logging" and marking meals as eaten / "ate something else" / skipped belong together as one food diary: logged protein next to planned protein. Meal tracking is planned for phase 2 (#106); manual logging of food outside the plan should be designed together with it. | Later | Phase 2; the data model is ready (#106). | 2026-11-16 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.

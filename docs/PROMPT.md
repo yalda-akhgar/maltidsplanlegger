@@ -168,7 +168,7 @@ Du skal hjelpe meg å bygge en personlig måltidsplanlegger-app. Jeg er nybegynn
 
 ## 5. Faser (stopp etter hver fase og vent på meg)
 1. **Fundament:** oppsett, design (inkl. **mørk modus**), språk, datamodell (med felt for næring, barnevennlig, vurdering, pris og utløpsdato fra start), oppskrifter, ukeplan med proteinmål, kveldssnacks, næringsbalanse, oppstartsveiviser, **barnevennlig + barnas preferanser** og **«spiser ute/besøk»**. Lagres lokalt.
-2. **Bruksopplevelse:** matlagingsmodus, vurder retten (👍/👎) og ukesoppsummering.
+2. **Bruksopplevelse:** matlagingsmodus, vurder retten (👍/👎), ukesoppsummering og **marker måltider som spist**: knappen «✓ Spist» og «Jeg spiste noe annet → velg oppskrift» (eller hoppet over). Fremdriften viser spist protein i tillegg til planlagt.
 3. **Hjemme + handleliste:** har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS.
 4. **Tale:** mikrofonknapp og talekommandoer.
 5. **Innlogging + deling:** Supabase, Google + e-post/passord, passkeys (Face ID/fingeravtrykk), husholdning, invitasjon på e-post, sanntid. Flytt lokale data til databasen.
