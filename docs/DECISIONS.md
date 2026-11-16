@@ -672,3 +672,80 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Fix it now.
 - **Rationale:** It does not affect features; better to optimise once the screens exist.
 - **Consequences:** The warning remains until milestone H.
+
+## 95. Breakfast, quick lunch and snacks: no repeat on consecutive days
+- **Date:** 2026-11-16
+- **Decision:** Breakfasts, quick lunches and snacks may repeat within a week, but never on two days in a row. Favourites get double weight.
+- **Alternatives:** Each dish at most twice per week.
+- **Rationale:** There are fewer of these recipes than days (5 breakfasts, 2 lunches, 10 healthy snacks).
+- **Consequences:** Relaxed only if no other dish is available.
+
+## 96. Dinner protein source: never the same two days in a row
+- **Date:** 2026-11-16
+- **Decision:** Two dinners on consecutive days never share the same main protein source. Chicken and turkey count as the same source ("poultry").
+- **Alternatives:** At most two in a row; chicken and turkey as separate sources.
+- **Rationale:** Variety (#23); chicken and turkey are nutritionally very similar.
+- **Consequences:** A recipe's main protein source is the source of the ingredient that contributes the most protein.
+
+## 97. All dinners take at most 30 minutes
+- **Date:** 2026-11-16
+- **Decision:** The planner only picks dinners that take 30 minutes or less, every day of the week.
+- **Alternatives:** Longer dinners allowed on Saturday and Sunday.
+- **Rationale:** Matches the brief; all seed dinners are ≤ 30 min.
+- **Consequences:** Longer weekend dinners are in the backlog.
+
+## 98. Cheat-day snacks
+- **Date:** 2026-11-16
+- **Decision:** On cheat days the snack is picked from all cheat snacks, with double weight for favourites. If there are no cheat snacks, a healthy snack is used.
+- **Alternatives:** Only favourite cheat snacks.
+- **Rationale:** Works from day one, even before the user has marked favourites.
+- **Consequences:** The protein target still applies (#21); a protein boost may be suggested.
+
+## 99. Fruit and vegetables shown, not optimised
+- **Date:** 2026-11-16
+- **Decision:** Fruit/vegetable portions are calculated and shown in "Today's nutrition", but the planner does not actively optimise for them yet.
+- **Alternatives:** The planner prefers dishes with more fruit and vegetables.
+- **Rationale:** Keeps the planner logic simple for the first version.
+- **Consequences:** Active optimisation is in the backlog.
+
+## 100. Relaxing rules when there are too few recipes
+- **Date:** 2026-11-16
+- **Decision:** If the rules cannot all be met, they are relaxed one by one – first a repeated dinner is allowed, then the same protein source on consecutive days – and the plan shows a small note. A slot stays empty only if there is no suitable recipe at all.
+- **Alternatives:** Leave the slot empty with "Add more recipes".
+- **Rationale:** A complete plan is more useful than a gap; the note keeps it honest.
+- **Consequences:** Hard rules (excluded food, 30 min, no Friday dinner) are never relaxed.
+
+## 101. Personal portions rounded to quarter portions
+- **Date:** 2026-11-16
+- **Decision:** Each adult's portion is rounded to the nearest ¼ portion (within 0.75×–2×, #27).
+- **Alternatives:** Half portions.
+- **Rationale:** Hits the protein target more closely while staying easy to understand.
+- **Consequences:** None.
+
+## 102. Children's weekday lunch is a per-child setting
+- **Date:** 2026-11-16
+- **Decision:** Each child has the setting "Eats lunch at home on weekdays" (yes/no, default no). On Saturday and Sunday children always eat lunch at home.
+- **Alternatives:** Children never eat weekday lunch at home; children always do.
+- **Rationale:** Families differ (school, kindergarten, home); the default fits most.
+- **Consequences:** New optional field on `Person`; fewer leftovers are cooked when children eat elsewhere. The setting is shown in milestone G.
+
+## 103. Protein boost
+- **Date:** 2026-11-16
+- **Decision:** A boost is suggested when a person is at least 5 g below their daily target. It is the single item from a fixed list (1 egg, a glass of milk, cottage cheese, skyr) that covers the gap with the least extra; if none covers it, the largest one. Excluded foods are skipped.
+- **Alternatives:** A 10 g threshold.
+- **Rationale:** Simple, concrete and realistic.
+- **Consequences:** None.
+
+## 104. "Make week plan" in the middle of a week
+- **Date:** 2026-11-16
+- **Decision:** Only today and the following days are generated again. Earlier days are kept, and so are guests and "eating out" on the regenerated days. An empty week is filled completely.
+- **Alternatives:** Always regenerate the whole week.
+- **Rationale:** The past should reflect what was actually eaten (#33).
+- **Consequences:** Covered by tests.
+
+## 105. Swapping a leftovers lunch
+- **Date:** 2026-11-16
+- **Decision:** Swapping (↻) a leftovers lunch turns it into a quick lunch, and the dinner the day before is then cooked with fewer portions.
+- **Alternatives:** Leftovers cannot be swapped.
+- **Rationale:** Gives the user control while keeping the amounts correct.
+- **Consequences:** When a dinner is swapped, the next day's lunch follows it only if that lunch is still leftovers.

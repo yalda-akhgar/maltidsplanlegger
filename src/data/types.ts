@@ -156,6 +156,8 @@ export interface Person {
   proteinTargetG?: number
   /** Ingredients this person doesn't like – used for children (#28, #70). */
   dislikedIngredientIds: Id[]
+  /** Children only: eats lunch at home Monday–Friday (default no). Always yes on weekends (#102). */
+  eatsWeekdayLunchAtHome?: boolean
 }
 
 /** Share of the daily protein target per meal, in percent (#20). Sums to 100. */

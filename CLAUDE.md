@@ -1,7 +1,10 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone D (recipes + snacks) – done. Waiting for the product owner's review and "fortsett" before milestone E (planner logic + tests).**
+**Phase 1, milestone E (planner logic + tests) – logic done; open questions to the product owner (Friday/eating-out protein target). Then wait for "fortsett" before milestone F (week-plan screen).**
+
+Milestone E delivered: `src/data/planner.ts` (generateWeekPlan, swapMeal, refreshPortions, dinnerPortionsToCook, planNotes, exclusion + protein-source helpers) and `src/data/protein.ts` (personal portions, children/lunch rule, day nutrition, protein boost). Tests in `src/data/planner.test.ts` (rules checked over 200 seeded weeks). Decisions #95–#105. `Person.eatsWeekdayLunchAtHome` added (optional, no migration).
+
 
 Milestone D delivered: seed catalogue (`src/data/seed/ingredients.ts`, ~60 ingredients, nutrition per 100 g) and 14 recipes + 13 snacks (`src/data/seed/recipes.ts`, nb/de/en), loaded once via `SEED_VERSION` in the repository. `nutrition.ts` (protein/kcal per portion from ingredients, tags), `amounts.ts` (household portions, rounding #84, formatting). Recipes screen: search, filter chips, cards with heart and badges, detail sheet with portion stepper, form page `/recipes/new` + `/recipes/:id/edit` with ingredient picker and "new ingredient", delete with undo toast. Decisions #74–#89. Review follow-ups (#90–#94): unsaved-changes dialog (`components/ui/confirm-dialog.tsx` + `useBlocker`), search also matches ingredient names, smaller nav labels below 360 px, bundle size deferred to H. Language is now a device preference (schema v2). Tests: `src/data/recipes.test.ts` (every seed recipe within ±3 g of the prototype protein value).
 
@@ -112,6 +115,6 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A–D** done; milestone **E (planner logic + tests)** next.
+**Phase 1 – Foundation**, milestones **A–D** done, **E** logic done (open questions); milestone **F (week-plan screen)** next.
 
 Milestones: A setup/GitHub · B design system + app shell · C data model · D recipes + snacks · E planner logic + tests · F week-plan screen · G onboarding + settings · H documentation.
