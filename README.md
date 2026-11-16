@@ -13,4 +13,5 @@ npm run dev
 ## Project docs
 - [`docs/DECISIONS.md`](docs/DECISIONS.md) – decision log
 - [`docs/BACKLOG.md`](docs/BACKLOG.md) – ideas deliberately postponed for later phases
+- [`docs/LIGHTHOUSE.md`](docs/LIGHTHOUSE.md) – Lighthouse audit results (performance, accessibility, best practices, SEO)
 - [`docs/PROMPT.md`](docs/PROMPT.md) – full product vision
