@@ -264,3 +264,108 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Use the private e-mail address in commits (publicly visible in a public repo).
 - **Rationale:** Commits stay linked to the GitHub profile without exposing a personal e-mail address to spam or scraping, and the project is independent of the bootcamp.
 - **Consequences:** Git is configured per repository with the noreply address, overriding the global NTNU address on this PC. The commit author name is the full name "Yalda Akhgar" (chosen over the username for a professional portfolio).
+
+## 38. Repository description
+- **Date:** 2026-11-16
+- **Decision:** The GitHub repository description is "Protein-balanced family meal planner (PWA)".
+- **Alternatives:** A Norwegian description; a longer description listing features.
+- **Rationale:** Short, in English for an international audience of employers, and states the core value.
+- **Consequences:** Can be changed at any time with `gh repo edit --description`.
+
+## 39. AI co-authorship shown in commits
+- **Date:** 2026-11-16
+- **Decision:** Commits keep the `Co-Authored-By: Claude` trailer.
+- **Alternatives:** Remove the trailer.
+- **Rationale:** Transparent about how the project is built; working with an AI coding assistant as a product owner is part of the portfolio story.
+- **Consequences:** GitHub shows Claude as a co-author on commits.
+
+## 40. Feature-based folder structure
+- **Date:** 2026-11-16
+- **Decision:** Organise code by feature: `src/features/<feature>/`, shared UI in `src/components/ui/`, data layer in `src/data/`, translations in `src/i18n/`.
+- **Alternatives:** Organise by type (all screens in one folder, all logic in another).
+- **Rationale:** Easy to navigate as the app grows and easy to explain.
+- **Consequences:** Each new feature gets its own folder.
+
+## 41. Swipeable bottom sheets
+- **Date:** 2026-11-16
+- **Decision:** Bottom sheets can be swiped down to close (shadcn Drawer, built on `vaul`).
+- **Alternatives:** A simpler sheet closed only by a button or the back button.
+- **Rationale:** Feels like a native app on mobile.
+- **Consequences:** Adds the `vaul` package. Sheets also close with the Android back button.
+
+## 42. Self-hosted Inter font
+- **Date:** 2026-11-16
+- **Decision:** Bundle Inter with the app via `@fontsource-variable/inter`.
+- **Alternatives:** Load Inter from Google Fonts.
+- **Rationale:** Works offline (PWA) and sends no data to Google (privacy, GDPR – relevant in Germany).
+- **Consequences:** Slightly larger app download.
+
+## 43. Dark mode follows the system, with a manual override
+- **Date:** 2026-11-16
+- **Decision:** The theme follows the device setting by default; Settings offers "System / Light / Dark".
+- **Alternatives:** Manual setting only; system setting only.
+- **Rationale:** Right by default, with control for those who want it.
+- **Consequences:** The choice is stored per device.
+
+## 44. Dark palette
+- **Date:** 2026-11-16
+- **Decision:** Dark mode uses background `#14121B`, cards `#1F1B2E`, text `#F4F2FA`, muted text `#A8A4BC`, and a lighter purple `#8B5CF6` as primary.
+- **Alternatives:** Other dark colours.
+- **Rationale:** Keeps the purple identity with good contrast on dark backgrounds.
+- **Consequences:** All colours are design tokens, so they can be tuned in one place.
+
+## 45. Home screen name "Måltider"
+- **Date:** 2026-11-16
+- **Decision:** The installed app's short name is "Måltider"; the full name "Måltidsplanlegger" is used in the app and browser tab.
+- **Alternatives:** "Matplan", "Måltidsplan".
+- **Rationale:** "Måltidsplanlegger" is truncated under home screen icons on iPhone.
+- **Consequences:** May change when a brand name is chosen (backlog #3).
+
+## 46. App icon: knife and fork
+- **Date:** 2026-11-16
+- **Decision:** A purple rounded square with a white knife-and-fork symbol.
+- **Alternatives:** The letter "M"; a bowl.
+- **Rationale:** Instantly recognisable as a food app.
+- **Consequences:** Includes a maskable variant for Android and an apple-touch-icon for iPhone.
+
+## 47. Navigation icons
+- **Date:** 2026-11-16
+- **Decision:** Week = calendar, Shopping list = cart, Home (pantry) = fridge, Recipes = book, Settings = gear.
+- **Alternatives:** A house icon for the pantry tab.
+- **Rationale:** A house could be mistaken for a "start page"; a fridge clearly means "food at home".
+- **Consequences:** None.
+
+## 48. Side navigation from 1024 px
+- **Date:** 2026-11-16
+- **Decision:** Bottom navigation below 1024 px, side navigation from 1024 px.
+- **Alternatives:** Switch at 768 px.
+- **Rationale:** Tablets in portrait keep the familiar mobile layout; desktops get a sidebar.
+- **Consequences:** None.
+
+## 49. Toasts at the top
+- **Date:** 2026-11-16
+- **Decision:** Confirmation toasts appear at the top of the screen.
+- **Alternatives:** At the bottom, above the navigation.
+- **Rationale:** Matches the prototype and never hides the navigation.
+- **Consequences:** Positioned below the iPhone notch (safe area).
+
+## 50. "Add to home screen" guide
+- **Date:** 2026-11-16
+- **Decision:** A dismissible card on the Week screen, and the guide is always available in Settings. It adapts to the device (Android: install button; iPhone: Share → "Add to Home Screen").
+- **Alternatives:** Settings only; a pop-up on first visit.
+- **Rationale:** Visible without being intrusive.
+- **Consequences:** The card is hidden once dismissed or when the app is already installed.
+
+## 51. Automatic app updates
+- **Date:** 2026-11-16
+- **Decision:** New versions are installed automatically the next time the app opens.
+- **Alternatives:** Show a "New version – tap to update" prompt.
+- **Rationale:** Users never have to think about updates.
+- **Consequences:** The service worker updates silently in the background.
+
+## 52. "Coming soon" screens
+- **Date:** 2026-11-16
+- **Decision:** Screens not built yet show a heading, "Coming soon" and one sentence about what the screen will do.
+- **Alternatives:** Just "Coming soon".
+- **Rationale:** Testers understand the product vision and can give feedback on it.
+- **Consequences:** Texts live in the translation files.

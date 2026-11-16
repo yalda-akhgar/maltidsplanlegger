@@ -1,0 +1,74 @@
+{
+  "app": {
+    "name": "Måltidsplanlegger",
+    "tagline": "Proteinreiche Mahlzeiten für die ganze Familie"
+  },
+  "nav": {
+    "label": "Hauptmenü",
+    "week": "Woche",
+    "shopping": "Einkaufsliste",
+    "pantry": "Zuhause",
+    "recipes": "Rezepte",
+    "settings": "Einstellungen"
+  },
+  "common": {
+    "close": "Schließen",
+    "comingSoon": "Demnächst"
+  },
+  "screens": {
+    "week": {
+      "title": "Wochenplan",
+      "description": "Hier erstellt die App einen proteinreichen Wochenplan für die ganze Familie, abgestimmt auf das Proteinziel jedes Erwachsenen."
+    },
+    "shopping": {
+      "title": "Einkaufsliste",
+      "description": "Hier erstellt die App die Einkaufsliste automatisch aus dem Wochenplan."
+    },
+    "pantry": {
+      "title": "Zuhause",
+      "description": "Hier behältst du den Überblick, was ihr zu Hause habt und was leer ist."
+    },
+    "recipes": {
+      "title": "Rezepte",
+      "description": "Hier findest du alle Rezepte, mit Suche, Filtern und Favoriten."
+    }
+  },
+  "settings": {
+    "title": "Einstellungen",
+    "appearance": {
+      "title": "Darstellung",
+      "system": "System",
+      "light": "Hell",
+      "dark": "Dunkel"
+    },
+    "language": {
+      "title": "Sprache"
+    },
+    "install": {
+      "title": "Zum Startbildschirm hinzufügen"
+    }
+  },
+  "languages": {
+    "nb": "Norsk",
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "install": {
+    "cardTitle": "App zum Startbildschirm hinzufügen",
+    "cardText": "Dann öffnet sie sich wie eine normale App, direkt vom Handy.",
+    "installButton": "Installieren",
+    "showHow": "Zeig mir, wie",
+    "notNow": "Nicht jetzt",
+    "installed": "Die App ist auf diesem Gerät installiert.",
+    "installedToast": "Die App wurde zum Startbildschirm hinzugefügt",
+    "promptText": "Tippe auf „Installieren“, um die App zum Startbildschirm hinzuzufügen.",
+    "iosTitle": "So geht es auf iPhone und iPad",
+    "iosStep1": "Tippe im Browser auf die Teilen-Taste (Quadrat mit Pfeil nach oben).",
+    "iosStep2": "Scrolle nach unten und tippe auf „Zum Home-Bildschirm“.",
+    "iosStep3": "Tippe oben rechts auf „Hinzufügen“.",
+    "manualTitle": "So installierst du die App",
+    "manualStep1": "Öffne das Browsermenü (⋮ oder ⋯).",
+    "manualStep2": "Wähle „App installieren“ oder „Zum Startbildschirm hinzufügen“.",
+    "manualNote": "Keine solche Option? Dann unterstützt dieser Browser keine Installation. Probiere Chrome, Edge oder Samsung Internet, oder Safari auf dem iPhone."
+  }
+}

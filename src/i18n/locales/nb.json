@@ -1,0 +1,103 @@
+{
+  "app": {
+    "name": "Måltidsplanlegger",
+    "tagline": "Proteinrike måltider for hele familien"
+  },
+  "nav": {
+    "label": "Hovedmeny",
+    "week": "Uke",
+    "shopping": "Handleliste",
+    "pantry": "Hjemme",
+    "recipes": "Oppskrifter",
+    "settings": "Innstillinger"
+  },
+  "common": {
+    "close": "Lukk",
+    "comingSoon": "Kommer snart"
+  },
+  "screens": {
+    "week": {
+      "title": "Ukeplan",
+      "description": "Her lager appen en proteinrik ukeplan for hele familien, tilpasset proteinmålet til hver voksen."
+    },
+    "shopping": {
+      "title": "Handleliste",
+      "description": "Her lager appen handlelisten automatisk fra ukeplanen."
+    },
+    "pantry": {
+      "title": "Hjemme",
+      "description": "Her holder du oversikt over hva dere har hjemme, og hva som er tomt."
+    },
+    "recipes": {
+      "title": "Oppskrifter",
+      "description": "Her finner du alle oppskriftene, med søk, filtre og favoritter."
+    }
+  },
+  "settings": {
+    "title": "Innstillinger",
+    "appearance": {
+      "title": "Utseende",
+      "system": "System",
+      "light": "Lys",
+      "dark": "Mørk"
+    },
+    "language": {
+      "title": "Språk"
+    },
+    "install": {
+      "title": "Legg til på hjemskjermen"
+    }
+  },
+  "languages": {
+    "nb": "Norsk",
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "install": {
+    "cardTitle": "Legg appen på hjemskjermen",
+    "cardText": "Da åpnes den som en vanlig app, rett fra telefonen.",
+    "installButton": "Installer",
+    "showHow": "Vis meg hvordan",
+    "notNow": "Ikke nå",
+    "installed": "Appen er installert på denne enheten.",
+    "installedToast": "Appen er lagt til på hjemskjermen",
+    "promptText": "Trykk «Installer», så legges appen på hjemskjermen.",
+    "iosTitle": "Slik gjør du det på iPhone og iPad",
+    "iosStep1": "Trykk på Del-knappen (firkant med pil opp) i nettleseren.",
+    "iosStep2": "Bla ned og trykk «Legg til på Hjem-skjerm».",
+    "iosStep3": "Trykk «Legg til» øverst til høyre.",
+    "manualTitle": "Slik installerer du appen",
+    "manualStep1": "Åpne nettleserens meny (⋮ eller ⋯).",
+    "manualStep2": "Velg «Installer app» eller «Legg til på startskjermen».",
+    "manualNote": "Ser du ikke valget? Da støtter ikke denne nettleseren installering. Prøv Chrome, Edge eller Samsung Internet, eller Safari på iPhone."
+  },
+  "designPreview": {
+    "title": "Designsystem",
+    "subtitle": "Bare synlig under utvikling.",
+    "buttons": "Knapper",
+    "primary": "Lag ukeplan",
+    "secondary": "Sekundær",
+    "outline": "Kantlinje",
+    "ghost": "Diskret",
+    "destructive": "Slett",
+    "card": "Kort",
+    "cardTitle": "Kylling-tikka med ris",
+    "cardText": "Middag · 25 min · 42 g protein",
+    "chips": "Chips",
+    "chipAll": "Alle",
+    "chipBreakfast": "Frokost",
+    "chipDinner": "Middag",
+    "chipFavorites": "Favoritter",
+    "input": "Input",
+    "inputPlaceholder": "Søk i oppskrifter …",
+    "switchLabel": "Bryter",
+    "badge": "Merkelapp",
+    "sheet": "Bottom sheet",
+    "openSheet": "Åpne ark",
+    "sheetTitle": "Eksempel på ark",
+    "sheetText": "Dra ned, trykk utenfor, trykk Lukk eller bruk tilbakeknappen på Android for å lukke.",
+    "toast": "Toast",
+    "showToast": "Vis toast",
+    "toastText": "Oppskrift lagret"
+  }
+}

@@ -1,0 +1,74 @@
+{
+  "app": {
+    "name": "Måltidsplanlegger",
+    "tagline": "High-protein meals for the whole family"
+  },
+  "nav": {
+    "label": "Main menu",
+    "week": "Week",
+    "shopping": "Shopping",
+    "pantry": "At home",
+    "recipes": "Recipes",
+    "settings": "Settings"
+  },
+  "common": {
+    "close": "Close",
+    "comingSoon": "Coming soon"
+  },
+  "screens": {
+    "week": {
+      "title": "Week plan",
+      "description": "Here the app creates a high-protein week plan for the whole family, tailored to each adult's protein target."
+    },
+    "shopping": {
+      "title": "Shopping list",
+      "description": "Here the app builds the shopping list automatically from the week plan."
+    },
+    "pantry": {
+      "title": "At home",
+      "description": "Here you keep track of what you have at home and what has run out."
+    },
+    "recipes": {
+      "title": "Recipes",
+      "description": "Here you find all recipes, with search, filters and favourites."
+    }
+  },
+  "settings": {
+    "title": "Settings",
+    "appearance": {
+      "title": "Appearance",
+      "system": "System",
+      "light": "Light",
+      "dark": "Dark"
+    },
+    "language": {
+      "title": "Language"
+    },
+    "install": {
+      "title": "Add to home screen"
+    }
+  },
+  "languages": {
+    "nb": "Norsk",
+    "de": "Deutsch",
+    "en": "English"
+  },
+  "install": {
+    "cardTitle": "Add the app to your home screen",
+    "cardText": "It then opens like a regular app, straight from your phone.",
+    "installButton": "Install",
+    "showHow": "Show me how",
+    "notNow": "Not now",
+    "installed": "The app is installed on this device.",
+    "installedToast": "The app was added to your home screen",
+    "promptText": "Tap “Install” to add the app to your home screen.",
+    "iosTitle": "How to do it on iPhone and iPad",
+    "iosStep1": "Tap the Share button (square with an arrow pointing up) in the browser.",
+    "iosStep2": "Scroll down and tap “Add to Home Screen”.",
+    "iosStep3": "Tap “Add” in the top right corner.",
+    "manualTitle": "How to install the app",
+    "manualStep1": "Open the browser menu (⋮ or ⋯).",
+    "manualStep2": "Choose “Install app” or “Add to Home screen”.",
+    "manualNote": "Don't see the option? Then this browser doesn't support installing. Try Chrome, Edge or Samsung Internet, or Safari on iPhone."
+  }
+}
