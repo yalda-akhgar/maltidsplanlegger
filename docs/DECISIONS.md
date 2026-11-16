@@ -713,7 +713,7 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Decision:** If the rules cannot all be met, they are relaxed one by one – first a repeated dinner is allowed, then the same protein source on consecutive days – and the plan shows a small note. A slot stays empty only if there is no suitable recipe at all.
 - **Alternatives:** Leave the slot empty with "Add more recipes".
 - **Rationale:** A complete plan is more useful than a gap; the note keeps it honest.
-- **Consequences:** Hard rules (excluded food, 30 min, no Friday dinner) are never relaxed.
+- **Consequences:** Hard rules (excluded food, 30 min, fixed days without dinner at home) are never relaxed. Dislikes are relaxed last (#110).
 
 ## 101. Personal portions rounded to quarter portions
 - **Date:** 2026-11-16
@@ -755,4 +755,53 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Decision:** Each planned meal can record what actually happened: still planned (no outcome), eaten, "ate something else" (with a link to the recipe that was eaten instead) or skipped. Only the data model is added now; the feature comes in phase 2 together with the 👍/👎 rating: a "✓ Eaten" button, "I ate something else → choose recipe", and progress showing eaten protein next to planned protein.
 - **Alternatives:** Add the field when the feature is built in phase 2.
 - **Rationale:** Same reasoning as #25 – avoids migrating stored plans later.
-- **Consequences:** New optional `outcome` field on `PlannedMeal` (no data migration needed). Together with manual protein logging it forms a future "food diary" (backlog #7). The outcome is recorded for the whole household per meal, like the rating (#71).
+- **Consequences:** New optional `outcome` field on `PlannedMeal` (no data migration needed). Together with manual protein logging it forms a future "food diary" (backlog #7). The outcome is recorded for the whole household per meal, like the rating (#71); per person can be considered in phase 5. What was eaten can be recorded afterwards without opening the recipe.
+
+## 107. Fixed days without dinner at home are a setting
+- **Date:** 2026-11-16
+- **Decision:** "Friday has no dinner" is no longer hard-coded. A new setting, "Fixed days we don't eat dinner at home", lets each household choose weekdays (default: none). It is also a step in the onboarding wizard (milestone G). The product owner's household chooses Friday. The one-off "eating out" per meal is kept for households without fixed days.
+- **Alternatives:** Keep Friday hard-coded (as in the phase 1 brief).
+- **Rationale:** Family-specific rules became settings so the app works for any household – the app is meant for other families too.
+- **Consequences:** New household field `noDinnerAtHomeDays`; stored data upgraded to schema version 3 (existing households get no fixed days). Replaces the brief's "Friday has no dinner" rule.
+
+## 108. Quick lunch after any dinner not cooked at home
+- **Date:** 2026-11-16
+- **Decision:** The day after a dinner that is not cooked at home (a fixed day out or "eating out"), lunch is a quick lunch. Saturday no longer has a special rule: it gets leftovers if Friday's dinner was cooked at home.
+- **Alternatives:** Keep Saturday's own quick lunch.
+- **Rationale:** Same reason as #107; it generalises #30.
+- **Consequences:** The product owner's household (Friday out) still gets a quick lunch on Saturday.
+
+## 109. Meals outside the app are not counted in the day's protein target
+- **Date:** 2026-11-16
+- **Decision:** Meals eaten outside the app (fixed days out and "eating out") are left out of the day's protein target. The app only counts what is planned in it; e.g. with a 120 g target and no dinner, the day's target is 84 g.
+- **Alternatives:** Scale up the other meals of that day; show the gap and suggest a protein boost.
+- **Rationale:** The protein in those meals is unknown; counting it as missing would show a misleading gap every week.
+- **Consequences:** Manual logging of such meals is part of the future food diary (backlog #7).
+
+## 110. Children's dislikes outweigh variety
+- **Date:** 2026-11-16
+- **Decision:** When there are too few recipes, the planner would rather repeat a dish (or use the same protein source) than serve something a child dislikes. Dislikes are the last rule to be relaxed.
+- **Alternatives:** Serve the disliked dish with a note before repeating a dinner.
+- **Rationale:** A repeated dinner is a smaller problem for a family than a dish a child won't eat.
+- **Consequences:** Amends the order in #100: repeats, then protein source, then dislikes.
+
+## 111. Protein boost amounts
+- **Date:** 2026-11-16
+- **Decision:** The boost items are 1 egg, 2 dl milk, 100 g cottage cheese and 170 g skyr (one small tub).
+- **Alternatives:** Other amounts.
+- **Rationale:** Common, realistic portions.
+- **Consequences:** None.
+
+## 112. Plan it yourself (milestone F)
+- **Date:** 2026-11-16
+- **Decision:** On every meal the user can pick a dish themselves from the recipe list (with search and filters) or go to "New recipe". A week can be started empty and planned by hand, filled by the app, or mixed (the app fills in, the user swaps). While planning, progress shows how close each day is to the protein target.
+- **Alternatives:** Only automatic planning with swapping.
+- **Rationale:** Families already have dishes in mind; the app should support that, not replace it.
+- **Consequences:** The week-plan screen design (milestone F) is presented to the product owner before it is built.
+
+## 113. Fixed shopping day (phase 3)
+- **Date:** 2026-11-16
+- **Decision:** A setting "Fixed shopping day" (e.g. Sunday): the shopping list covers the period until the next shopping day. The period can also be chosen manually (e.g. Mon–Fri or Mon–Sun).
+- **Alternatives:** Always one calendar week.
+- **Rationale:** Families shop on different days and rhythms.
+- **Consequences:** Planned for phase 3 (added to `docs/PROMPT.md`).

@@ -1,9 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone E (planner logic + tests) – logic done; open questions to the product owner (Friday/eating-out protein target). Then wait for "fortsett" before milestone F (week-plan screen).**
+**Phase 1, milestone E (planner logic + tests) – done, incl. the product owner's answers in `docs/SVAR_DELMAL_E.md` (#106–#113). Next: present the week-plan screen design (milestone F) and ask about its choices BEFORE building it. Point 6 of SVAR_DELMAL_E.md may get a paragraph on protein impact when picking/swapping a dish – re-read it first.**
 
-Milestone E delivered: `src/data/planner.ts` (generateWeekPlan, swapMeal, refreshPortions, dinnerPortionsToCook, planNotes, exclusion + protein-source helpers) and `src/data/protein.ts` (personal portions, children/lunch rule, day nutrition, protein boost). Tests in `src/data/planner.test.ts` (rules checked over 200 seeded weeks). Decisions #95–#105. `Person.eatsWeekdayLunchAtHome` added (optional, no migration).
+Milestone E delivered: `src/data/planner.ts` (generateWeekPlan, swapMeal, refreshPortions, dinnerPortionsToCook, planNotes, exclusion + protein-source helpers) and `src/data/protein.ts` (personal portions, children/lunch rule, day nutrition, protein boost). Tests in `src/data/planner.test.ts` (rules checked over 200 seeded weeks). Decisions #95–#105, #107–#111. `Person.eatsWeekdayLunchAtHome` added (optional). Household `noDinnerAtHomeDays` (schema v3) replaces the hard-coded Friday. `PlannedMeal.outcome` reserved for phase 2 (#106).
 
 
 Milestone D delivered: seed catalogue (`src/data/seed/ingredients.ts`, ~60 ingredients, nutrition per 100 g) and 14 recipes + 13 snacks (`src/data/seed/recipes.ts`, nb/de/en), loaded once via `SEED_VERSION` in the repository. `nutrition.ts` (protein/kcal per portion from ingredients, tags), `amounts.ts` (household portions, rounding #84, formatting). Recipes screen: search, filter chips, cards with heart and badges, detail sheet with portion stepper, form page `/recipes/new` + `/recipes/:id/edit` with ingredient picker and "new ingredient", delete with undo toast. Decisions #74–#89. Review follow-ups (#90–#94): unsaved-changes dialog (`components/ui/confirm-dialog.tsx` + `useBlocker`), search also matches ingredient names, smaller nav labels below 360 px, bundle size deferred to H. Language is now a device preference (schema v2). Tests: `src/data/recipes.test.ts` (every seed recipe within ±3 g of the prototype protein value).
@@ -64,7 +64,7 @@ Batch several small choices into one list. If anything is unclear, ask – don't
 ## Project summary
 **Måltidsplanlegger** is a mobile-first PWA meal planner for families with children. Its core value is **protein-balanced planning**: each adult has a personal daily protein target, and the planner picks dishes and adjusts portions so breakfast + lunch (leftovers from the previous dinner) + dinner + evening snack meet it, while keeping each day nutritionally balanced.
 
-Full vision: `docs/PROMPT.md`. Phase 1 brief: `docs/FASE1_PROMPT.md` plus the product owner's answers in `docs/SVAR_PLAN.md`. Original UI prototype prompts: `docs/FIGMA_MAKE_*.md`.
+Full vision: `docs/PROMPT.md`. Phase 1 brief: `docs/FASE1_PROMPT.md` plus the product owner's answers in `docs/SVAR_PLAN.md` and `docs/SVAR_DELMAL_E.md`. Original UI prototype prompts: `docs/FIGMA_MAKE_*.md`.
 
 ## Tech stack (decided)
 - React + Vite + TypeScript
@@ -78,9 +78,9 @@ Full vision: `docs/PROMPT.md`. Phase 1 brief: `docs/FASE1_PROMPT.md` plus the pr
 
 ## Key product rules (phase 1)
 See `docs/DECISIONS.md` for details and rationale. Highlights:
-- Friday has no dinner. Lunch = leftovers from the previous day's dinner (Monday = previous week's Sunday, else a quick lunch). Saturday has its own quick lunch. Eating out → quick lunch the next day.
+- Family-specific rules are settings, not hard-coded (#107): fixed "no dinner at home" days (default none; the product owner's household picks Friday). Lunch = leftovers from the previous day's dinner (Monday = previous week's Sunday); after any dinner not cooked at home → quick lunch (#108). Meals outside the app are not counted in the day's protein target (#109).
 - Excluded food (pork by default, plus custom exclusions) is never suggested. Children's dislikes are avoided where possible (soft rule).
-- Regular dinners ≤ 30 min. No repeated dinner within a week. Favourites twice as likely.
+- Dinners ≤ 30 min. No repeated dinner within a week, no same protein source two days in a row. Favourites twice as likely. Rather repeat a dinner than serve a child's disliked dish (#110).
 - Personal protein targets, split 25/30/30/15 % (breakfast/lunch/dinner/snack), portions scaled 0.75×–2× per person, then a "protein boost" suggestion. A child = 0.5 portion, no target. Guests = standard adult portion.
 - Evening snack every day; healthy except on chosen cheat days.
 - Recipe categories are data and extensible (e.g. "Baking" later).

@@ -19,6 +19,7 @@ export function defaultHousehold(now = new Date().toISOString()): HouseholdSetti
     excludedTerms: [],
     proteinSplit: { ...DEFAULT_PROTEIN_SPLIT },
     cheatDays: [],
+    noDinnerAtHomeDays: [],
     onboardingDone: false,
     updatedAt: now,
   }

@@ -42,6 +42,16 @@ describe('repository', () => {
     expect('language' in (await repo.getHousehold())).toBe(false)
   })
 
+  it('adds "no dinner at home" days (none) to a v2 household (#107)', async () => {
+    const storage = memoryStorage({
+      'mp:schemaVersion': '2',
+      'mp:household': JSON.stringify({ people: [], excludedTags: ['pork'], cheatDays: [5] }),
+    })
+    const household = await createRepository(storage).getHousehold()
+    expect(household.noDinnerAtHomeDays).toEqual([])
+    expect(household.cheatDays).toEqual([5])
+  })
+
   it('stores the language per device, outside the household', async () => {
     const repo = createRepository(memoryStorage())
     repo.setLanguage('de')
@@ -76,7 +86,7 @@ describe('repository', () => {
 
   it('survives corrupt stored data', async () => {
     const repo = createRepository(
-      memoryStorage({ 'mp:schemaVersion': '2', 'mp:seedVersion': '1', 'mp:recipes': '{not json' }),
+      memoryStorage({ 'mp:schemaVersion': '3', 'mp:seedVersion': '1', 'mp:recipes': '{not json' }),
     )
     expect(await repo.listRecipes()).toEqual([])
   })

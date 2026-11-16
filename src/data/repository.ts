@@ -30,7 +30,7 @@ import {
 } from './types'
 
 /** Bump when the stored format changes, and add a migration below (#73). */
-export const SCHEMA_VERSION = 2
+export const SCHEMA_VERSION = 3
 
 /** Bump when new seed recipes/ingredients should be added to existing installs. */
 export const SEED_VERSION = 1
@@ -142,7 +142,12 @@ export function createRepository(storage: KeyValueStorage) {
       if (language && storage.getItem(PREFIX + KEYS.language) === null) write(KEYS.language, language)
       write(KEYS.household, household)
     }
-    // Future migrations: if (version < 3) { … }
+    if (version >= 1 && version < 3) {
+      // v3 adds fixed days without dinner at home; none by default (#107).
+      const household = read<HouseholdSettings>(KEYS.household, defaultHousehold())
+      write(KEYS.household, { ...household, noDinnerAtHomeDays: household.noDinnerAtHomeDays ?? [] })
+    }
+    // Future migrations: if (version < 4) { … }
 
     write(KEYS.schemaVersion, SCHEMA_VERSION)
   }

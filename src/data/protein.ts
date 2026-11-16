@@ -12,9 +12,8 @@ export const GUEST_PORTION = 1
 /** A boost is suggested from this gap (in grams) upwards (#103). */
 export const BOOST_THRESHOLD_G = 5
 
-/** Index in the week: 0 = Monday … 6 = Sunday. */
+/** Index in the week: 0 = Monday … 6 = Sunday. Saturday and Sunday are weekend days. */
 export const SATURDAY = 5
-export const FRIDAY = 4
 
 /**
  * Portion size for one adult and one meal: the share of the daily target this
@@ -103,12 +102,13 @@ export function personDayNutrition(
 
 /**
  * The part of a person's daily target that the planned meals should cover.
- * Meals marked "eating out" are left out, since their protein is unknown.
+ * Meals outside the app ("eating out", no dinner at home) are left out:
+ * the app only counts what is planned in it (#109).
  */
 export function plannedTargetG(day: DayPlan, personId: Id, split: HouseholdSettings['proteinSplit']): number {
   const target = day.targetsG[personId] ?? 0
   const share = (Object.keys(day.meals) as MealSlot[])
-    .filter((slot) => day.meals[slot].status !== 'eatingOut')
+    .filter((slot) => day.meals[slot].status !== 'eatingOut' && day.meals[slot].status !== 'none')
     .reduce((sum, slot) => sum + split[slot], 0)
   return (target * share) / 100
 }

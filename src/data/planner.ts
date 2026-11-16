@@ -3,21 +3,22 @@
  * data through the repository and saves the result.
  *
  * Rules (see docs/DECISIONS.md):
- * - Friday has no dinner. Lunch = leftovers from the previous day's dinner;
- *   Monday uses the previous week's Sunday; Saturday, or a day after
- *   "eating out", gets a quick lunch (#13, #30).
+ * - No dinner on the household's fixed "no dinner at home" days (#107).
+ *   Lunch = leftovers from the previous day's dinner; Monday uses the
+ *   previous week's Sunday; after any dinner not cooked at home the next
+ *   lunch is a quick lunch (#13, #30, #108).
  * - Excluded food is never suggested (#18, #68). Dinners take ≤ 30 min (#97).
  * - No repeated dinner within a week, no same protein source two days in a
  *   row, favourites twice as likely (#14, #96). Other meals never repeat on
  *   consecutive days (#95). Children's dislikes are avoided where possible (#28).
  * - Evening snack every day; cheat snack only on cheat days (#21, #98).
- * - If rules cannot all be met they are relaxed in a fixed order (#100).
+ * - If rules cannot all be met they are relaxed in a fixed order (#100, #110).
  * - Portions are scaled per person to the protein target (#19, #27, #101).
  */
 import { addDays, parseISO } from 'date-fns'
 import { allTranslations } from './localize'
 import { recipeNutrition, recipeTags, type RecipeNutrition } from './nutrition'
-import { currentTargets, FRIDAY, mealPortions, SATURDAY, eatsMeal, totalPortions } from './protein'
+import { currentTargets, mealPortions, eatsMeal, totalPortions } from './protein'
 import type {
   DayPlan,
   HouseholdSettings,
@@ -207,7 +208,7 @@ class Planner {
   }
 }
 
-/** Lunch for a day: leftovers from yesterday's dinner, or a quick lunch (#13, #30). */
+/** Lunch for a day: leftovers from yesterday's dinner, or a quick lunch (#13, #30, #108). */
 function lunchFor(
   planner: Planner,
   dayIndex: number,
@@ -215,12 +216,12 @@ function lunchFor(
   guests: number,
 ): PlannedMeal {
   const dinner = yesterday.dinner
-  if (dayIndex !== SATURDAY && dinner?.status === 'planned' && dinner.recipeId) {
+  if (dinner?.status === 'planned' && dinner.recipeId) {
     return { status: 'leftovers', recipeId: dinner.recipeId, leftoversFrom: yesterday.date, portions: {}, guests }
   }
   const recipe = pick(
     planner.quickLunches(),
-    [planner.noDislikes('lunch', dayIndex), planner.notSameAs(yesterday.lunchId)],
+    [planner.notSameAs(yesterday.lunchId), planner.noDislikes('lunch', dayIndex)],
     planner.random,
   )
   return recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests } : emptyMeal('none', guests)
@@ -263,10 +264,11 @@ function planDinners(
         ids.push(days[i].kept)
         continue
       }
+      // Drop order (#100, #110): repeats, then protein source; dislikes last.
       const rules: Rule[] = [
-        planner.noDislikes('dinner', i),
         (r) => !used.has(r.id),
         planner.differentSource(i === 0 ? previousWeekSunday : ids[i - 1]),
+        planner.noDislikes('dinner', i),
       ]
       const candidates = planner.dinners()
       const recipe = strict
@@ -297,6 +299,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
   const days: DayPlan[] = []
   const existingDay = (date: IsoDate) => options.existing?.days.find((d) => d.date === date)
   const isKept = (date: IsoDate) => existingDay(date) !== undefined && date < options.today
+  const noDinnerAtHome = (dayIndex: number) => ctx.household.noDinnerAtHomeDays.includes(dayIndex as Weekday)
 
   const dinnerIds = planDinners(
     planner,
@@ -305,7 +308,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
         const dinner = existingDay(date)!.meals.dinner
         return { kept: dinner.status === 'planned' ? dinner.recipeId : undefined }
       }
-      return { cook: i !== FRIDAY && existingDay(date)?.meals.dinner.status !== 'eatingOut' }
+      return { cook: !noDinnerAtHome(i) && existingDay(date)?.meals.dinner.status !== 'eatingOut' }
     }),
     previousDinnerId(options.previousWeek?.days[6]),
   )
@@ -325,7 +328,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
     // Dinner
     const d = keep('dinner')
     let dinner: PlannedMeal
-    if (i === FRIDAY) dinner = emptyMeal('none', d.guests)
+    if (noDinnerAtHome(i)) dinner = emptyMeal('none', d.guests)
     else if (d.eatingOut) dinner = emptyMeal('eatingOut', d.guests)
     else {
       const recipeId = dinnerIds[i]
@@ -349,7 +352,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
       if (k.eatingOut) return emptyMeal('eatingOut', k.guests)
       const recipe = pick(
         candidates,
-        [planner.noDislikes(slot, i), planner.notSameAs(yesterday?.meals[slot].recipeId)],
+        [planner.notSameAs(yesterday?.meals[slot].recipeId), planner.noDislikes(slot, i)],
         planner.random,
       )
       return recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests: k.guests } : emptyMeal('none', k.guests)
@@ -410,7 +413,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
     const others = new Set(days.filter((_, j) => j !== i).map((d) => d.meals.dinner.recipeId))
     recipe = pick(
       planner.dinners().filter((r) => r.id !== meal.recipeId),
-      [planner.noDislikes('dinner', i), (r) => !others.has(r.id), planner.differentSource(...neighbours('dinner'))],
+      [(r) => !others.has(r.id), planner.differentSource(...neighbours('dinner')), planner.noDislikes('dinner', i)],
       planner.random,
     )
   } else {
@@ -422,7 +425,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
           : planner.quickLunches()
     recipe = pick(
       candidates.filter((r) => meal.status === 'leftovers' || r.id !== meal.recipeId),
-      [planner.noDislikes(options.slot, i), planner.notSameAs(...neighbours(options.slot))],
+      [planner.notSameAs(...neighbours(options.slot)), planner.noDislikes(options.slot, i)],
       planner.random,
     )
   }

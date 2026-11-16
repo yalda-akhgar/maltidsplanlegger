@@ -36,8 +36,14 @@ function seeded(seed: number) {
 const adult = (id: string, target: number): Person => ({ id, name: id, kind: 'adult', proteinTargetG: target, dislikedIngredientIds: [] })
 const child = (id: string, extra: Partial<Person> = {}): Person => ({ id, name: id, kind: 'child', dislikedIngredientIds: [], ...extra })
 
+/** The product owner's household: two adults, two children, no dinner at home on Fridays (#107). */
 function household(extra: Partial<HouseholdSettings> = {}): HouseholdSettings {
-  return { ...defaultHousehold('2026-11-16T00:00:00.000Z'), people: [adult('a1', 120), adult('a2', 140), child('c1'), child('c2')], ...extra }
+  return {
+    ...defaultHousehold('2026-11-16T00:00:00.000Z'),
+    people: [adult('a1', 120), adult('a2', 140), child('c1'), child('c2')],
+    noDinnerAtHomeDays: [4],
+    ...extra,
+  }
 }
 
 function ctx(seed: number, extra: Partial<PlannerContext> = {}): PlannerContext {
@@ -58,7 +64,27 @@ function forManyWeeks(check: (plan: WeekPlan, c: PlannerContext) => void, makeCt
 const dinnerIds = (plan: WeekPlan) => plan.days.map((d) => d.meals.dinner.recipeId)
 
 describe('week structure', () => {
-  it('has no dinner on Friday and a dinner on every other day', () => {
+  it('has a dinner every day by default – no fixed days out (#107)', () => {
+    expect(defaultHousehold().noDinnerAtHomeDays).toEqual([])
+    forManyWeeks(
+      (plan) => {
+        plan.days.forEach((day) => expect(day.meals.dinner.status).toBe('planned'))
+        // Every lunch except Monday (no previous week) is leftovers – Saturday too (#108).
+        plan.days.slice(1).forEach((day) => expect(day.meals.lunch.status).toBe('leftovers'))
+      },
+      (seed) => ctx(seed, { household: household({ noDinnerAtHomeDays: [] }) }),
+    )
+  })
+
+  it('gives a quick lunch the day after any dinner not cooked at home (#108)', () => {
+    const plan = generate(ctx(16, { household: household({ noDinnerAtHomeDays: [1, 4] }) }))
+    expect(plan.days[1].meals.dinner.status).toBe('none') // Tuesday
+    expect(plan.days[2].meals.lunch.status).toBe('planned') // Wednesday: quick lunch
+    expect(byId.get(plan.days[2].meals.lunch.recipeId!)?.categoryIds).toContain('lunch')
+    expect(plan.days[3].meals.lunch.status).toBe('leftovers') // Thursday
+  })
+
+  it('has no dinner on fixed days out (Friday here) and a dinner on every other day', () => {
     forManyWeeks((plan) => {
       plan.days.forEach((day, i) => expect(day.meals.dinner.status).toBe(i === 4 ? 'none' : 'planned'))
     })
@@ -199,6 +225,13 @@ describe('dish rules', () => {
       (seed) => ctx(seed, { household: picky }),
     )
 
+    // Repeating a dinner beats serving a disliked dish (#110).
+    const two = SEED_RECIPES.filter((rec) => !rec.categoryIds.includes('dinner') || rec.id === salmon.id || rec.id === r('chicken-tikka-rice'))
+    forManyWeeks(
+      (plan) => expect(dinnerIds(plan)).not.toContain(salmon.id),
+      (seed) => ctx(seed, { recipes: two, household: picky }),
+    )
+
     const onlySalmon = SEED_RECIPES.filter((rec) => !rec.categoryIds.includes('dinner') || rec.id === salmon.id)
     const c = ctx(4, { recipes: onlySalmon, household: picky })
     const notes = planNotes(c, generate(c))
@@ -262,6 +295,9 @@ describe('portions and protein', () => {
     expect(plannedTargetG(day, 'a1', c.household.proteinSplit)).toBe(120)
     const out = { ...day, meals: { ...day.meals, dinner: { status: 'eatingOut' as const, portions: {}, guests: 0 } } }
     expect(plannedTargetG(out, 'a1', c.household.proteinSplit)).toBe(84) // 70 % of 120
+    // A fixed day out (Friday) only counts the meals planned in the app (#109).
+    expect(plan.days[4].meals.dinner.status).toBe('none')
+    expect(plannedTargetG(plan.days[4], 'a1', c.household.proteinSplit)).toBe(84)
   })
 
   it('suggests one protein boost item from 5 g missing', () => {

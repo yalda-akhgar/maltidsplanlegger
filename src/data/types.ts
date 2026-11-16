@@ -176,6 +176,8 @@ export interface HouseholdSettings {
   proteinSplit: ProteinSplit
   /** Days on which the evening snack may be a cheat snack (#21). */
   cheatDays: Weekday[]
+  /** Fixed weekdays the household doesn't eat dinner at home, e.g. [4] = Friday. Default none (#107). */
+  noDinnerAtHomeDays: Weekday[]
   // The UI language is NOT here: it is chosen per person/device (#74).
   /** False until the onboarding wizard has been completed or skipped (#24). */
   onboardingDone: boolean
