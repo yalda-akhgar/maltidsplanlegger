@@ -441,3 +441,87 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Localhost only.
 - **Rationale:** Allows testing on real phones on the same Wi-Fi.
 - **Consequences:** Others on the same network can open the dev version while it runs; Windows may ask for firewall permission.
+
+## 62. Shared ingredient catalogue
+- **Date:** 2026-11-16
+- **Decision:** Ingredients live in one shared catalogue; recipes reference them by id with an amount and unit.
+- **Alternatives:** Free-text ingredient lines per recipe.
+- **Rationale:** Required to calculate nutrition, merge quantities on the shopping list and track the pantry.
+- **Consequences:** The recipe form picks ingredients from the catalogue or adds a new one.
+
+## 63. Nutrition values are optional for new ingredients
+- **Date:** 2026-11-16
+- **Decision:** A new ingredient can be saved without nutrition values. Missing values count as 0 and the recipe is marked "nutrition data missing".
+- **Alternatives:** Require protein and kcal.
+- **Rationale:** Adding a recipe should be quick; the warning keeps numbers honest.
+- **Consequences:** The planner and UI must handle ingredients without nutrition data.
+
+## 64. Fixed list of units with weight conversion
+- **Date:** 2026-11-16
+- **Decision:** Units come from a fixed list: g, kg, ml, dl, l, tbsp, tsp, pcs, pinch, pack, can – translated per language (e.g. "ss"/"EL"/"tbsp"). Each ingredient stores how many grams one unit weighs (e.g. 1 egg = 60 g, 1 dl oats = 35 g). Nutrition is stored per 100 g.
+- **Alternatives:** Free-text units.
+- **Rationale:** Makes portion scaling, nutrition calculation and quantity merging possible.
+- **Consequences:** Seed ingredients include unit weights.
+
+## 65. Seed content in three languages
+- **Date:** 2026-11-16
+- **Decision:** Seed recipes and the ingredient catalogue are written in Norwegian, German and English. User-created recipes are stored in the language they are written in.
+- **Alternatives:** Norwegian only for now.
+- **Rationale:** German and English users get a usable app, including the shopping list.
+- **Consequences:** Text fields in recipes and ingredients are "localized text" with one value per language and a fallback.
+
+## 66. Recipes can have several categories
+- **Date:** 2026-11-16
+- **Decision:** A recipe can belong to more than one category (e.g. an omelette for breakfast and lunch).
+- **Alternatives:** Exactly one category.
+- **Rationale:** Gives the planner more dishes to choose from.
+- **Consequences:** Filters and the planner match on "has category".
+
+## 67. Snacks are recipes
+- **Date:** 2026-11-16
+- **Decision:** Snacks are ordinary recipes in the "snack" category, additionally marked "healthy" or "cheat". Steps are optional.
+- **Alternatives:** A separate, simpler snack type.
+- **Rationale:** Search, favourites and nutrition calculation work for snacks without extra code.
+- **Consequences:** Only cheat-marked snacks can be planned on cheat days (#21).
+
+## 68. Tags and protein sources come from ingredients
+- **Date:** 2026-11-16
+- **Decision:** Each ingredient carries tags (e.g. pork, fish, nuts) and a protein source; recipes inherit them automatically. Custom exclusions (free text) are matched against ingredient names in all three languages.
+- **Alternatives:** Tag each recipe by hand.
+- **Rationale:** Nothing is forgotten when a recipe changes; exclusions stay reliable.
+- **Consequences:** Recipes may still have extra manual tags.
+
+## 69. Household as a list of named people
+- **Date:** 2026-11-16
+- **Decision:** The household is a list of people with names. Adults have a protein target; children have dislikes. The number of adults and children is counted from the list.
+- **Alternatives:** Just counts of adults and children.
+- **Rationale:** Needed for per-person targets and progress ("Yalda: 118 / 120 g").
+- **Consequences:** Onboarding creates people; people get ids that can be linked to accounts in phase 5.
+
+## 70. Children's dislikes are chosen from the ingredient catalogue
+- **Date:** 2026-11-16
+- **Decision:** Dislikes reference catalogue ingredients.
+- **Alternatives:** Free text.
+- **Rationale:** Reliable matching in every language.
+- **Consequences:** None.
+
+## 71. One rating per household
+- **Date:** 2026-11-16
+- **Decision:** A recipe has a single 👍/👎 rating for the household (used in phase 2).
+- **Alternatives:** A rating per person.
+- **Rationale:** Simplest; fits "liked dishes are suggested more often". Per-person ratings need per-person login (phase 5).
+- **Consequences:** Can be extended to per-person ratings later.
+
+## 72. Optional price with currency
+- **Date:** 2026-11-16
+- **Decision:** Ingredients may have a price per unit with a currency code (e.g. NOK, EUR), used for the weekly budget in phase 3.
+- **Alternatives:** Price without currency (always NOK).
+- **Rationale:** The app is meant to work in Norway, Germany and elsewhere.
+- **Consequences:** None in phase 1.
+
+## 73. Technical data conventions
+- **Date:** 2026-11-16
+- **Decision:** Every record has a unique random id; stored data carries a schema version so it can be migrated; week plans are keyed by ISO week (e.g. `2026-W47`, weeks start on Monday).
+- **Alternatives:** Sequential ids; unversioned data; weeks keyed by start date.
+- **Rationale:** Safe to sync later (phase 5), safe to upgrade, unambiguous across countries.
+- **Consequences:** None for users.

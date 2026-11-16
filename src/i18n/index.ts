@@ -7,14 +7,14 @@ import nb from './locales/nb.json'
 
 // Norwegian (bokmål) is the default and the fallback for any missing key.
 // To add a language: create locales/<code>.json and add it here and to
-// SUPPORTED_LANGUAGES in the repository.
+// LANGUAGES in src/data/types.ts.
 void i18n.use(initReactI18next).init({
   resources: {
     nb: { translation: nb },
     de: { translation: de },
     en: { translation: en },
   },
-  lng: repository.getLanguage(),
+  lng: repository.getLanguageSync(),
   fallbackLng: 'nb',
   interpolation: { escapeValue: false },
 })

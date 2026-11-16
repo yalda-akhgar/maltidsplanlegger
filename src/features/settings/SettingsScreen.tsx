@@ -3,7 +3,8 @@ import type * as React from 'react'
 import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/PageHeader'
 import { Chip } from '@/components/ui/chip'
-import { repository, SUPPORTED_LANGUAGES, type Language } from '@/data/repository'
+import { repository } from '@/data/repository'
+import { LANGUAGES, type Language } from '@/data/types'
 import { InstallGuide } from '@/features/install/InstallGuide'
 
 const THEMES = ['system', 'light', 'dark'] as const
@@ -24,7 +25,7 @@ export function SettingsScreen() {
   const { theme, setTheme } = useTheme()
 
   const changeLanguage = (language: Language) => {
-    repository.setLanguage(language)
+    void repository.setLanguage(language)
     void i18n.changeLanguage(language)
   }
 
@@ -34,7 +35,7 @@ export function SettingsScreen() {
       <div className="space-y-4">
         <Section id="settings-language" title={t('settings.language.title')}>
           <div role="group" aria-labelledby="settings-language" className="flex flex-wrap gap-2">
-            {SUPPORTED_LANGUAGES.map((language) => (
+            {LANGUAGES.map((language) => (
               <Chip
                 key={language}
                 lang={language}

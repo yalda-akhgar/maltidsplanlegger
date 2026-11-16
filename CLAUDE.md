@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone B (design system + app shell) – done. Waiting for "fortsett" before milestone C (data model).**
+**Phase 1, milestone C (data model) – done. Waiting for the product owner's review and "fortsett" before milestone D (recipes + snacks).**
+
+Milestone C delivered: `src/data/types.ts` (all types), `defaults.ts` (built-in categories, default household), `localize.ts`, `week.ts` (ISO week helpers), async `repository.ts` with schema version 1 + migration of the old language key, tests in `src/data/data.test.ts` (`npx vitest run`). Decisions #62–#73.
 Repo: https://github.com/yalda-akhgar/maltidsplanlegger (public). Git identity (repo-local): `Yalda Akhgar` / `357414314+yalda-akhgar@users.noreply.github.com`. ⚠️ Never use the NTNU address – it is the *global* git e-mail on this PC. `gh` lives at `C:\Program Files\GitHub CLI\gh.exe` if not on PATH.
 
 Milestone B delivered: brand + dark tokens (`src/index.css`), base components (button, card, chip, bottom sheet, toast, switch, input, badge), app shell with bottom nav / sidebar, routing, i18n (nb/de/en), "Coming soon" screens, Settings (language, theme, install guide), PWA (manifest, icons, auto-updating service worker), Android back button closes sheets, safe areas. Dev-only component overview at `/design`.
@@ -88,7 +90,8 @@ src/
   app/                   App shell (layout + navigation), router, nav items
   components/            Shared components (PageHeader, ComingSoon)
   components/ui/         Base UI components (shadcn/ui + chip, bottom-sheet)
-  data/repository.ts     The ONLY place that reads/writes stored data
+  data/repository.ts     The ONLY place that reads/writes stored data (async API)
+  data/types.ts          The data model (Recipe, Ingredient, Category, Person, HouseholdSettings, WeekPlan, PantryItem)
   features/<feature>/    One folder per feature: week, shopping, pantry, recipes, settings, install, design-preview
   hooks/                 Shared hooks (useBackToClose)
   i18n/                  i18next setup + locales/nb.json, de.json, en.json
@@ -107,6 +110,6 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A** and **B** done; milestone **C (data model)** next.
+**Phase 1 – Foundation**, milestones **A–C** done; milestone **D (recipes + snacks)** next.
 
 Milestones: A setup/GitHub · B design system + app shell · C data model · D recipes + snacks · E planner logic + tests · F week-plan screen · G onboarding + settings · H documentation.
