@@ -1,4 +1,4 @@
-import type { Category, HouseholdSettings, Language, ProteinSplit } from './types'
+import type { Category, HouseholdSettings, ProteinSplit } from './types'
 
 /** Default protein split per meal, in percent (#20). */
 export const DEFAULT_PROTEIN_SPLIT: ProteinSplit = { breakfast: 25, lunch: 30, dinner: 30, snack: 15 }
@@ -12,14 +12,13 @@ export const DEFAULT_CATEGORIES: Category[] = [
 ]
 
 /** Household before onboarding: no people yet, pork excluded (#18). */
-export function defaultHousehold(language: Language = 'nb', now = new Date().toISOString()): HouseholdSettings {
+export function defaultHousehold(now = new Date().toISOString()): HouseholdSettings {
   return {
     people: [],
     excludedTags: ['pork'],
     excludedTerms: [],
     proteinSplit: { ...DEFAULT_PROTEIN_SPLIT },
     cheatDays: [],
-    language,
     onboardingDone: false,
     updatedAt: now,
   }

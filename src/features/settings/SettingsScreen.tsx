@@ -25,7 +25,7 @@ export function SettingsScreen() {
   const { theme, setTheme } = useTheme()
 
   const changeLanguage = (language: Language) => {
-    void repository.setLanguage(language)
+    repository.setLanguage(language)
     void i18n.changeLanguage(language)
   }
 

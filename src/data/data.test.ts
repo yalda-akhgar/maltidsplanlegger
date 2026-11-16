@@ -25,12 +25,27 @@ describe('repository', () => {
     expect((await repo.listCategories()).map((c) => c.id)).toEqual(['breakfast', 'lunch', 'dinner', 'snack'])
   })
 
-  it('migrates the pre-v1 language setting into the household', async () => {
+  it('keeps the pre-v1 language setting as a device preference', async () => {
     const storage = memoryStorage({ 'mp:language': '"de"' })
     const repo = createRepository(storage)
     expect(repo.getLanguageSync()).toBe('de')
-    expect(storage.data.has('mp:language')).toBe(false)
     expect(storage.data.get('mp:schemaVersion')).toBe(String(SCHEMA_VERSION))
+  })
+
+  it('moves the v1 household language to the device (#74)', async () => {
+    const storage = memoryStorage({
+      'mp:schemaVersion': '1',
+      'mp:household': JSON.stringify({ people: [], excludedTags: ['pork'], language: 'en' }),
+    })
+    const repo = createRepository(storage)
+    expect(repo.getLanguageSync()).toBe('en')
+    expect('language' in (await repo.getHousehold())).toBe(false)
+  })
+
+  it('stores the language per device, outside the household', async () => {
+    const repo = createRepository(memoryStorage())
+    repo.setLanguage('de')
+    expect(repo.getLanguageSync()).toBe('de')
   })
 
   it('saves, updates and deletes recipes', async () => {

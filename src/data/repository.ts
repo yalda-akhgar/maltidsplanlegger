@@ -28,7 +28,7 @@ import {
 } from './types'
 
 /** Bump when the stored format changes, and add a migration below (#73). */
-export const SCHEMA_VERSION = 1
+export const SCHEMA_VERSION = 2
 
 const PREFIX = 'mp:'
 
@@ -41,7 +41,7 @@ const KEYS = {
   weekPlans: 'weekPlans',
   pantry: 'pantry',
   installCardDismissed: 'installCardDismissed',
-  legacyLanguage: 'language', // before schema v1
+  language: 'language', // device preference (#74)
 } as const
 
 /** Minimal storage interface – localStorage in the app, in-memory in tests. */
@@ -123,14 +123,20 @@ export function createRepository(storage: KeyValueStorage) {
     if (version === SCHEMA_VERSION) return
 
     if (version === 0) {
-      // Pre-v1 stored only the UI language as a separate key.
-      const legacy = read<string>(KEYS.legacyLanguage, 'nb')
-      const language = (LANGUAGES as readonly string[]).includes(legacy) ? (legacy as Language) : 'nb'
-      if (storage.getItem(PREFIX + KEYS.household) === null) write(KEYS.household, defaultHousehold(language))
+      // Pre-v1 stored only the UI language (already under the device key).
+      if (storage.getItem(PREFIX + KEYS.household) === null) write(KEYS.household, defaultHousehold())
       if (storage.getItem(PREFIX + KEYS.categories) === null) write(KEYS.categories, DEFAULT_CATEGORIES)
-      storage.removeItem(PREFIX + KEYS.legacyLanguage)
     }
-    // Future migrations: if (version < 2) { … }
+    if (version === 1) {
+      // v1 kept the language in the household; v2 keeps it per device (#74).
+      const { language, ...household } = read<HouseholdSettings & { language?: string }>(
+        KEYS.household,
+        defaultHousehold(),
+      )
+      if (language && storage.getItem(PREFIX + KEYS.language) === null) write(KEYS.language, language)
+      write(KEYS.household, household)
+    }
+    // Future migrations: if (version < 3) { … }
 
     write(KEYS.schemaVersion, SCHEMA_VERSION)
   }
@@ -164,17 +170,6 @@ export function createRepository(storage: KeyValueStorage) {
       return saved
     },
 
-    /**
-     * Synchronous read of the UI language, needed once at start-up before
-     * React renders. (With Supabase this will read a cached copy.)
-     */
-    getLanguageSync(): Language {
-      return read(KEYS.household, defaultHousehold()).language
-    },
-    async setLanguage(language: Language): Promise<void> {
-      const household = read(KEYS.household, defaultHousehold())
-      write(KEYS.household, { ...household, language, updatedAt: now() })
-    },
 
     // --- Categories ------------------------------------------------------
     async listCategories(): Promise<Category[]> {
@@ -233,6 +228,17 @@ export function createRepository(storage: KeyValueStorage) {
     },
 
     // --- Device preferences (not household data) ------------------------
+    /**
+     * UI language of this device/person (#74). Synchronous because it is
+     * needed once at start-up before React renders.
+     */
+    getLanguageSync(): Language {
+      const value = read<string>(KEYS.language, 'nb')
+      return (LANGUAGES as readonly string[]).includes(value) ? (value as Language) : 'nb'
+    },
+    setLanguage(language: Language): void {
+      write(KEYS.language, language)
+    },
     isInstallCardDismissed(): boolean {
       return read(KEYS.installCardDismissed, false)
     },

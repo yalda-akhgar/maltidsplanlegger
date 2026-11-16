@@ -525,3 +525,17 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Sequential ids; unversioned data; weeks keyed by start date.
 - **Rationale:** Safe to sync later (phase 5), safe to upgrade, unambiguous across countries.
 - **Consequences:** None for users.
+
+## 74. UI language per person/device
+- **Date:** 2026-11-16
+- **Decision:** The app language is chosen per person/device, not shared by the household. In phase 1 (no login) it is stored on the device; in phase 5 it moves to each person's account.
+- **Alternatives:** One language for the whole household (as in the phase 1 brief).
+- **Rationale:** Family members may prefer different languages (e.g. Norwegian and German) when the household is shared in phase 5.
+- **Consequences:** `language` removed from `HouseholdSettings`; stored data upgraded to schema version 2 (the language is moved to the device automatically).
+
+## 75. Guests and "eating out" per meal
+- **Date:** 2026-11-16
+- **Decision:** The week-plan screen lets the user set guests and "we're eating out" per meal (e.g. guests only for dinner).
+- **Alternatives:** Per whole day.
+- **Rationale:** Matches real life; the data model already stores it per meal.
+- **Consequences:** Milestone F needs a per-meal action for this.
