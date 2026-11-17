@@ -643,3 +643,17 @@ describe('settings changes update planned weeks from today (#162)', () => {
     expect(autoPlanWeek(auto({ weekday: 0, lastMadeFor: '2026-W47' }), '2026-11-17')).toBe('2026-W48')
   })
 })
+
+describe('undoing a settings change (#162, #167)', () => {
+  it('the top undo restores a dinner removed by a new fixed day out, and the lunch after it', () => {
+    const c = ctx(15)
+    const plan = generate(c)
+    const newCtx = { ...c, household: { ...c.household, noDinnerAtHomeDays: [2, 4] as Weekday[] } }
+    const adapted = adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0]
+    const changes = diffMeals([plan], [adapted])
+    expect(changes.some((x) => x.date === plan.days[2].date && x.slot === 'dinner')).toBe(true)
+    const [restored] = revertChanges([adapted], changes)
+    expect(restored.days[2].meals.dinner).toEqual(plan.days[2].meals.dinner)
+    expect(restored.days[3].meals.lunch).toEqual(plan.days[3].meals.lunch)
+  })
+})

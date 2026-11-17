@@ -1007,7 +1007,7 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Decision:** The week-plan screen has a "Fill in example family" button (Anna 120 g, Ola 140 g, Noah who doesn't like salmon, Ella; no dinner at home on Fridays). It is only shown with `npm run dev` and is not included in the published app.
 - **Alternatives:** Wait for the onboarding wizard (milestone G) before testing.
 - **Rationale:** Makes the week plan testable with protein numbers before milestone G.
-- **Consequences:** Can be removed once the wizard exists.
+- **Consequences:** Kept after milestone G (2026-11-17): the product owner finds it useful for testing, even though the wizard now exists. Still never in the published app.
 
 ## 143. Monday's lunch always follows Sunday's dinner
 - **Date:** 2026-11-17
@@ -1176,3 +1176,16 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** No button – everything can be changed in Settings.
 - **Rationale:** Product owner's choice: an easy way to go through everything again.
 - **Consequences:** The last step's button says "Save" instead of "Make my first week plan".
+
+## 167. Details of the wizard and settings, approved after milestone G
+- **Date:** 2026-11-17
+- **Decision:**
+  1. When a weekday becomes a fixed day without dinner at home, a dinner already planned on that day is removed – also one the user picked – and the next day's leftovers become a quick lunch. The top "Undo «Settings»" on the week plan brings the dinner and the lunch back (tested); the setting itself stays changed.
+  2. "Run the wizard again" only saves the settings and has ✕ to cancel (#166).
+  3. "Skip all" on the welcome step jumps to the last step, so the first week plan is still made.
+  4. A skipped name becomes "Me"; other people without a name become "Adult 2", "Child 1" and so on.
+  5. The automatic week plan settings are saved immediately (no Save button); the plan is made the next time the app is opened.
+  6. Removing an excluded food replaces nothing; only portions are recalculated.
+- **Alternatives:** (1) Keep a planned dinner on a new fixed day out.
+- **Rationale:** Made during the build and approved by the product owner afterwards.
+- **Consequences:** None beyond the above.
