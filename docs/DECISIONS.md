@@ -889,3 +889,52 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Not planned.
 - **Rationale:** Natural extension of #123.
 - **Consequences:** None for phase 1.
+
+## 126. Tapping a meal
+- **Date:** 2026-11-17
+- **Decision:** ↻ swaps straight away to the app's next suggestion. Tapping the dish itself opens a sheet with the recipe and the actions "Pick another dish", "Eating out" and "Guests (+/−)".
+- **Alternatives:** Tapping opens a menu with all actions, the recipe being one of them.
+- **Rationale:** The two most common actions (swap, see the recipe) take one tap each.
+- **Consequences:** None.
+
+## 127. Plan notes as small labels under the dish
+- **Date:** 2026-11-17
+- **Decision:** Notes from the planner (a child dislikes the dish, a repeated dinner, the same protein source) are shown as a small yellow label with text under the dish.
+- **Alternatives:** One combined banner at the top of the week.
+- **Rationale:** The note is next to the dish it is about; it has text, so colour is not the only signal (WCAG).
+- **Consequences:** None.
+
+## 128. "Show protein alerts" is a device preference
+- **Date:** 2026-11-17
+- **Decision:** The setting from #116 is stored per device, like the language (#74).
+- **Alternatives:** One setting for the whole household.
+- **Rationale:** Each adult decides for themselves how many alerts they want.
+- **Consequences:** Stored via the repository as a device preference; the switch is added to Settings in milestone G.
+
+## 129. Undo lasts while the user stays on the week plan
+- **Date:** 2026-11-17
+- **Decision:** The undo history lasts while the user stays on the week-plan screen. Besides "Undo" in the message, an "↶ Undo" button is shown at the top as long as there is something to undo. The history is cleared when the week is changed or the user leaves the screen.
+- **Alternatives:** Undo only in the message (~8 s); history kept until the app is closed.
+- **Rationale:** Messages disappear on their own; the button gives everyone time to undo (WCAG 2.2.1 Timing adjustable).
+- **Consequences:** Completes #122.
+
+## 130. One combined message for swap and protein alert
+- **Date:** 2026-11-17
+- **Decision:** When a swap leaves the day under target, one message shows both: "Swapped to Fajitas. 20 g under today's target … [Undo] [Add skyr]".
+- **Alternatives:** Two messages after each other.
+- **Rationale:** Less noise.
+- **Consequences:** With protein alerts off (#116), the message only offers Undo.
+
+## 131. The favourites week covers all four meals
+- **Date:** 2026-11-17
+- **Decision:** "Favourites only" applies to breakfast, lunch, dinner and evening snack. Each meal is topped up with regular dishes if there are too few favourites.
+- **Alternatives:** Only dinners.
+- **Rationale:** Simple to understand: "only favourites" means every meal.
+- **Consequences:** Completes #123.
+
+## 132. Note when there are too few favourites
+- **Date:** 2026-11-17
+- **Decision:** After a favourites week is made, one message says how many meals got other dishes, e.g. "Only 4 favourite dinners – 3 days got other dishes."
+- **Alternatives:** A "Not a favourite" label on every filled-in dish.
+- **Rationale:** Informs once without cluttering the week.
+- **Consequences:** None.
