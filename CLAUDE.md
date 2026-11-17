@@ -1,9 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1, milestone G (onboarding wizard + settings) – built and in acceptance test by the product owner (decisions #156–#171). Waiting for test feedback or "fortsett". Next: milestone H (documentation; also bundle size #94).**
+**Phase 1, milestone H (documentation; also bundle size #94) – in progress. Milestone G approved 2026-11-17 (#156–#171). Phase 3 core flow decided (#172, not built).**
 
-Changes from the G acceptance test so far (all pushed): undo of settings changes tested and the dev "Fill in example family" button kept (#142, #167); "Remove meal" – meal status `skipped`, planner `skipMeal` / `refillMeal`, "Fill in again" / "Pick a dish" in `MealSheet` (#168, #171); leftovers come back when a removed dinner returns, via `PlannedMeal.replacedLeftoversFrom` (#170). Ideas logged: per-person skip (BACKLOG #9, phase 5), phase-2 check-in and summary (#169, `docs/PROMPT.md`). Tests: 97 pass (`npx vitest run`).
+Changes from the G acceptance test (all pushed): undo of settings changes tested and the dev "Fill in example family" button kept (#142, #167); "Remove meal" – meal status `skipped`, planner `skipMeal` / `refillMeal`, "Fill in again" / "Pick a dish" in `MealSheet` (#168, #171); leftovers come back when a removed dinner returns, via `PlannedMeal.replacedLeftoversFrom` (#170). Ideas logged: per-person skip (BACKLOG #9, phase 5), phase-2 check-in and summary (#169, `docs/PROMPT.md`). Tests: 97 pass (`npx vitest run`).
 
 Milestone G delivered: `src/features/onboarding/OnboardingScreen.tsx` (6-step wizard at `/welcome`, shown while `onboardingDone` is false; `?again=1` from Settings), shared editors in `src/features/household/` (people cards, protein target + calculator, dislikes sheet, excluded food, weekday pickers, `save-settings.ts`), settings list + sub-pages in `src/features/settings/` (`/settings/profile`, `household`, `food-week`, `auto-plan`, `split`, `language`, `appearance`, `install`). Planner: `adaptToSettings` (settings changes update weeks from today, only replacing dishes that no longer fit) and `autoPlanWeek`; repository `listWeekPlans`, `deviceLanguage`; schema v5 (`HouseholdSettings.autoWeekPlan`). Milestone F approved 2026-11-17 (#114–#155).
 
@@ -123,7 +123,7 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A–F** done, **G** built and in acceptance test; milestone **H (documentation)** next.
+**Phase 1 – Foundation**, milestones **A–F** done, **G** done; milestone **H (documentation)** in progress.
 
 **Phase order (decision #144):** after phase 1 comes phase 3 (Home + shopping list), then phase 2. Phase numbers are unchanged.
 

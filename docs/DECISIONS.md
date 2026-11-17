@@ -1232,3 +1232,14 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Also offer "Remove meal" in the pick list of an empty meal. (2) Reset guests to 0.
 - **Rationale:** Made during the build of #168 and approved by the product owner afterwards.
 - **Consequences:** None beyond the above.
+
+## 172. Phase 3 core: approve the week plan, then "What do you have at home?"
+- **Date:** 2026-11-17
+- **Decision:** The core flow of phase 3 (not built now):
+  1. A button "Approve week plan" with a clear confirmation ("Week 47 is ready ✓").
+  2. Then "What do you have at home?": every item the week needs, grouped by store section. Items the app knows are at home (from Home) are ticked in advance. Items used last week get the question "Do you still have …?" (#145).
+  3. Everything not at home goes to the shopping list automatically, where the user can add their own items.
+  4. If the plan changes after approval, the app only asks about the new items.
+- **Alternatives:** A shopping list made directly from the plan without the "at home" step; asking about every item every time.
+- **Rationale:** Product owner's choice after the milestone G acceptance test: one clear moment where the plan becomes a shopping list, with as few questions as possible.
+- **Consequences:** Added as the core of phase 3 in `docs/PROMPT.md`. Needs a store section per ingredient and an "approved" state on the week plan (phase 3 data model work). Builds on #113 (fixed shopping day) and #145.
