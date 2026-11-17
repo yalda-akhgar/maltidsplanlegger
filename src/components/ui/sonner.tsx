@@ -39,7 +39,10 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          // Buttons go on their own row below the text, so the text keeps its width on phones (#156).
+          toast: "cn-toast !flex-wrap",
+          content: "!basis-full",
+          actionButton: "!ml-auto",
           // Full-strength text: the default grey description is too faint on the dark toast (WCAG 1.4.3).
           description: "!text-[var(--normal-text)]",
         },

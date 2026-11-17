@@ -1099,3 +1099,80 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Only the grey text without numbers; keep the progress bars (#118).
 - **Rationale:** The status is always visible, so the message is not needed to see it. Text + colour (WCAG 1.4.1).
 - **Consequences:** Replaces the progress bars of #118.
+
+## 156. The button in a message sits below the text
+- **Date:** 2026-11-17
+- **Decision:** In toasts with a button (e.g. "Add milk for Anna"), the button is placed below the text, not next to it.
+- **Alternatives:** Next to the text (sonner's default).
+- **Rationale:** On phones the text became very narrow and hard to read.
+- **Consequences:** Messages with a button are slightly taller.
+
+## 157. Language on the welcome step, phone language first
+- **Date:** 2026-11-17
+- **Decision:** The welcome step of the wizard has small buttons Norsk / Deutsch / English. Until a language is chosen, the app uses the phone's language if it is one of the three, otherwise Norwegian.
+- **Alternatives:** Language only under Settings.
+- **Rationale:** German-speaking families should not have to start in Norwegian.
+- **Consequences:** Replaces "Norwegian until changed" (#74 still applies: the language is stored per device).
+
+## 158. Onboarding wizard with six steps
+- **Date:** 2026-11-17
+- **Decision:** The wizard (#24) is full-screen without the navigation bar and has six steps: 1) welcome + name, 2) daily protein target, 3) household, 4) food we don't want, 5) "your week" (fixed days without dinner at home + cheat days), 6) done. It shows "Step X of 6", with Back, Skip and Next; the welcome step has "Skip all". "Make my first week plan" on the last step makes the plan from today and opens the week plan.
+- **Alternatives:** Seven steps (fixed days out and cheat days separately).
+- **Rationale:** Short, and the two weekday questions belong together.
+- **Consequences:** Shown when `onboardingDone` is false. Fixed days out are part of the wizard as decided in #107.
+
+## 159. Guideline calculator for the protein target
+- **Date:** 2026-11-17
+- **Decision:** "Don't know? Work it out": body weight × 1.2 (not very active), 1.6 (moderately active) or 2.0 g (very active) per kg. "Use this" puts the result into the field. Labelled as a guideline, not medical advice.
+- **Alternatives:** Five activity levels.
+- **Rationale:** Three levels are easy to choose between and cover the range from #24.
+- **Consequences:** The same calculator is used under "My profile".
+
+## 160. Protein targets are optional
+- **Date:** 2026-11-17
+- **Decision:** Every adult has an optional protein target field (the user's own on step 2, other adults on the household step). An adult without a target gets standard portions and no progress; the week plan shows a short reminder ("Add a protein target for Ola under Settings").
+- **Alternatives:** A default target of 100 g.
+- **Rationale:** A made-up target would give misleading portions and alerts.
+- **Consequences:** If the name is skipped but a target is entered, the first adult is called "Me".
+
+## 161. Children in the wizard
+- **Date:** 2026-11-17
+- **Decision:** For each child: name, "Eats lunch at home on weekdays" (off by default, #102) and "Doesn't like" (chosen from the ingredient catalogue, #70). Everything is optional.
+- **Alternatives:** Only the name in the wizard; the rest under Settings.
+- **Rationale:** Children's preferences are part of phase 1 and affect the first plan.
+- **Consequences:** The same person cards are used under Settings → Household.
+
+## 162. Settings changes update planned weeks from today
+- **Date:** 2026-11-17
+- **Decision:** When settings that affect the plan are saved (people and targets, excluded food, fixed days out, cheat days, protein split), planned weeks are updated from today: portions are always recalculated, and only dishes that no longer fit are replaced – dishes containing food that is now excluded, cheat snacks on a day that is no longer a cheat day, and dinner on a day that became a fixed day without dinner at home. Everything else stays, including dishes the user picked. One message says what changed, and the top "Undo" on the week plan undoes it.
+- **Alternatives:** Only recalculate portions and mark dishes that no longer fit with a yellow label.
+- **Rationale:** Excluded food must never be suggested (#18), but the user's own choices are respected.
+- **Consequences:** `adaptToSettings` in `planner.ts`, with tests. Past days never change (#33).
+
+## 163. Settings as a list with sub-pages
+- **Date:** 2026-11-17
+- **Decision:** Settings is a list grouped as Family (My profile, Household, Food and week), Week plan (Show protein alerts, Make new week plan automatically, Protein split) and App (Language, Appearance, Add to home screen, Run the wizard again). Each row opens its own page; pages with several fields have a Save button and warn before leaving with unsaved changes (#93).
+- **Alternatives:** One long page with sections.
+- **Rationale:** Many settings; a list is easier on a phone.
+- **Consequences:** New routes under `/settings/…`.
+
+## 164. Automatic week plan: next week, on Sunday by default
+- **Date:** 2026-11-17
+- **Decision:** When "Make new week plan automatically" (#124) is turned on, the default day is Sunday. The first time the app is opened on or after the chosen weekday, it fills the empty meals of next week's plan (all dishes or favourites only) and shows "Week 48 was made automatically". It can be undone with the top "Undo" on the week plan.
+- **Alternatives:** Saturday as default day.
+- **Rationale:** Sunday is a natural planning day, and Monday's lunch can follow Sunday's dinner.
+- **Consequences:** New optional household field `autoWeekPlan` (schema version 5). Without a server (before phase 5) nothing happens until the app is opened.
+
+## 165. Editing the protein split
+- **Date:** 2026-11-17
+- **Decision:** Four +/− buttons in steps of 5 % (breakfast, lunch, dinner, evening). Save only works when the sum is 100 %; "Reset to 25/30/30/15" restores the default.
+- **Alternatives:** A few presets.
+- **Rationale:** Flexible and simple; the sum is always visible.
+- **Consequences:** Implements "adjustable in Settings" from #20.
+
+## 166. "Run the wizard again" in Settings
+- **Date:** 2026-11-17
+- **Decision:** A button at the bottom of Settings opens the wizard again, filled in with the current settings. Finishing it saves the settings like any other settings change (#162); it does not make a new week plan.
+- **Alternatives:** No button – everything can be changed in Settings.
+- **Rationale:** Product owner's choice: an easy way to go through everything again.
+- **Consequences:** The last step's button says "Save" instead of "Make my first week plan".

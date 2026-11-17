@@ -30,7 +30,7 @@ import {
 } from './types'
 
 /** Bump when the stored format changes, and add a migration below (#73). */
-export const SCHEMA_VERSION = 4
+export const SCHEMA_VERSION = 5
 
 /** Bump when new seed recipes/ingredients should be added to existing installs. */
 export const SEED_VERSION = 1
@@ -149,7 +149,8 @@ export function createRepository(storage: KeyValueStorage) {
       write(KEYS.household, { ...household, noDinnerAtHomeDays: household.noDinnerAtHomeDays ?? [] })
     }
     // v4 adds optional extras on meals (#120): no stored data changes.
-    // Future migrations: if (version < 5) { … }
+    // v5 adds the optional automatic week plan setting (#164): no stored data changes.
+    // Future migrations: if (version < 6) { … }
 
     write(KEYS.schemaVersion, SCHEMA_VERSION)
   }
@@ -240,6 +241,10 @@ export function createRepository(storage: KeyValueStorage) {
     async getWeekPlan(weekId: WeekId): Promise<WeekPlan | undefined> {
       return read<Record<WeekId, WeekPlan>>(KEYS.weekPlans, {})[weekId]
     },
+    /** All stored week plans, oldest first. */
+    async listWeekPlans(): Promise<WeekPlan[]> {
+      return Object.values(read<Record<WeekId, WeekPlan>>(KEYS.weekPlans, {})).sort((a, b) => a.weekId.localeCompare(b.weekId))
+    },
     async saveWeekPlan(plan: WeekPlan): Promise<WeekPlan> {
       const plans = read<Record<WeekId, WeekPlan>>(KEYS.weekPlans, {})
       const saved = { ...plan, updatedAt: now() }
@@ -265,8 +270,9 @@ export function createRepository(storage: KeyValueStorage) {
      * needed once at start-up before React renders.
      */
     getLanguageSync(): Language {
-      const value = read<string>(KEYS.language, 'nb')
-      return (LANGUAGES as readonly string[]).includes(value) ? (value as Language) : 'nb'
+      const value = read<string>(KEYS.language, '')
+      if ((LANGUAGES as readonly string[]).includes(value)) return value as Language
+      return deviceLanguage()
     },
     setLanguage(language: Language): void {
       write(KEYS.language, language)
@@ -288,6 +294,19 @@ export function createRepository(storage: KeyValueStorage) {
 }
 
 export type Repository = ReturnType<typeof createRepository>
+
+/**
+ * The phone's language if the app has it, otherwise Norwegian (#157).
+ * Norwegian Bokmål, Nynorsk and plain "no" all map to nb.
+ */
+export function deviceLanguage(languages: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages): Language {
+  for (const tag of languages) {
+    const base = tag.toLowerCase().split('-')[0]
+    if (base === 'nb' || base === 'nn' || base === 'no') return 'nb'
+    if ((LANGUAGES as readonly string[]).includes(base)) return base as Language
+  }
+  return 'nb'
+}
 
 /** The app-wide repository, backed by the browser's localStorage. */
 export const repository = createRepository(safeLocalStorage())

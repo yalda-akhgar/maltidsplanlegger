@@ -2,7 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { defaultHousehold } from './defaults'
 import { recipeNutrition } from './nutrition'
 import {
+  adaptToSettings,
   addExtras,
+  autoPlanWeek,
   boostSuggestions,
   dayProtein,
   dayStarted,
@@ -27,7 +29,7 @@ import { eatsMeal, personalPortion, personDayNutrition, plannedTargetG, proteinB
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import { diffMeals, isCurrent, mealKey, revertChanges } from './undo'
 import { SEED_RECIPES } from './seed/recipes'
-import type { HouseholdSettings, Ingredient, Person, Recipe, WeekPlan } from './types'
+import type { HouseholdSettings, Ingredient, Person, Recipe, Weekday, WeekPlan } from './types'
 
 const WEEK = '2026-W47' // Monday 2026-11-16 … Sunday 2026-11-22
 const MONDAY = '2026-11-16'
@@ -574,5 +576,70 @@ describe('undo per meal and per week action (#146–#152)', () => {
     const plan = generate(c)
     expect(emptyMeals(c.household, plan.days[4])).toEqual([])
     expect(dayStarted(plan.days[4])).toBe(true)
+  })
+})
+
+describe('settings changes update planned weeks from today (#162)', () => {
+  const TUESDAY = '2026-11-17'
+  const SALMON = r('salmon-sweet-potato-broccoli')
+  const isFish = (id: string | undefined, c: PlannerContext) =>
+    !!id && !isRecipeAllowed(byId.get(id)!, ingredients, { ...c.household, excludedTags: ['pork', 'fish'] })
+
+  it('replaces only dishes with newly excluded food, keeps past days and other picks', () => {
+    const c = ctx(11)
+    let plan = generate(c)
+    plan = setMeal(c, { plan, date: MONDAY, slot: 'dinner', recipeId: SALMON }).plan
+    plan = setMeal(c, { plan, date: TUESDAY, slot: 'dinner', recipeId: SALMON }).plan
+    const wednesday = plan.days[2].meals.dinner
+    const newCtx = { ...c, household: { ...c.household, excludedTags: ['pork', 'fish'] } }
+    const { plans, replaced } = adaptToSettings(newCtx, c.household, [plan], TUESDAY)
+    const after = plans[0]
+    expect(replaced).toBeGreaterThanOrEqual(1)
+    expect(after.days[0].meals.dinner.recipeId).toBe(SALMON) // past day unchanged
+    expect(after.days[1].meals.dinner.recipeId).not.toBe(SALMON)
+    expect(after.days[2].meals.lunch.recipeId).toBe(after.days[1].meals.dinner.recipeId) // leftovers follow
+    if (!isFish(wednesday.recipeId, c)) expect(after.days[2].meals.dinner.recipeId).toBe(wednesday.recipeId)
+    for (const day of after.days.slice(1)) for (const meal of Object.values(day.meals)) expect(isFish(meal.recipeId, c)).toBe(false)
+  })
+
+  it('removes dinner on a new fixed day out, and the next lunch becomes a quick lunch', () => {
+    const c = ctx(12)
+    const plan = generate(c)
+    expect(plan.days[2].meals.dinner.status).toBe('planned')
+    const newCtx = { ...c, household: { ...c.household, noDinnerAtHomeDays: [2, 4] as Weekday[] } }
+    const after = adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0]
+    expect(after.days[2].meals.dinner.status).toBe('none')
+    expect(after.days[3].meals.lunch.status).toBe('planned')
+    expect(after.days[1].meals.dinner).toEqual(plan.days[1].meals.dinner)
+  })
+
+  it('replaces a cheat snack when the day is no longer a cheat day', () => {
+    const c = ctx(13, { household: household({ cheatDays: [5] }) })
+    const plan = generate(c)
+    expect(byId.get(plan.days[5].meals.snack.recipeId!)?.snackKind).toBe('cheat')
+    const newCtx = { ...c, household: { ...c.household, cheatDays: [] } }
+    const after = adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0]
+    expect(byId.get(after.days[5].meals.snack.recipeId!)?.snackKind).not.toBe('cheat')
+  })
+
+  it('recalculates portions with a new target from today only', () => {
+    const c = ctx(14)
+    const plan = generate(c)
+    const people = c.household.people.map((p) => (p.id === 'a1' ? { ...p, proteinTargetG: 160 } : p))
+    const newCtx = { ...c, household: { ...c.household, people } }
+    const { plans, replaced } = adaptToSettings(newCtx, c.household, [plan], TUESDAY)
+    expect(replaced).toBe(0)
+    expect(plans[0].days[0].targetsG.a1).toBe(120)
+    expect(plans[0].days[1].targetsG.a1).toBe(160)
+    expect(plans[0].days[1].meals.dinner.recipeId).toBe(plan.days[1].meals.dinner.recipeId)
+  })
+
+  it('makes next week automatically from the chosen weekday, once (#164)', () => {
+    const auto = (extra: object) => household({ autoWeekPlan: { enabled: true, weekday: 6, favoritesOnly: false, ...extra } })
+    expect(autoPlanWeek(household(), '2026-11-22')).toBeUndefined()
+    expect(autoPlanWeek(auto({}), '2026-11-21')).toBeUndefined() // Saturday, before Sunday
+    expect(autoPlanWeek(auto({}), '2026-11-22')).toBe('2026-W48')
+    expect(autoPlanWeek(auto({ lastMadeFor: '2026-W48' }), '2026-11-22')).toBeUndefined()
+    expect(autoPlanWeek(auto({ weekday: 0, lastMadeFor: '2026-W47' }), '2026-11-17')).toBe('2026-W48')
   })
 })

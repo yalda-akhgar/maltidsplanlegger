@@ -1,7 +1,9 @@
 import { ChevronLeftIcon, ChevronRightIcon, EllipsisIcon, SparklesIcon, Undo2Icon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { useNavigate } from 'react-router'
+import { Link, useNavigate } from 'react-router'
+import { selfOf } from '@/features/household/household-draft'
+import { PLANS_CHANGED } from '@/features/household/save-settings'
 import { toast } from '@/lib/toast'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
@@ -100,6 +102,13 @@ export function WeekScreen() {
     }
   }, [weekId, data])
 
+  // Plans or settings changed elsewhere (settings, wizard, automatic plan): load again (#162, #164).
+  useEffect(() => {
+    const onChange = () => void reload()
+    window.addEventListener(PLANS_CHANGED, onChange)
+    return () => window.removeEventListener(PLANS_CHANGED, onChange)
+  }, [reload])
+
   // Scroll to today once the current week is shown (#117).
   const todayRef = useRef<HTMLElement>(null)
   const scrolledFor = useRef<WeekId | null>(null)
@@ -132,6 +141,7 @@ export function WeekScreen() {
   const hasEmpty = plan.days.some((d) => d.date >= today && MEAL_SLOTS.some((s) => isEmpty(d.date, s, d.meals[s].status)))
   const fillLabel = planned ? t('week.fillEmpty') : t('week.makePlan')
   const hasAdults = household.people.some((p) => p.kind === 'adult')
+  const withoutTarget = household.people.filter((p) => p.kind === 'adult' && !p.proteinTargetG)
   const dayTitle = (date: IsoDate) => formatDay(date, language, t, true)
   const recipeName = (id: Id | undefined) => localize(id ? recipesById.get(id)?.name : undefined, language)
 
@@ -423,7 +433,24 @@ export function WeekScreen() {
           </Button>
         </nav>
 
-        {!hasAdults ? <p className="rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">{t('week.noPeople')}</p> : null}
+        {!hasAdults ? (
+          <p className="rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">
+            {t('week.noPeople')}{' '}
+            <Link to="/settings/household" className="font-semibold underline underline-offset-2">
+              {t('week.noPeopleLink')}
+            </Link>
+          </p>
+        ) : withoutTarget.length > 0 ? (
+          <p className="rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">
+            {t('week.noTarget', { names: withoutTarget.map((p) => p.name).join(', ') })}{' '}
+            <Link
+              to={withoutTarget[0] === selfOf(household) ? '/settings/profile' : '/settings/household'}
+              className="font-semibold underline underline-offset-2"
+            >
+              {t('week.noTargetLink')}
+            </Link>
+          </p>
+        ) : null}
 
         {/* Development only (npm run dev), never in the published app (#142). */}
         {import.meta.env.DEV ? (

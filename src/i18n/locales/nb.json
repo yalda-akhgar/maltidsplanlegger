@@ -46,11 +46,67 @@
       "dark": "Mørk"
     },
     "language": {
-      "title": "Språk"
+      "title": "Språk",
+      "hint": "Språket gjelder bare denne enheten."
     },
     "install": {
       "title": "Legg til på hjemskjermen"
-    }
+    },
+    "save": "Lagre",
+    "saved": "Innstillingene er lagret.",
+    "recalculated": "Porsjonene i ukeplanen er regnet om.",
+    "replaced_one": "{{count}} rett i ukeplanen passet ikke lenger og ble byttet. Du kan angre på ukeplanen.",
+    "replaced_other": "{{count}} retter i ukeplanen passet ikke lenger og ble byttet. Du kan angre på ukeplanen.",
+    "groups": {
+      "family": "Familien",
+      "weekPlan": "Ukeplan",
+      "app": "App"
+    },
+    "profile": {
+      "title": "Min profil",
+      "text": "Proteinmålet ditt. Ukeplanen regnes om fra i dag når du lagrer.",
+      "target": "Proteinmål per dag",
+      "summary": "{{name}} · {{target}} g protein per dag",
+      "empty": "Ikke satt opp ennå"
+    },
+    "household": {
+      "title": "Husholdning",
+      "summary": "Voksne: {{adults}} · Barn: {{children}}",
+      "selfTarget": "Deg · {{target}} g – endres under Min profil",
+      "selfNoTarget": "Deg – mål settes under Min profil"
+    },
+    "foodWeek": {
+      "title": "Mat og uke",
+      "summary": "Utelukket: {{list}}",
+      "summaryNone": "Ingen mat utelukket"
+    },
+    "alerts": {
+      "title": "Vis proteinvarsler",
+      "hint": "Bare på denne enheten"
+    },
+    "autoPlan": {
+      "title": "Lag ny ukeplan automatisk",
+      "off": "Av",
+      "summary": "På · {{day}}",
+      "enabled": "Slått på",
+      "day": "Neste ukes plan lages på",
+      "with": "Med",
+      "all": "Alle retter",
+      "favorites": "Bare favoritter",
+      "hint": "Planen lages første gang du åpner appen på eller etter {{day}}. Bare tomme måltider fylles.",
+      "offHint": "Når den er slått på, lager appen neste ukes plan for deg."
+    },
+    "split": {
+      "title": "Fordeling av protein",
+      "text": "Hvor stor del av dagens proteinmål hvert måltid skal dekke.",
+      "less": "Mindre til {{name}}",
+      "more": "Mer til {{name}}",
+      "sum": "Sum",
+      "sumOk": "100 % ✓",
+      "sumWrong": "{{sum}} % – må bli 100 %",
+      "reset": "Tilbakestill til 25 / 30 / 30 / 15"
+    },
+    "runWizard": "Kjør veiviseren på nytt"
   },
   "languages": {
     "nb": "Norsk",
@@ -260,7 +316,7 @@
     },
     "emptyTitle": "Uke {{week}} er ikke planlagt ennå.",
     "emptyText": "Trykk «Lag ukeplan» for å fylle hele uken, eller velg retter selv nedenfor. Du kan også blande.",
-    "noPeople": "Familien er ikke satt opp ennå, så appen kan ikke regne ut porsjoner og proteinmål. Det gjør du i oppstartsveiviseren, som kommer snart.",
+    "noPeople": "Familien er ikke satt opp ennå, så appen kan ikke regne ut porsjoner og proteinmål.",
     "slots": {
       "breakfast": "Frokost",
       "lunch": "Lunsj",
@@ -313,7 +369,8 @@
       "notEatingOut": "Spiser hjemme likevel",
       "guests_one": "{{count}} gjest",
       "guests_other": "{{count}} gjester",
-      "extraRemoved": "Ekstra fjernet"
+      "extraRemoved": "Ekstra fjernet",
+      "autoMade": "Uke {{week}} er laget automatisk."
     },
     "meal": {
       "pickAnother": "Velg annen rett",
@@ -351,7 +408,9 @@
       "make": "Lag ukeplan",
       "fill": "Fyll ut",
       "favorites": "Favorittuke",
-      "replace": "Ny ukeplan"
+      "replace": "Ny ukeplan",
+      "settings": "Innstillinger",
+      "auto": "Automatisk ukeplan"
     },
     "undoSwap": "Angre bytte: {{slot}}, {{day}} – tilbake til {{name}}",
     "undoChange": "Angre endring: {{slot}}, {{day}}",
@@ -367,6 +426,122 @@
       "suggestion": "Forslag: {{list}}",
       "weekTitle": "Uke {{week}} er planlagt.",
       "weekDays": "{{ok}} av {{total}} dager når målet for alle."
+    },
+    "noPeopleLink": "Sett opp familien",
+    "noTarget": "Legg inn proteinmål for {{names}}, så kan appen tilpasse porsjonene.",
+    "noTargetLink": "Til innstillinger"
+  },
+  "household": {
+    "gramsPerDay": "g per dag",
+    "targetInvalid": "Skriv et helt tall mellom 1 og 500, eller la feltet stå tomt.",
+    "calc": {
+      "open": "Vet du ikke? Regn ut",
+      "title": "Regn ut et veiledende mål",
+      "weight": "Kroppsvekt (kg)",
+      "activity": "Aktivitetsnivå",
+      "low": "Lite aktiv ({{factor}} g/kg)",
+      "medium": "Middels aktiv ({{factor}} g/kg)",
+      "high": "Svært aktiv ({{factor}} g/kg)",
+      "enterWeight": "Skriv inn kroppsvekten din.",
+      "result": "{{kg}} kg × {{factor}} g = {{result}} g per dag",
+      "use": "Bruk {{result}} g",
+      "note": "Et veiledende tall, ikke medisinsk råd."
+    },
+    "adult": "Voksen",
+    "child": "Barn",
+    "adultName": "Navn (voksen)",
+    "childName": "Navn (barn)",
+    "addAdult": "Voksen",
+    "addChild": "Barn",
+    "remove": "Fjern {{name}}",
+    "targetOptional": "Proteinmål (valgfritt)",
+    "lunchAtHome": "Spiser lunsj hjemme på hverdager",
+    "dislikes": {
+      "label": "Liker ikke:",
+      "none": "ingenting valgt",
+      "change": "Endre",
+      "edit": "Endre hva {{name}} ikke liker",
+      "title": "Hva liker ikke {{name}}?",
+      "description": "Appen prøver å unngå retter med dette.",
+      "search": "Søk etter ingrediens",
+      "done": "Ferdig"
+    },
+    "food": {
+      "pork": "Svinekjøtt",
+      "remove": "Fjern {{name}}",
+      "addLabel": "Legg til mat dere ikke vil ha",
+      "placeholder": "F.eks. reker",
+      "add": "Legg til"
+    },
+    "week": {
+      "outTitle": "Faste dager dere ikke spiser middag hjemme",
+      "outHint": "Dagen etter får en rask lunsj i stedet for rester.",
+      "cheatTitle": "Cheat days – kveldssnacksen kan være noe godt",
+      "cheatHint": "Proteinmålet gjelder fortsatt."
+    },
+    "weekdays": {
+      "long": {
+        "0": "Mandag",
+        "1": "Tirsdag",
+        "2": "Onsdag",
+        "3": "Torsdag",
+        "4": "Fredag",
+        "5": "Lørdag",
+        "6": "Søndag"
+      },
+      "short": {
+        "0": "Ma",
+        "1": "Ti",
+        "2": "On",
+        "3": "To",
+        "4": "Fr",
+        "5": "Lø",
+        "6": "Sø"
+      }
+    }
+  },
+  "onboarding": {
+    "me": "Meg",
+    "stepOf": "Steg {{step}} av {{total}}",
+    "cancel": "Avbryt veiviseren",
+    "skipAll": "Hopp over alt",
+    "skip": "Hopp over",
+    "next": "Neste",
+    "welcome": {
+      "title": "Velkommen til Måltidsplanlegger",
+      "text": "Appen lager ukeplaner der hver voksen når sitt eget proteinmål. Noen korte spørsmål først – alt kan hoppes over og endres senere.",
+      "name": "Hva heter du?"
+    },
+    "protein": {
+      "title": "Hvor mye protein trenger du daglig?",
+      "titleNamed": "Hvor mye protein trenger du daglig, {{name}}?",
+      "label": "Ditt proteinmål"
+    },
+    "household": {
+      "title": "Hvem spiser med?",
+      "text": "Legg til de andre i husholdningen. Barn får halv porsjon og har ikke proteinmål.",
+      "you": "Deg",
+      "youWithTarget": "Deg · {{target}} g"
+    },
+    "food": {
+      "title": "Er det mat dere ikke vil ha?",
+      "text": "Appen foreslår aldri retter med dette."
+    },
+    "week": {
+      "title": "Hvordan ser uka deres ut?"
+    },
+    "done": {
+      "title": "Klart!",
+      "adults": "Voksne",
+      "children": "Barn",
+      "excluded": "Utelukket",
+      "out": "Middag ute",
+      "cheat": "Cheat days",
+      "none": "Ingen",
+      "text": "Alt kan endres under Innstillinger.",
+      "textAgain": "Ukeplanen tilpasses fra i dag når du lagrer.",
+      "makePlan": "Lag min første ukeplan",
+      "save": "Lagre"
     }
   }
 }

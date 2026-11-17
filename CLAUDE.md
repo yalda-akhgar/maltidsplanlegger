@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone F (week-plan screen) – built (decisions #114–#143), plus acceptance-test changes (#146–#155): undo per meal (↶, `src/data/undo.ts` + `features/week/undo-store.ts`), one toast at a time (`src/lib/toast.ts`), day/week summary instead of protein toasts, boost with up to two items, status labels on the day card. **Milestone F approved 2026-11-17.** Milestone G is being designed (draft with choices shown to the product owner, nothing built yet): milestone G (onboarding wizard + settings: people incl. protein targets, "My profile", fixed days out, per-child lunch, protein alerts switch, automatic week plan #124).**
+**Phase 1, milestone G (onboarding wizard + settings) – built (decisions #156–#166), waiting for the product owner's review. Next: milestone H (documentation, bundle size #94).**
+
+Milestone G delivered: `src/features/onboarding/OnboardingScreen.tsx` (6-step wizard at `/welcome`, shown while `onboardingDone` is false; `?again=1` from Settings), shared editors in `src/features/household/` (people cards, protein target + calculator, dislikes sheet, excluded food, weekday pickers, `save-settings.ts`), settings list + sub-pages in `src/features/settings/` (`/settings/profile`, `household`, `food-week`, `auto-plan`, `split`, `language`, `appearance`, `install`). Planner: `adaptToSettings` (settings changes update weeks from today, only replacing dishes that no longer fit) and `autoPlanWeek`; repository `listWeekPlans`, `deviceLanguage`; schema v5 (`HouseholdSettings.autoWeekPlan`). Milestone F approved 2026-11-17 (#114–#155).
 
 Milestone F delivered: `src/features/week/` – `WeekScreen` (week navigation, fill / favourites week / start over with confirmation, undo history + undo toasts, protein-alert toast with "Add"), `DayCard` (progress per adult, meals, notes, extras), `PickSheet` (search, filters, protein impact per adult), `MealSheet` (recipe with household amounts, eating out, guests), `MoreSheet`. Planner additions in `planner.ts`: `fillEmptyOnly`/`favoritesOnly`, `setMeal`, `setEatingOut`, `setGuests`, `addExtras`, `emptyWeekPlan`, `dayProtein`, `pickImpacts`, `boostSuggestions`, `filledNonFavorites`. Schema v4 (`PlannedMeal.extras`). Device preference `proteinAlerts`. New colour tokens `success`/`warning`. Status `none` = empty meal (or dinner on a fixed day out).
 
@@ -118,7 +120,7 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A–F** done; milestone **G (onboarding + settings)** next.
+**Phase 1 – Foundation**, milestones **A–F** done, **G** built (awaiting review); milestone **H (documentation)** next.
 
 **Phase order (decision #144):** after phase 1 comes phase 3 (Home + shopping list), then phase 2. Phase numbers are unchanged.
 

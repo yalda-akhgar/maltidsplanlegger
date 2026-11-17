@@ -46,11 +46,67 @@
       "dark": "Dark"
     },
     "language": {
-      "title": "Language"
+      "title": "Language",
+      "hint": "The language only applies to this device."
     },
     "install": {
       "title": "Add to home screen"
-    }
+    },
+    "save": "Save",
+    "saved": "Settings saved.",
+    "recalculated": "The portions in the week plan were recalculated.",
+    "replaced_one": "{{count}} dish in the week plan no longer fitted and was replaced. You can undo it on the week plan.",
+    "replaced_other": "{{count}} dishes in the week plan no longer fitted and were replaced. You can undo it on the week plan.",
+    "groups": {
+      "family": "Family",
+      "weekPlan": "Week plan",
+      "app": "App"
+    },
+    "profile": {
+      "title": "My profile",
+      "text": "Your protein target. The week plan is recalculated from today when you save.",
+      "target": "Protein target per day",
+      "summary": "{{name}} · {{target}} g protein per day",
+      "empty": "Not set up yet"
+    },
+    "household": {
+      "title": "Household",
+      "summary": "Adults: {{adults}} · Children: {{children}}",
+      "selfTarget": "You · {{target}} g – change under My profile",
+      "selfNoTarget": "You – set your target under My profile"
+    },
+    "foodWeek": {
+      "title": "Food and week",
+      "summary": "Excluded: {{list}}",
+      "summaryNone": "No food excluded"
+    },
+    "alerts": {
+      "title": "Show protein alerts",
+      "hint": "Only on this device"
+    },
+    "autoPlan": {
+      "title": "Make new week plan automatically",
+      "off": "Off",
+      "summary": "On · {{day}}",
+      "enabled": "Turned on",
+      "day": "Next week's plan is made on",
+      "with": "With",
+      "all": "All dishes",
+      "favorites": "Favourites only",
+      "hint": "The plan is made the first time you open the app on or after {{day}}. Only empty meals are filled.",
+      "offHint": "When turned on, the app makes next week's plan for you."
+    },
+    "split": {
+      "title": "Protein split",
+      "text": "How much of the day's protein target each meal should cover.",
+      "less": "Less for {{name}}",
+      "more": "More for {{name}}",
+      "sum": "Total",
+      "sumOk": "100 % ✓",
+      "sumWrong": "{{sum}} % – must be 100 %",
+      "reset": "Reset to 25 / 30 / 30 / 15"
+    },
+    "runWizard": "Run the wizard again"
   },
   "languages": {
     "nb": "Norsk",
@@ -229,7 +285,7 @@
     },
     "emptyTitle": "Week {{week}} is not planned yet.",
     "emptyText": "Tap “Make week plan” to fill the whole week, or pick dishes yourself below. You can also mix.",
-    "noPeople": "The family is not set up yet, so the app cannot work out portions and protein targets. You do that in the setup wizard, coming soon.",
+    "noPeople": "The family isn't set up yet, so the app can't work out portions and protein targets.",
     "slots": {
       "breakfast": "Breakfast",
       "lunch": "Lunch",
@@ -282,7 +338,8 @@
       "notEatingOut": "Eating at home after all",
       "guests_one": "{{count}} guest",
       "guests_other": "{{count}} guests",
-      "extraRemoved": "Extra removed"
+      "extraRemoved": "Extra removed",
+      "autoMade": "Week {{week}} was made automatically."
     },
     "meal": {
       "pickAnother": "Pick another dish",
@@ -320,7 +377,9 @@
       "make": "Make week plan",
       "fill": "Fill",
       "favorites": "Favourites week",
-      "replace": "New week plan"
+      "replace": "New week plan",
+      "settings": "Settings",
+      "auto": "Automatic week plan"
     },
     "undoSwap": "Undo swap: {{slot}}, {{day}} – back to {{name}}",
     "undoChange": "Undo change: {{slot}}, {{day}}",
@@ -336,6 +395,122 @@
       "suggestion": "Suggestion: {{list}}",
       "weekTitle": "Week {{week}} is planned.",
       "weekDays": "Everyone reaches their target on {{ok}} of {{total}} days."
+    },
+    "noPeopleLink": "Set up the family",
+    "noTarget": "Add a protein target for {{names}} so the app can adjust the portions.",
+    "noTargetLink": "Go to Settings"
+  },
+  "household": {
+    "gramsPerDay": "g per day",
+    "targetInvalid": "Enter a whole number between 1 and 500, or leave the field empty.",
+    "calc": {
+      "open": "Don't know? Work it out",
+      "title": "Work out a guideline target",
+      "weight": "Body weight (kg)",
+      "activity": "Activity level",
+      "low": "Not very active ({{factor}} g/kg)",
+      "medium": "Moderately active ({{factor}} g/kg)",
+      "high": "Very active ({{factor}} g/kg)",
+      "enterWeight": "Enter your body weight.",
+      "result": "{{kg}} kg × {{factor}} g = {{result}} g per day",
+      "use": "Use {{result}} g",
+      "note": "A guideline, not medical advice."
+    },
+    "adult": "Adult",
+    "child": "Child",
+    "adultName": "Name (adult)",
+    "childName": "Name (child)",
+    "addAdult": "Adult",
+    "addChild": "Child",
+    "remove": "Remove {{name}}",
+    "targetOptional": "Protein target (optional)",
+    "lunchAtHome": "Eats lunch at home on weekdays",
+    "dislikes": {
+      "label": "Doesn't like:",
+      "none": "nothing chosen",
+      "change": "Change",
+      "edit": "Change what {{name}} doesn't like",
+      "title": "What doesn't {{name}} like?",
+      "description": "The app tries to avoid dishes with these.",
+      "search": "Search for an ingredient",
+      "done": "Done"
+    },
+    "food": {
+      "pork": "Pork",
+      "remove": "Remove {{name}}",
+      "addLabel": "Add food you don't want",
+      "placeholder": "E.g. prawns",
+      "add": "Add"
+    },
+    "week": {
+      "outTitle": "Fixed days you don't eat dinner at home",
+      "outHint": "The next day gets a quick lunch instead of leftovers.",
+      "cheatTitle": "Cheat days – the evening snack can be a treat",
+      "cheatHint": "The protein target still applies."
+    },
+    "weekdays": {
+      "long": {
+        "0": "Monday",
+        "1": "Tuesday",
+        "2": "Wednesday",
+        "3": "Thursday",
+        "4": "Friday",
+        "5": "Saturday",
+        "6": "Sunday"
+      },
+      "short": {
+        "0": "Mo",
+        "1": "Tu",
+        "2": "We",
+        "3": "Th",
+        "4": "Fr",
+        "5": "Sa",
+        "6": "Su"
+      }
+    }
+  },
+  "onboarding": {
+    "me": "Me",
+    "stepOf": "Step {{step}} of {{total}}",
+    "cancel": "Cancel the wizard",
+    "skipAll": "Skip all",
+    "skip": "Skip",
+    "next": "Next",
+    "welcome": {
+      "title": "Welcome to Måltidsplanlegger",
+      "text": "The app makes week plans where every adult reaches their own protein target. A few short questions first – everything can be skipped and changed later.",
+      "name": "What's your name?"
+    },
+    "protein": {
+      "title": "How much protein do you need per day?",
+      "titleNamed": "How much protein do you need per day, {{name}}?",
+      "label": "Your protein target"
+    },
+    "household": {
+      "title": "Who eats with you?",
+      "text": "Add the others in your household. Children get half a portion and have no protein target.",
+      "you": "You",
+      "youWithTarget": "You · {{target}} g"
+    },
+    "food": {
+      "title": "Is there food you don't want?",
+      "text": "The app never suggests dishes with it."
+    },
+    "week": {
+      "title": "What does your week look like?"
+    },
+    "done": {
+      "title": "All set!",
+      "adults": "Adults",
+      "children": "Children",
+      "excluded": "Excluded",
+      "out": "Dinner out",
+      "cheat": "Cheat days",
+      "none": "None",
+      "text": "Everything can be changed under Settings.",
+      "textAgain": "The week plan is adjusted from today when you save.",
+      "makePlan": "Make my first week plan",
+      "save": "Save"
     }
   }
 }

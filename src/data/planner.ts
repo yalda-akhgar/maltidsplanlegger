@@ -43,7 +43,7 @@ import type {
   Weekday,
   WeekPlan,
 } from './types'
-import { datesOfWeek, toIsoDate } from './week'
+import { datesOfWeek, shiftWeek, toIsoDate, weekIdOf } from './week'
 
 export const MAX_DINNER_MINUTES = 30
 
@@ -734,6 +734,84 @@ export function refreshPortions(ctx: PlannerContext, plan: WeekPlan, fromDate: I
   const targets = currentTargets(ctx.household)
   const days = plan.days.map((day, i) => (day.date < fromDate ? day : planner.withPortions({ ...day, targetsG: { ...targets } }, i)))
   return { ...plan, days, updatedAt: now }
+}
+
+/**
+ * Updates planned weeks after a settings change (#162). From today on:
+ * - dishes that no longer fit are replaced – excluded food, a cheat snack on a
+ *   day that is no longer a cheat day – or emptied if nothing else fits;
+ * - dinner on a day that just became a fixed day without dinner at home is
+ *   removed (the next day's leftovers become a quick lunch, #108);
+ * - everything else stays, including dishes the user picked;
+ * - portions are recalculated for everyone.
+ * `plans` are all stored weeks; the result has the same weeks.
+ */
+export function adaptToSettings(
+  ctx: PlannerContext,
+  oldHousehold: HouseholdSettings,
+  plans: WeekPlan[],
+  today: IsoDate,
+  now = new Date().toISOString(),
+): { plans: WeekPlan[]; replaced: number } {
+  const household = ctx.household
+  const byId = new Map(plans.map((p) => [p.weekId, p]))
+  const recipes = new Map(ctx.recipes.map((r) => [r.id, r]))
+  const active = (p: WeekPlan) => p.days[6].date >= today
+  let replaced = 0
+
+  const fits = (meal: PlannedMeal, slot: MealSlot, dayIndex: number) => {
+    const recipe = meal.recipeId ? recipes.get(meal.recipeId) : undefined
+    if (!recipe) return true
+    if (!isRecipeAllowed(recipe, ctx.ingredients, household)) return false
+    const day = dayIndex as Weekday
+    const noLongerCheat = oldHousehold.cheatDays.includes(day) && !household.cheatDays.includes(day)
+    return !(slot === 'snack' && recipe.snackKind === 'cheat' && noLongerCheat)
+  }
+
+  for (const weekId of [...byId.keys()].sort()) {
+    let plan = byId.get(weekId)!
+    if (!active(plan)) continue
+    const previousWeek = byId.get(shiftWeek(weekId, -1))
+    let nextWeek = byId.get(shiftWeek(weekId, 1))
+    for (let i = 0; i < 7; i++) {
+      const date = plan.days[i].date
+      if (date < today) continue
+      const newlyOut = household.noDinnerAtHomeDays.includes(i as Weekday) && !oldHousehold.noDinnerAtHomeDays.includes(i as Weekday)
+      // Dinner first, so the next day's lunch can follow it.
+      for (const slot of ['dinner', 'breakfast', 'lunch', 'snack'] as const) {
+        const meal = plan.days[i].meals[slot]
+        if (meal.status !== 'planned' && meal.status !== 'leftovers') continue
+        const options = { plan, date, slot, previousWeek, nextWeek, now }
+        let result: { plan: WeekPlan; nextWeek?: WeekPlan }
+        if (slot === 'dinner' && newlyOut && meal.status === 'planned') {
+          result = setEatingOut(ctx, { ...options, eatingOut: false })
+        } else if (!fits(meal, slot, i)) {
+          result = swapMeal(ctx, options)
+          if (result.plan === plan) result = setEatingOut(ctx, { ...options, eatingOut: false })
+        } else continue
+        plan = result.plan
+        nextWeek = result.nextWeek
+        replaced++
+      }
+    }
+    byId.set(weekId, plan)
+    if (nextWeek) byId.set(nextWeek.weekId, nextWeek)
+  }
+
+  const result = [...byId.values()].map((p) => (active(p) ? refreshPortions(ctx, p, today, now) : p))
+  return { plans: result, replaced }
+}
+
+/**
+ * The week the automatic week plan should make now, if any (#124, #164):
+ * next week, from the chosen weekday on, once per week.
+ */
+export function autoPlanWeek(household: HouseholdSettings, today: IsoDate): WeekId | undefined {
+  const auto = household.autoWeekPlan
+  if (!auto?.enabled) return undefined
+  const next = shiftWeek(weekIdOf(parseISO(today)), 1)
+  if (auto.lastMadeFor && auto.lastMadeFor >= next) return undefined
+  return weekdayOf(today) >= auto.weekday ? next : undefined
 }
 
 /**

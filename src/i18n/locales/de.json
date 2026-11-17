@@ -46,11 +46,67 @@
       "dark": "Dunkel"
     },
     "language": {
-      "title": "Sprache"
+      "title": "Sprache",
+      "hint": "Die Sprache gilt nur für dieses Gerät."
     },
     "install": {
       "title": "Zum Startbildschirm hinzufügen"
-    }
+    },
+    "save": "Speichern",
+    "saved": "Die Einstellungen sind gespeichert.",
+    "recalculated": "Die Portionen im Wochenplan wurden neu berechnet.",
+    "replaced_one": "{{count}} Gericht im Wochenplan passte nicht mehr und wurde getauscht. Du kannst es im Wochenplan rückgängig machen.",
+    "replaced_other": "{{count}} Gerichte im Wochenplan passten nicht mehr und wurden getauscht. Du kannst es im Wochenplan rückgängig machen.",
+    "groups": {
+      "family": "Familie",
+      "weekPlan": "Wochenplan",
+      "app": "App"
+    },
+    "profile": {
+      "title": "Mein Profil",
+      "text": "Dein Proteinziel. Der Wochenplan wird ab heute neu berechnet, wenn du speicherst.",
+      "target": "Proteinziel pro Tag",
+      "summary": "{{name}} · {{target}} g Protein pro Tag",
+      "empty": "Noch nicht eingerichtet"
+    },
+    "household": {
+      "title": "Haushalt",
+      "summary": "Erwachsene: {{adults}} · Kinder: {{children}}",
+      "selfTarget": "Du · {{target}} g – unter Mein Profil ändern",
+      "selfNoTarget": "Du – Ziel unter Mein Profil festlegen"
+    },
+    "foodWeek": {
+      "title": "Essen und Woche",
+      "summary": "Ausgeschlossen: {{list}}",
+      "summaryNone": "Nichts ausgeschlossen"
+    },
+    "alerts": {
+      "title": "Protein-Hinweise anzeigen",
+      "hint": "Nur auf diesem Gerät"
+    },
+    "autoPlan": {
+      "title": "Neuen Wochenplan automatisch erstellen",
+      "off": "Aus",
+      "summary": "An · {{day}}",
+      "enabled": "Eingeschaltet",
+      "day": "Der Plan für nächste Woche wird erstellt am",
+      "with": "Mit",
+      "all": "Allen Gerichten",
+      "favorites": "Nur Favoriten",
+      "hint": "Der Plan wird erstellt, wenn du die App zum ersten Mal am {{day}} oder danach öffnest. Nur leere Mahlzeiten werden gefüllt.",
+      "offHint": "Wenn eingeschaltet, erstellt die App den Plan für nächste Woche für dich."
+    },
+    "split": {
+      "title": "Proteinverteilung",
+      "text": "Welchen Anteil des Tagesziels jede Mahlzeit decken soll.",
+      "less": "Weniger für {{name}}",
+      "more": "Mehr für {{name}}",
+      "sum": "Summe",
+      "sumOk": "100 % ✓",
+      "sumWrong": "{{sum}} % – muss 100 % ergeben",
+      "reset": "Auf 25 / 30 / 30 / 15 zurücksetzen"
+    },
+    "runWizard": "Assistenten erneut starten"
   },
   "languages": {
     "nb": "Norsk",
@@ -229,7 +285,7 @@
     },
     "emptyTitle": "KW {{week}} ist noch nicht geplant.",
     "emptyText": "Tippe auf „Wochenplan erstellen“, um die ganze Woche zu füllen, oder wähle unten selbst Gerichte aus. Du kannst auch beides mischen.",
-    "noPeople": "Die Familie ist noch nicht eingerichtet, daher kann die App keine Portionen und Proteinziele berechnen. Das geht im Einrichtungsassistenten, der bald kommt.",
+    "noPeople": "Die Familie ist noch nicht eingerichtet, daher kann die App keine Portionen und Proteinziele berechnen.",
     "slots": {
       "breakfast": "Frühstück",
       "lunch": "Mittagessen",
@@ -282,7 +338,8 @@
       "notEatingOut": "Doch zu Hause essen",
       "guests_one": "{{count}} Gast",
       "guests_other": "{{count}} Gäste",
-      "extraRemoved": "Extra entfernt"
+      "extraRemoved": "Extra entfernt",
+      "autoMade": "Woche {{week}} wurde automatisch erstellt."
     },
     "meal": {
       "pickAnother": "Anderes Gericht wählen",
@@ -320,7 +377,9 @@
       "make": "Wochenplan erstellen",
       "fill": "Auffüllen",
       "favorites": "Favoritenwoche",
-      "replace": "Neuer Wochenplan"
+      "replace": "Neuer Wochenplan",
+      "settings": "Einstellungen",
+      "auto": "Automatischer Wochenplan"
     },
     "undoSwap": "Tausch rückgängig: {{slot}}, {{day}} – zurück zu {{name}}",
     "undoChange": "Änderung rückgängig: {{slot}}, {{day}}",
@@ -336,6 +395,122 @@
       "suggestion": "Vorschlag: {{list}}",
       "weekTitle": "Woche {{week}} ist geplant.",
       "weekDays": "An {{ok}} von {{total}} Tagen erreichen alle ihr Ziel."
+    },
+    "noPeopleLink": "Familie einrichten",
+    "noTarget": "Lege ein Proteinziel für {{names}} fest, damit die App die Portionen anpassen kann.",
+    "noTargetLink": "Zu den Einstellungen"
+  },
+  "household": {
+    "gramsPerDay": "g pro Tag",
+    "targetInvalid": "Bitte eine ganze Zahl zwischen 1 und 500 eingeben oder das Feld leer lassen.",
+    "calc": {
+      "open": "Weißt du es nicht? Berechnen",
+      "title": "Einen Richtwert berechnen",
+      "weight": "Körpergewicht (kg)",
+      "activity": "Aktivität",
+      "low": "Wenig aktiv ({{factor}} g/kg)",
+      "medium": "Mäßig aktiv ({{factor}} g/kg)",
+      "high": "Sehr aktiv ({{factor}} g/kg)",
+      "enterWeight": "Gib dein Körpergewicht ein.",
+      "result": "{{kg}} kg × {{factor}} g = {{result}} g pro Tag",
+      "use": "{{result}} g übernehmen",
+      "note": "Ein Richtwert, keine medizinische Beratung."
+    },
+    "adult": "Erwachsene/r",
+    "child": "Kind",
+    "adultName": "Name (Erwachsene/r)",
+    "childName": "Name (Kind)",
+    "addAdult": "Erwachsene/r",
+    "addChild": "Kind",
+    "remove": "{{name}} entfernen",
+    "targetOptional": "Proteinziel (optional)",
+    "lunchAtHome": "Isst werktags zu Hause zu Mittag",
+    "dislikes": {
+      "label": "Mag nicht:",
+      "none": "nichts ausgewählt",
+      "change": "Ändern",
+      "edit": "Ändern, was {{name}} nicht mag",
+      "title": "Was mag {{name}} nicht?",
+      "description": "Die App versucht, Gerichte damit zu vermeiden.",
+      "search": "Zutat suchen",
+      "done": "Fertig"
+    },
+    "food": {
+      "pork": "Schweinefleisch",
+      "remove": "{{name}} entfernen",
+      "addLabel": "Lebensmittel hinzufügen, die ihr nicht wollt",
+      "placeholder": "z. B. Garnelen",
+      "add": "Hinzufügen"
+    },
+    "week": {
+      "outTitle": "Feste Tage ohne Abendessen zu Hause",
+      "outHint": "Am Tag danach gibt es ein schnelles Mittagessen statt Resten.",
+      "cheatTitle": "Cheat Days – der Abendsnack darf etwas Leckeres sein",
+      "cheatHint": "Das Proteinziel gilt weiterhin."
+    },
+    "weekdays": {
+      "long": {
+        "0": "Montag",
+        "1": "Dienstag",
+        "2": "Mittwoch",
+        "3": "Donnerstag",
+        "4": "Freitag",
+        "5": "Samstag",
+        "6": "Sonntag"
+      },
+      "short": {
+        "0": "Mo",
+        "1": "Di",
+        "2": "Mi",
+        "3": "Do",
+        "4": "Fr",
+        "5": "Sa",
+        "6": "So"
+      }
+    }
+  },
+  "onboarding": {
+    "me": "Ich",
+    "stepOf": "Schritt {{step}} von {{total}}",
+    "cancel": "Assistent abbrechen",
+    "skipAll": "Alles überspringen",
+    "skip": "Überspringen",
+    "next": "Weiter",
+    "welcome": {
+      "title": "Willkommen bei Måltidsplanlegger",
+      "text": "Die App erstellt Wochenpläne, mit denen jede/r Erwachsene das eigene Proteinziel erreicht. Zuerst ein paar kurze Fragen – alles kann übersprungen und später geändert werden.",
+      "name": "Wie heißt du?"
+    },
+    "protein": {
+      "title": "Wie viel Protein brauchst du täglich?",
+      "titleNamed": "Wie viel Protein brauchst du täglich, {{name}}?",
+      "label": "Dein Proteinziel"
+    },
+    "household": {
+      "title": "Wer isst mit?",
+      "text": "Füge die anderen im Haushalt hinzu. Kinder bekommen eine halbe Portion und haben kein Proteinziel.",
+      "you": "Du",
+      "youWithTarget": "Du · {{target}} g"
+    },
+    "food": {
+      "title": "Gibt es Lebensmittel, die ihr nicht wollt?",
+      "text": "Die App schlägt nie Gerichte damit vor."
+    },
+    "week": {
+      "title": "Wie sieht eure Woche aus?"
+    },
+    "done": {
+      "title": "Fertig!",
+      "adults": "Erwachsene",
+      "children": "Kinder",
+      "excluded": "Ausgeschlossen",
+      "out": "Abendessen auswärts",
+      "cheat": "Cheat Days",
+      "none": "Keine",
+      "text": "Alles kann unter Einstellungen geändert werden.",
+      "textAgain": "Der Wochenplan wird ab heute angepasst, wenn du speicherst.",
+      "makePlan": "Meinen ersten Wochenplan erstellen",
+      "save": "Speichern"
     }
   }
 }

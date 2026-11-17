@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { localize } from './localize'
-import { createRepository, newId, SCHEMA_VERSION, type KeyValueStorage } from './repository'
+import { createRepository, deviceLanguage, newId, SCHEMA_VERSION, type KeyValueStorage } from './repository'
 import type { Recipe } from './types'
 import { datesOfWeek, shiftWeek, weekIdOf } from './week'
 
@@ -144,5 +144,16 @@ describe('localize', () => {
     expect(localize({ nb: 'Middag' }, 'en')).toBe('Middag')
     expect(localize({ en: 'Only English' }, 'de')).toBe('Only English')
     expect(localize(undefined, 'nb')).toBe('')
+  })
+})
+
+describe('deviceLanguage (#157)', () => {
+  it("uses the phone's language when the app has it, otherwise Norwegian", () => {
+    expect(deviceLanguage(['de-DE', 'en'])).toBe('de')
+    expect(deviceLanguage(['nn-NO'])).toBe('nb')
+    expect(deviceLanguage(['no'])).toBe('nb')
+    expect(deviceLanguage(['fr-FR', 'en-GB'])).toBe('en')
+    expect(deviceLanguage(['fr-FR'])).toBe('nb')
+    expect(deviceLanguage([])).toBe('nb')
   })
 })

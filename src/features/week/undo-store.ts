@@ -3,7 +3,7 @@ import type { IsoDate, MealSlot, WeekId, WeekPlan } from '@/data/types'
 
 /** What an undo button undoes: a swapped dish, another change to a meal, or a whole-week action. */
 export type MealUndoKind = 'swap' | 'change'
-export type WeekAction = 'make' | 'fill' | 'favorites' | 'replace'
+export type WeekAction = 'make' | 'fill' | 'favorites' | 'replace' | 'settings' | 'auto'
 
 export interface MealStep {
   kind: MealUndoKind

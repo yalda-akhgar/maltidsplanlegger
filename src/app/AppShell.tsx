@@ -2,7 +2,11 @@ import { UtensilsIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { NavLink, Outlet } from 'react-router'
+import { NavLink, Outlet, useNavigate } from 'react-router'
+import { repository } from '@/data/repository'
+import { runAutoWeekPlan } from '@/features/household/save-settings'
+import { weekNumber } from '@/features/week/week-format'
+import { toast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 import { NAV_ITEMS } from './nav-items'
 
@@ -15,6 +19,20 @@ const THEME_COLORS = { light: '#faf9fc', dark: '#14121b' } as const
 export function AppShell() {
   const { t } = useTranslation()
   const { resolvedTheme } = useTheme()
+  const navigate = useNavigate()
+
+  // First launch: the onboarding wizard (#24, #158). Otherwise make the automatic week plan if due (#164).
+  useEffect(() => {
+    void repository.getHousehold().then(async (household) => {
+      if (!household.onboardingDone) {
+        navigate('/welcome', { replace: true })
+        return
+      }
+      const weekId = await runAutoWeekPlan()
+      if (weekId) toast(t('week.toast.autoMade', { week: weekNumber(weekId) }))
+    })
+    // Only once, when the app starts.
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Colour the phone's status bar to match the current theme.
   useEffect(() => {

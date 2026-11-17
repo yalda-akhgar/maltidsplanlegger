@@ -163,6 +163,16 @@ export interface Person {
 /** Share of the daily protein target per meal, in percent (#20). Sums to 100. */
 export type ProteinSplit = Record<MealSlot, number>
 
+/** Settings for the automatic week plan (#124, #164). */
+export interface AutoWeekPlan {
+  enabled: boolean
+  /** From this weekday on, next week's plan is made when the app is opened. */
+  weekday: Weekday
+  favoritesOnly: boolean
+  /** The last week made automatically, so it is made only once. */
+  lastMadeFor?: WeekId
+}
+
 /** 0 = Monday … 6 = Sunday. */
 export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 
@@ -179,6 +189,8 @@ export interface HouseholdSettings {
   /** Fixed weekdays the household doesn't eat dinner at home, e.g. [4] = Friday. Default none (#107). */
   noDinnerAtHomeDays: Weekday[]
   // The UI language is NOT here: it is chosen per person/device (#74).
+  /** "Make new week plan automatically" (#124, #164). Off when missing. */
+  autoWeekPlan?: AutoWeekPlan
   /** False until the onboarding wizard has been completed or skipped (#24). */
   onboardingDone: boolean
   updatedAt: Timestamp
