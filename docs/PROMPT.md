@@ -171,12 +171,24 @@ Du skal hjelpe meg å bygge en personlig måltidsplanlegger-app. Jeg er nybegynn
 
 **Rekkefølge (endret 2026-11-17):** Etter fase 1 tas fase 3 (Hjemme + handleliste) før fase 2. Akseptansetesten viste at handlelisten er kjerneverdi. Numrene beholdes, så henvisninger til «fase 2» osv. gjelder fortsatt.
 
+**Publisering (endret 2026-11-17, beslutning #174):** Appen publiseres (GitHub + Vercel, live lenke) rett etter fase 1, ikke i fase 7. Resten av fase 7 (kun-se-lenke, kalendersynk, påminnelser, tilbakemeldingsknapp, PostHog) blir der den er.
+
+Rekkefølge nå: 1 → publisering → 3 → 2 → 4 → 5 → 6 → 7.
+
 1. **Fundament:** oppsett, design (inkl. **mørk modus**), språk, datamodell (med felt for næring, barnevennlig, vurdering, pris og utløpsdato fra start), oppskrifter, ukeplan med proteinmål, kveldssnacks, næringsbalanse, oppstartsveiviser, **barnevennlig + barnas preferanser** og **«spiser ute/besøk»**. Lagres lokalt.
 2. **Bruksopplevelse:** matlagingsmodus, vurder retten (👍/👎), ukesoppsummering og **marker måltider som spist**: knappen «✓ Spist» og «Jeg spiste noe annet → velg oppskrift» (eller hoppet over). Fremdriften viser spist protein i tillegg til planlagt. **Innsjekk og oppsummering** (beslutning #169): innstilling daglig, ukentlig eller av, med valgfritt tidspunkt (f.eks. kl. 20 eller søndag kveld). Innsjekk: «Spiste dere det som var planlagt i dag?» – kryss av alt med ett trykk, eller endre enkeltmåltider (spiste noe annet / hoppet over). Oppsummering med positiv tone, f.eks. «Snitt 116 / 120 g protein per dag. 5 av 7 dager nådde du målet – bra jobbet!». Ved mangel et konstruktivt tips, f.eks. «Onsdag og torsdag manglet 15–20 g. Vil du at neste ukeplan legger inn litt ekstra? [Ja, juster neste uke]». Tonen er alltid oppmuntrende, aldri skamfull, og uten medisinske råd.
-3. **Hjemme + handleliste:** **Kjernen (beslutning #172):** (1) Knappen **«Godkjenn ukeplan»** med tydelig bekreftelse («Uke 47 er klar ✓»). (2) Deretter **«Hva har du hjemme?»**: alle varer uken trenger, gruppert etter butikkavdeling. Varer appen vet at vi har (fra Hjemme) er krysset av på forhånd. Varer brukt forrige uke får spørsmålet «Har dere fortsatt …?». (3) Det jeg ikke har, går automatisk til handlelisten, der jeg kan legge til egne varer. (4) Endrer jeg planen etter godkjenning, spør appen bare om de nye varene. I tillegg: har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS. Når handlelisten lages, spør appen om varer forrige ukeplan brukte («Har dere fortsatt igjen?»). Innstillingen **«Fast handledag»** (f.eks. søndag): handlelisten dekker perioden frem til neste handledag. Man kan også velge perioden selv (f.eks. man–fre eller man–søn).
+3. **Hjemme + handleliste:** **Kjernen (beslutning #173, erstatter #172):**
+   1. Knappen **«Godkjenn ukeplan»**.
+   2. Ved godkjenning åpnes et ark med alle varene uken trenger, gruppert etter butikkavdeling. Varer vi har hjemme er krysset av på forhånd. Varer brukt forrige uke får «Har dere fortsatt …?».
+   3. Jeg justerer og trykker **«Legg 12 varer på handlelisten»** (eller «Hopp over»). Ingenting legges til automatisk uten at jeg bekrefter.
+   4. Bekreftelse: «Uke 47 er klar ✓ · 12 varer lagt til» med [Se handlelisten]. Jeg blir værende på ukeplanen.
+   5. I handlelisten kan jeg legge til egne varer.
+   6. Bytter jeg en rett etter godkjenning (f.eks. laks → kylling): dialog – laks ikke kjøpt: [Bytt] / [Behold laks, legg til kylling]; laks allerede kjøpt: «Legge til kylling?» [Ja]/[Nei] + tips «Bruke laksen en annen dag?»; kylling finnes hjemme: bare «Kylling har dere hjemme ✓»; brukes laksen i en annen rett samme uke, fjernes bare den ekstra mengden.
+
+   I tillegg: har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS. Når handlelisten lages, spør appen om varer forrige ukeplan brukte («Har dere fortsatt igjen?»). Innstillingen **«Fast handledag»** (f.eks. søndag): handlelisten dekker perioden frem til neste handledag. Man kan også velge perioden selv (f.eks. man–fre eller man–søn).
 4. **Tale:** mikrofonknapp og talekommandoer, f.eks. «lag en favorittuke».
 5. **Innlogging + deling:** Supabase, Google + e-post/passord, passkeys (Face ID/fingeravtrykk), husholdning, invitasjon på e-post, sanntid. Flytt lokale data til databasen.
 6. **AI:** kjøleskap-forslag, bildegjenkjenning, import av oppskrift fra lenke/bilde (Edge Function + min egen API-nøkkel), og be om en ukeplan med friere ord (f.eks. «en uke med bare favorittene våre, men ikke fisk»).
-7. **Publisering + innsikt:** GitHub + Vercel, PWA-ikon, kun-se-lenke, valgfri kalendersynk, **påminnelser (push)**, **tilbakemeldingsknapp** og **PostHog-statistikk** med personvernerklæring.
+7. **Publisering + innsikt:** ~~GitHub + Vercel~~ (flyttet til rett etter fase 1, #174), PWA-ikon (ferdig i fase 1), kun-se-lenke, valgfri kalendersynk, **påminnelser (push)**, **tilbakemeldingsknapp** og **PostHog-statistikk** med personvernerklæring.
 
 Begynn med å lese dette, still meg eventuelle spørsmål du har, og lag deretter en kort plan for fase 1 før du skriver kode.

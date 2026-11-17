@@ -1234,6 +1234,8 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Consequences:** None beyond the above.
 
 ## 172. Phase 3 core: approve the week plan, then "What do you have at home?"
+> **Superseded by #173** (nothing is added to the shopping list without confirmation).
+
 - **Date:** 2026-11-17
 - **Decision:** The core flow of phase 3 (not built now):
   1. A button "Approve week plan" with a clear confirmation ("Week 47 is ready ✓").
@@ -1243,3 +1245,44 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** A shopping list made directly from the plan without the "at home" step; asking about every item every time.
 - **Rationale:** Product owner's choice after the milestone G acceptance test: one clear moment where the plan becomes a shopping list, with as few questions as possible.
 - **Consequences:** Added as the core of phase 3 in `docs/PROMPT.md`. Needs a store section per ingredient and an "approved" state on the week plan (phase 3 data model work). Builds on #113 (fixed shopping day) and #145.
+
+## 173. Phase 3 core flow, refined: approve → check → confirm
+- **Date:** 2026-11-17
+- **Decision:** Replaces #172. The core of phase 3 (not built now):
+  1. A button "Approve week plan".
+  2. Approving opens a sheet with every item the week needs, grouped by store section. Items at home are ticked in advance. Items used last week get "Do you still have …?" (#145).
+  3. The user adjusts and taps "Add 12 items to the shopping list" (or "Skip"). Nothing is added without confirmation.
+  4. Confirmation: "Week 47 is ready ✓ · 12 items added" with [See shopping list]. The user stays on the week plan.
+  5. The user can add their own items to the shopping list.
+  6. Swapping a dish after approval (e.g. salmon → chicken) opens a dialog:
+     - salmon not bought yet: [Swap] / [Keep salmon, add chicken];
+     - salmon already bought: "Add chicken?" [Yes] / [No], plus the tip "Use the salmon another day?";
+     - chicken already at home: only "You have chicken at home ✓";
+     - if the salmon is also used in another dish that week, only the extra amount is removed.
+- **Alternatives:** #172 (items not at home go to the list automatically).
+- **Rationale:** Product owner's choice: the user stays in control, and the plan and the shopping list never silently drift apart.
+- **Consequences:** Phase 3 needs a store section per ingredient, an "approved" state on the week plan, a record of which items were bought, and amounts per ingredient across the week. Added to `docs/PROMPT.md`.
+
+## 174. Publish right after phase 1
+- **Date:** 2026-11-17
+- **Decision:** The app is published (GitHub + Vercel, a live link) right after phase 1 instead of in phase 7. The rest of phase 7 (view-only link, calendar sync, push reminders, feedback button, PostHog) stays in phase 7. Order now: 1 → publishing → 3 → 2 → 4 → 5 → 6 → 7.
+- **Alternatives:** Publish in phase 7 as planned.
+- **Rationale:** Product owner's choice: testers and employers can try the app early.
+- **Consequences:** The README says "Live demo: coming soon". Vercel must use the product owner's private account. Data stays in each browser (localStorage) until phase 5, so every tester has their own data.
+
+## 175. Milestone H: documentation and bundle size
+- **Date:** 2026-11-17
+- **Decision:**
+  1. Real screenshots in the README (week plan, meal menu, wizard, settings), phone size, with the example family.
+  2. Screenshots in English; the README says the app is Norwegian by default.
+  3. "Live demo: coming soon" (#174).
+  4. `docs/FEEDBACK_LOG.md`: the template plus the findings from the acceptance tests of milestones F and G.
+  5. `docs/PRD.md`: a draft with proposed success metrics; the product owner corrects the metrics afterwards.
+  6. The Norwegian planning files stay in Norwegian as the original brief, with a short English note; the PRD is the English version of the requirements.
+  7. Bundle size (#94): every screen is loaded when it is first opened (route-level code splitting).
+  8. No licence: all rights reserved.
+  9. A short README section on the product owner's role and how the app was built with Claude Code, linking to the decision log, feedback log and backlog.
+  10. A script `npm run dev:phone` to open the app on a phone on the same network.
+- **Alternatives:** (1) Placeholders only. (2) Norwegian screenshots. (4) An empty template. (6) Translate the planning files. (7) Fixed vendor chunks, or hiding the warning. (8) MIT licence. (10) Only explain `npm run dev -- --host`.
+- **Rationale:** Product owner's choice ("a" on all, live demo wording changed).
+- **Consequences:** See the README and the new docs.
