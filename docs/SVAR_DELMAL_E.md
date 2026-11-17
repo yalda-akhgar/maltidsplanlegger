@@ -28,6 +28,12 @@ Appen skal brukes av **andre familier også**, ikke bare min. Regler som bare pa
 - På hvert måltid skal man kunne **velge en rett selv** fra oppskriftslisten (med søk og filtre), eller gå til «Ny oppskrift».
 - Man skal kunne **starte med en tom uke** og planlegge alt selv, la appen fylle ut alt, eller blande (appen fyller ut, jeg bytter).
 - Mens man planlegger, viser fremdriften hvor nær proteinmålet dagen er.
+- Dette gjelder både når man planlegger hele uken (f.eks. søndag kveld) og når man **bytter en rett samme dag** (f.eks. lasagne → fajitas i kveld). Protein beregnes alltid på nytt.
+
+### Proteinpåvirkning når man velger eller bytter rett
+- **I listen man velger fra:** hver rett viser hvordan den påvirker dagens mål, f.eks. «+5 g over målet» eller «20 g under målet». Da ser man konsekvensen **før** man velger.
+- **Etter byttet:** porsjonene justeres først automatisk (som i planleggerreglene). Mangler det fortsatt protein, vises en **diskret melding (toast), ikke en pop-up som blokkerer**, f.eks.: «Fajitas i kveld: 20 g under målet i dag. Legg til skyr som kveldssnacks? [Legg til]».
+- **Innstilling:** «Vis proteinvarsler» (på/av), **standard: på**. Når den er av, vises ingen meldinger, men tallene i listen og fremdriften vises fortsatt.
 
 ## 7. Matdagbok: planlagt vs. spist (bare datamodellen nå)
 - Hvert måltid skal kunne ha status: **planlagt**, **spist**, **«spiste noe annet»** (med lenke til en annen oppskrift) eller **hoppet over**.

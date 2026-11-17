@@ -805,3 +805,24 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Always one calendar week.
 - **Rationale:** Families shop on different days and rhythms.
 - **Consequences:** Planned for phase 3 (added to `docs/PROMPT.md`).
+
+## 114. Protein is recalculated on every pick or swap
+- **Date:** 2026-11-17
+- **Decision:** Picking or swapping a dish recalculates portions and protein right away, both when planning the whole week ahead (e.g. Sunday evening) and when swapping a dish the same day (e.g. lasagne → fajitas tonight).
+- **Alternatives:** Recalculate only when the whole week is regenerated.
+- **Rationale:** Plans change on short notice; the numbers must always match what is actually on the plan.
+- **Consequences:** Uses `swapMeal`/`refreshPortions` from milestone E for every change in the week-plan screen.
+
+## 115. Show protein impact before and after picking a dish
+- **Date:** 2026-11-17
+- **Decision:** In the list the user picks a dish from, each dish shows how it affects the day's target (e.g. "+5 g over target", "20 g under target"), so the consequence is visible before choosing. After a pick or swap, portions are first adjusted automatically (planner rules); if protein is still missing, a discreet, non-blocking toast suggests a boost, e.g. "Fajitas tonight: 20 g under today's target. Add skyr as evening snack? [Add]".
+- **Alternatives:** Show nothing until after the pick; a blocking dialog after the swap.
+- **Rationale:** The user sees the consequence before choosing and is not interrupted afterwards.
+- **Consequences:** Details (whose target the list shows, what "Add" changes in the plan) are part of the milestone F design questions.
+
+## 116. Setting "Show protein alerts"
+- **Date:** 2026-11-17
+- **Decision:** A setting "Show protein alerts" (on/off), default on. When off, no toasts are shown, but the numbers in the pick list and the progress are still visible.
+- **Alternatives:** No setting (always on).
+- **Rationale:** Some users find repeated alerts annoying; the numbers remain available.
+- **Consequences:** Stored in household settings or as a device preference – decided in milestone G.
