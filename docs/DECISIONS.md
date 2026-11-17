@@ -1216,3 +1216,19 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Only the "✓ Eaten" buttons on each meal from the original phase-2 plan.
 - **Rationale:** Product owner's idea: recording what was eaten should be quick, and feedback should motivate.
 - **Consequences:** Added to phase 2 in `docs/PROMPT.md`. Without push notifications (phase 7) the check-in is shown the next time the app is opened after the chosen time. "Adjust next week" needs a planner option for slightly larger portions or boosts; to be designed in phase 2.
+
+## 170. "Lunch = leftovers from the previous dinner" works both ways
+- **Date:** 2026-11-17
+- **Decision:** When a dinner is removed (skipped, eating out, or a new fixed day out), the app puts a quick lunch on the next day and remembers that it replaced the leftovers. When that dinner is cooked at home again – "Fill in again", "Pick a dish", or eating out turned off and a dish picked – the lunch becomes leftovers from the new dinner again. A lunch the user changed in the meantime stays: a picked dish, and also ↻ on the lunch (a deliberate change). Works from Sunday to next Monday too.
+- **Alternatives:** The quick lunch stays until ↶ undo (the first build of #168).
+- **Rationale:** Product owner's choice: the leftovers rule should apply in both directions.
+- **Consequences:** New optional field `PlannedMeal.replacedLeftoversFrom` (no migration needed). Tested in `planner.test.ts`.
+
+## 171. Details of "Remove meal", approved after the build
+- **Date:** 2026-11-17
+- **Decision:**
+  1. "Remove meal" is in the menu of a meal that has a dish (or is "eating out"); it is not in the pick list of an empty meal.
+  2. Guests on a removed meal are remembered and come back when it is filled in again.
+- **Alternatives:** (1) Also offer "Remove meal" in the pick list of an empty meal. (2) Reset guests to 0.
+- **Rationale:** Made during the build of #168 and approved by the product owner afterwards.
+- **Consequences:** None beyond the above.

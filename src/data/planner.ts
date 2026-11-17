@@ -484,17 +484,21 @@ function applyMeal(
   const old = day.meals[options.slot]
   const meal: PlannedMeal = { ...old, status: 'planned', recipeId, portions: {} }
   delete meal.leftoversFrom
+  delete meal.replacedLeftoversFrom
   day.meals[options.slot] = meal
   days[i] = planner.withPortions(day, i)
 
   let nextWeek = options.nextWeek
   const nextDay = i === 6 ? nextWeek?.days[0] : days[i + 1]
   const lunch = nextDay?.meals.lunch
-  const follows = lunch && ((lunch.status === 'leftovers' && lunch.leftoversFrom === day.date) || lunch.status === 'none')
+  // Leftovers from this dinner, an empty lunch, or the quick lunch that replaced them (#170).
+  const follows =
+    lunch &&
+    ((lunch.status === 'leftovers' && lunch.leftoversFrom === day.date) || lunch.status === 'none' || lunch.replacedLeftoversFrom === day.date)
   if (options.slot === 'dinner' && nextDay && lunch && follows) {
     const updated = {
       ...nextDay,
-      meals: { ...nextDay.meals, lunch: { ...lunch, status: 'leftovers' as const, recipeId, leftoversFrom: day.date } },
+      meals: { ...nextDay.meals, lunch: leftoversOf(lunch, recipeId, day.date) },
     }
     if (i === 6 && nextWeek) {
       nextWeek = { ...nextWeek, days: [planner.withPortions(updated, 0), ...nextWeek.days.slice(1)], updatedAt: now }
@@ -588,13 +592,33 @@ function clearMeal(
   const lunch = nextDay?.meals.lunch
   if (options.slot === 'dinner' && nextDay && lunch?.status === 'leftovers' && lunch.leftoversFrom === options.date) {
     if (i < 6) {
-      result = swapMeal(ctx, { ...options, plan: result.plan, date: nextDay.date, slot: 'lunch', now })
+      const swapped = swapMeal(ctx, { ...options, plan: result.plan, date: nextDay.date, slot: 'lunch', now })
+      result = { ...swapped, plan: markReplacedLeftovers(swapped.plan, nextDay.date, options.date) }
     } else if (result.nextWeek) {
       const swapped = swapMeal(ctx, { plan: result.nextWeek, date: nextDay.date, slot: 'lunch', previousWeek: result.plan, now })
-      result = { ...result, nextWeek: swapped.plan }
+      result = { ...result, nextWeek: markReplacedLeftovers(swapped.plan, nextDay.date, options.date) }
     }
   }
   return result
+}
+
+/** Turns a lunch into leftovers from a dinner, forgetting any replaced-leftovers mark. */
+function leftoversOf(lunch: PlannedMeal, recipeId: Id, dinnerDate: IsoDate): PlannedMeal {
+  const meal: PlannedMeal = { ...lunch, status: 'leftovers', recipeId, leftoversFrom: dinnerDate }
+  delete meal.replacedLeftoversFrom
+  return meal
+}
+
+/** Marks a quick lunch as standing in for leftovers from `dinnerDate` (#170). No-op if it is not a quick lunch. */
+function markReplacedLeftovers(plan: WeekPlan, lunchDate: IsoDate, dinnerDate: IsoDate): WeekPlan {
+  return {
+    ...plan,
+    days: plan.days.map((d) =>
+      d.date === lunchDate && d.meals.lunch.status === 'planned'
+        ? { ...d, meals: { ...d.meals, lunch: { ...d.meals.lunch, replacedLeftoversFrom: dinnerDate } } }
+        : d,
+    ),
+  }
 }
 
 /**
@@ -615,17 +639,18 @@ export function followSundayDinner(
   const dinner = sunday.meals.dinner
   const lunch = monday.meals.lunch
   const fromSunday = lunch.status === 'leftovers' && lunch.leftoversFrom === sunday.date
+  const replaced = lunch.replacedLeftoversFrom === sunday.date
 
   if (dinner.status === 'planned' && dinner.recipeId) {
-    if (!fromSunday && lunch.status !== 'none') return nextWeek
+    if (!fromSunday && !replaced && lunch.status !== 'none') return nextWeek
     if (fromSunday && lunch.recipeId === dinner.recipeId) return nextWeek
-    const updated: DayPlan = {
-      ...monday,
-      meals: { ...monday.meals, lunch: { ...lunch, status: 'leftovers', recipeId: dinner.recipeId, leftoversFrom: sunday.date } },
-    }
+    const updated: DayPlan = { ...monday, meals: { ...monday.meals, lunch: leftoversOf(lunch, dinner.recipeId, sunday.date) } }
     return { ...nextWeek, days: [new Planner(ctx).withPortions(updated, 0), ...nextWeek.days.slice(1)], updatedAt: now }
   }
-  if (fromSunday) return swapMeal(ctx, { plan: nextWeek, date: monday.date, slot: 'lunch', previousWeek: plan, now }).plan
+  if (fromSunday) {
+    const swapped = swapMeal(ctx, { plan: nextWeek, date: monday.date, slot: 'lunch', previousWeek: plan, now }).plan
+    return markReplacedLeftovers(swapped, monday.date, sunday.date)
+  }
   return nextWeek
 }
 

@@ -217,6 +217,12 @@ export interface PlannedMeal {
   recipeId?: Id
   /** For leftovers: the date of the dinner they come from. */
   leftoversFrom?: IsoDate
+  /**
+   * For a quick lunch the app put in because the previous day's dinner was
+   * removed: the date of that dinner. When the dinner is cooked at home again,
+   * the lunch becomes leftovers again – unless the user changed it (#170).
+   */
+  replacedLeftoversFrom?: IsoDate
   /** Portion size per person, as a multiple of a standard portion (0.75–2×, #27). */
   portions: Record<Id, number>
   /** Extra guests eating this meal; each gets a standard adult portion (#31). */

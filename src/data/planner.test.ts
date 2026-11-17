@@ -755,3 +755,56 @@ describe('removing a meal (#168)', () => {
     expect(restored.days[2].meals.lunch).toEqual(plan.days[2].meals.lunch)
   })
 })
+
+describe('a dinner that comes back brings its leftovers back (#170)', () => {
+  const now = '2026-11-16T09:00:00.000Z'
+  const at = (plan: WeekPlan, day: number) => ({ plan, date: plan.days[day].date, now })
+
+  it('filling in a removed dinner again gives the next day leftovers again', () => {
+    const c = ctx(31)
+    const plan = generate(c)
+    const skipped = skipMeal(c, { ...at(plan, 1), slot: 'dinner' }).plan
+    expect(skipped.days[2].meals.lunch.status).toBe('planned')
+    expect(skipped.days[2].meals.lunch.replacedLeftoversFrom).toBe(plan.days[1].date)
+    const refilled = refillMeal(c, { ...at(skipped, 1), slot: 'dinner' }).plan
+    const lunch = refilled.days[2].meals.lunch
+    expect(lunch.status).toBe('leftovers')
+    expect(lunch.recipeId).toBe(refilled.days[1].meals.dinner.recipeId)
+    expect(lunch.leftoversFrom).toBe(plan.days[1].date)
+    expect(lunch.replacedLeftoversFrom).toBeUndefined()
+    expect(Object.keys(lunch.portions).length).toBeGreaterThan(0)
+  })
+
+  it('also when a dish is picked for the dinner, or eating out is turned off and a dinner picked', () => {
+    const c = ctx(32)
+    const plan = generate(c)
+    const out = setEatingOut(c, { ...at(plan, 2), slot: 'dinner', eatingOut: true }).plan
+    expect(out.days[3].meals.lunch.status).toBe('planned')
+    const back = setMeal(c, { ...at(out, 2), slot: 'dinner', recipeId: plan.days[2].meals.dinner.recipeId! }).plan
+    expect(back.days[3].meals.lunch).toMatchObject({ status: 'leftovers', recipeId: plan.days[2].meals.dinner.recipeId })
+  })
+
+  it('a lunch the user picked stays when the dinner comes back', () => {
+    const c = ctx(33)
+    const plan = generate(c)
+    const skipped = skipMeal(c, { ...at(plan, 1), slot: 'dinner' }).plan
+    const own = SEED_RECIPES.find((x) => x.categoryIds.includes('lunch') && x.id !== skipped.days[2].meals.lunch.recipeId)!
+    const picked = setMeal(c, { ...at(skipped, 2), slot: 'lunch', recipeId: own.id }).plan
+    expect(picked.days[2].meals.lunch.replacedLeftoversFrom).toBeUndefined()
+    const refilled = refillMeal(c, { ...at(picked, 1), slot: 'dinner' }).plan
+    expect(refilled.days[2].meals.lunch).toMatchObject({ status: 'planned', recipeId: own.id })
+  })
+
+  it('works from Sunday to next Monday', () => {
+    const c = ctx(34)
+    const plan = generate(c)
+    const next = generate(c, { weekId: '2026-W48', today: '2026-11-23', previousWeek: plan })
+    const skipped = skipMeal(c, { ...at(plan, 6), slot: 'dinner', nextWeek: next })
+    expect(skipped.nextWeek!.days[0].meals.lunch.replacedLeftoversFrom).toBe(plan.days[6].date)
+    const refilled = refillMeal(c, { ...at(skipped.plan, 6), slot: 'dinner', nextWeek: skipped.nextWeek })
+    expect(refilled.nextWeek!.days[0].meals.lunch).toMatchObject({ status: 'leftovers', recipeId: refilled.plan.days[6].meals.dinner.recipeId })
+    // Changed elsewhere (e.g. the week was filled again): Monday follows too.
+    const followed = followSundayDinner(c, refilled.plan, skipped.nextWeek)!
+    expect(followed.days[0].meals.lunch).toMatchObject({ status: 'leftovers', recipeId: refilled.plan.days[6].meals.dinner.recipeId })
+  })
+})
