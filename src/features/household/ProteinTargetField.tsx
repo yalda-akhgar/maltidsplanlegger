@@ -81,7 +81,9 @@ export function ProteinTargetField({ label, value, onChange, withCalculator = fa
               ))}
             </div>
             <p aria-live="polite" className="text-sm">
-              {result !== undefined ? t('household.calc.result', { kg: number(kg), factor: number(factor), result }) : t('household.calc.enterWeight')}
+              {result !== undefined
+                ? t('household.calc.result', { kg: kg.toLocaleString(i18n.language, { maximumFractionDigits: 1 }), factor: number(factor), result })
+                : t('household.calc.enterWeight')}
             </p>
             {result !== undefined ? (
               <Button variant="outline" onClick={() => onChange(String(result))}>
