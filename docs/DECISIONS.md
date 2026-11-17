@@ -1015,3 +1015,17 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Only update on swap/pick (as built first).
 - **Rationale:** The rule must hold in every case.
 - **Consequences:** `followSundayDinner` in `planner.ts`, with tests.
+
+## 144. Shopping list before phase 2
+- **Date:** 2026-11-17
+- **Decision:** Re-prioritized: shopping list moved ahead of phase 2 after acceptance testing showed it is core value. After phase 1 comes phase 3 (Home + shopping list), then phase 2. Phase numbers are kept so existing references stay valid.
+- **Alternatives:** Keep the original order (phase 2 first); renumber the phases.
+- **Rationale:** The acceptance test of milestone F showed that the shopping list is core value.
+- **Consequences:** `docs/PROMPT.md` and `CLAUDE.md` state the new order.
+
+## 145. Ask about used items when making the shopping list
+- **Date:** 2026-11-17
+- **Decision:** In phase 3, when the shopping list is made, the app asks about items last week's plan used: "Last week you used chicken fillet and chickpeas. Do you still have some left? [Yes] [No, add to list]". No quantity tracking.
+- **Alternatives:** Track quantities in the pantry; don't ask.
+- **Rationale:** Keeps the pantry roughly correct without the effort of entering amounts.
+- **Consequences:** Added to phase 3 in `docs/PROMPT.md`.

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone F (week-plan screen) – built (decisions #114–#132), waiting for the product owner's review. Next: milestone G (onboarding wizard + settings: people, fixed days out, per-child lunch, protein alerts switch, automatic week plan #124).**
+**Phase 1, milestone F (week-plan screen) – built (decisions #114–#143); acceptance-test changes (undo per meal, day summary instead of protein toasts, one toast at a time, honest boost) are being designed – draft shown to the product owner, not built yet. Next: milestone G (onboarding wizard + settings: people, fixed days out, per-child lunch, protein alerts switch, automatic week plan #124).**
 
 Milestone F delivered: `src/features/week/` – `WeekScreen` (week navigation, fill / favourites week / start over with confirmation, undo history + undo toasts, protein-alert toast with "Add"), `DayCard` (progress per adult, meals, notes, extras), `PickSheet` (search, filters, protein impact per adult), `MealSheet` (recipe with household amounts, eating out, guests), `MoreSheet`. Planner additions in `planner.ts`: `fillEmptyOnly`/`favoritesOnly`, `setMeal`, `setEatingOut`, `setGuests`, `addExtras`, `emptyWeekPlan`, `dayProtein`, `pickImpacts`, `boostSuggestions`, `filledNonFavorites`. Schema v4 (`PlannedMeal.extras`). Device preference `proteinAlerts`. New colour tokens `success`/`warning`. Status `none` = empty meal (or dinner on a fixed day out).
 
@@ -118,5 +118,7 @@ Conventions:
 
 ## Current phase
 **Phase 1 – Foundation**, milestones **A–F** done; milestone **G (onboarding + settings)** next.
+
+**Phase order (decision #144):** after phase 1 comes phase 3 (Home + shopping list), then phase 2. Phase numbers are unchanged.
 
 Milestones: A setup/GitHub · B design system + app shell · C data model · D recipes + snacks · E planner logic + tests · F week-plan screen · G onboarding + settings · H documentation.

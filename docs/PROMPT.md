@@ -84,6 +84,7 @@ Du skal hjelpe meg å bygge en personlig måltidsplanlegger-app. Jeg er nybegynn
 - Avkrysning når noe er kjøpt. Kjøpte varer går automatisk tilbake til «har» i lageret.
 - Mulighet for å legge til egne varer manuelt (også ting som ikke er mat).
 - **Delt i sanntid:** Hvis mannen min krysser av noe i butikken, ser jeg det med en gang.
+- **Spør om varer som er brukt:** Når handlelisten lages, spør appen om varer ukeplanen har brukt: «Forrige uke brukte dere kyllingfilet og kikerter. Har dere fortsatt igjen? [Ja] [Nei, legg på listen]». Ingen mengderegistrering nødvendig.
 
 ### Tale
 - En tydelig mikrofonknapp (alltid lett tilgjengelig, også på mobil).
@@ -167,9 +168,12 @@ Du skal hjelpe meg å bygge en personlig måltidsplanlegger-app. Jeg er nybegynn
 - **Ukesoppsummering:** snitt protein per person og frukt/grønt per dag denne uken.
 
 ## 5. Faser (stopp etter hver fase og vent på meg)
+
+**Rekkefølge (endret 2026-11-17):** Etter fase 1 tas fase 3 (Hjemme + handleliste) før fase 2. Akseptansetesten viste at handlelisten er kjerneverdi. Numrene beholdes, så henvisninger til «fase 2» osv. gjelder fortsatt.
+
 1. **Fundament:** oppsett, design (inkl. **mørk modus**), språk, datamodell (med felt for næring, barnevennlig, vurdering, pris og utløpsdato fra start), oppskrifter, ukeplan med proteinmål, kveldssnacks, næringsbalanse, oppstartsveiviser, **barnevennlig + barnas preferanser** og **«spiser ute/besøk»**. Lagres lokalt.
 2. **Bruksopplevelse:** matlagingsmodus, vurder retten (👍/👎), ukesoppsummering og **marker måltider som spist**: knappen «✓ Spist» og «Jeg spiste noe annet → velg oppskrift» (eller hoppet over). Fremdriften viser spist protein i tillegg til planlagt.
-3. **Hjemme + handleliste:** har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS. Innstillingen **«Fast handledag»** (f.eks. søndag): handlelisten dekker perioden frem til neste handledag. Man kan også velge perioden selv (f.eks. man–fre eller man–søn).
+3. **Hjemme + handleliste:** har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS. Når handlelisten lages, spør appen om varer forrige ukeplan brukte («Har dere fortsatt igjen?»). Innstillingen **«Fast handledag»** (f.eks. søndag): handlelisten dekker perioden frem til neste handledag. Man kan også velge perioden selv (f.eks. man–fre eller man–søn).
 4. **Tale:** mikrofonknapp og talekommandoer, f.eks. «lag en favorittuke».
 5. **Innlogging + deling:** Supabase, Google + e-post/passord, passkeys (Face ID/fingeravtrykk), husholdning, invitasjon på e-post, sanntid. Flytt lokale data til databasen.
 6. **AI:** kjøleskap-forslag, bildegjenkjenning, import av oppskrift fra lenke/bilde (Edge Function + min egen API-nøkkel), og be om en ukeplan med friere ord (f.eks. «en uke med bare favorittene våre, men ikke fisk»).
