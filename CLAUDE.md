@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone G (onboarding wizard + settings) – built (decisions #156–#166), waiting for the product owner's review. Next: milestone H (documentation, bundle size #94).**
+**Phase 1, milestone G (onboarding wizard + settings) – built (decisions #156–#167), in acceptance test. Test feedback added "Remove meal" (#168, status `skipped`, `skipMeal`/`refillMeal`); phase-2 check-in idea logged (#169). Next: milestone H (documentation, bundle size #94).**
 
 Milestone G delivered: `src/features/onboarding/OnboardingScreen.tsx` (6-step wizard at `/welcome`, shown while `onboardingDone` is false; `?again=1` from Settings), shared editors in `src/features/household/` (people cards, protein target + calculator, dislikes sheet, excluded food, weekday pickers, `save-settings.ts`), settings list + sub-pages in `src/features/settings/` (`/settings/profile`, `household`, `food-week`, `auto-plan`, `split`, `language`, `appearance`, `install`). Planner: `adaptToSettings` (settings changes update weeks from today, only replacing dishes that no longer fit) and `autoPlanWeek`; repository `listWeekPlans`, `deviceLanguage`; schema v5 (`HouseholdSettings.autoWeekPlan`). Milestone F approved 2026-11-17 (#114–#155).
 

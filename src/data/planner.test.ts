@@ -22,10 +22,12 @@ import {
   mainProteinSource,
   planNotes,
   refreshPortions,
+  refillMeal,
+  skipMeal,
   swapMeal,
   type PlannerContext,
 } from './planner'
-import { eatsMeal, personalPortion, personDayNutrition, plannedTargetG, proteinBoost } from './protein'
+import { eatsMeal, personalPortion, personDayNutrition, plannedTargetG, proteinBoost, totalPortions } from './protein'
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import { diffMeals, isCurrent, mealKey, revertChanges } from './undo'
 import { SEED_RECIPES } from './seed/recipes'
@@ -655,5 +657,101 @@ describe('undoing a settings change (#162, #167)', () => {
     const [restored] = revertChanges([adapted], changes)
     expect(restored.days[2].meals.dinner).toEqual(plan.days[2].meals.dinner)
     expect(restored.days[3].meals.lunch).toEqual(plan.days[3].meals.lunch)
+  })
+})
+
+describe('removing a meal (#168)', () => {
+  const at = (plan: WeekPlan, day: number) => ({ plan, date: plan.days[day].date, now: '2026-11-16T09:00:00.000Z' })
+
+  it('a skipped leftovers lunch means fewer dinner portions the day before', () => {
+    const c = ctx(21)
+    const plan = generate(c)
+    const lunch = plan.days[1].meals.lunch
+    expect(lunch.status).toBe('leftovers')
+    const before = dinnerPortionsToCook(c, plan, plan.days[0].date)
+    const after = skipMeal(c, { ...at(plan, 1), slot: 'lunch' }).plan
+    expect(after.days[1].meals.lunch.status).toBe('skipped')
+    expect(after.days[1].meals.lunch.recipeId).toBeUndefined()
+    expect(dinnerPortionsToCook(c, after, plan.days[0].date)).toBeCloseTo(before - totalPortions(lunch.portions, lunch.guests))
+    expect(after.days[0].meals.dinner).toEqual(plan.days[0].meals.dinner)
+  })
+
+  it('a skipped dinner gives the next day a quick lunch and removes its extras', () => {
+    const c = ctx(22)
+    const withExtra = addExtras(generate(c), MONDAY, [{ personId: 'a1', ingredientId: 'seed-ingredient-egg', amount: 1, unit: 'pcs' }])
+    const plan = { ...withExtra, days: withExtra.days.map((d, i) => (i === 0 ? { ...d, meals: { ...d.meals, dinner: { ...d.meals.dinner, extras: d.meals.snack.extras } } } : d)) }
+    const after = skipMeal(c, { ...at(plan, 0), slot: 'dinner' }).plan
+    expect(after.days[0].meals.dinner.status).toBe('skipped')
+    expect(after.days[0].meals.dinner.extras).toBeUndefined()
+    expect(after.days[1].meals.lunch.status).toBe('planned')
+    expect(byId.get(after.days[1].meals.lunch.recipeId!)?.categoryIds).toContain('lunch')
+  })
+
+  it('a skipped Sunday dinner gives next Monday a quick lunch', () => {
+    const c = ctx(23)
+    const plan = generate(c)
+    const next = generate(c, { weekId: '2026-W48', today: '2026-11-23', previousWeek: plan })
+    expect(next.days[0].meals.lunch.status).toBe('leftovers')
+    const result = skipMeal(c, { ...at(plan, 6), slot: 'dinner', nextWeek: next })
+    expect(result.nextWeek!.days[0].meals.lunch.status).toBe('planned')
+  })
+
+  it('a skipped meal is left out of the day target, so it never asks for a boost', () => {
+    const c = ctx(24)
+    const plan = generate(c)
+    const after = skipMeal(c, { ...at(plan, 2), slot: 'lunch' }).plan
+    const day = after.days[2]
+    const split = c.household.proteinSplit
+    const fixedDayOut = false
+    expect(plannedTargetG(day, 'a1', split, fixedDayOut)).toBeCloseTo((120 * (100 - split.lunch)) / 100)
+    const protein = dayProtein(c, day).find((p) => p.personId === 'a1')!
+    const full = dayProtein(c, plan.days[2]).find((p) => p.personId === 'a1')!
+    expect(protein.targetG).toBeCloseTo(full.targetG - (120 * split.lunch) / 100)
+    // The lunch's protein is gone, but so is its share of the target: no boost is asked for it.
+    const gap = (b: ReturnType<typeof boostSuggestions>) => b.find((x) => x.personId === 'a1')?.gapG ?? 0
+    expect(gap(boostSuggestions(c, day))).toBeLessThanOrEqual(Math.max(0, gap(boostSuggestions(c, plan.days[2]))) + 120 * split.lunch / 100 - (full.proteinG - protein.proteinG) + 0.001)
+    expect(emptyMeals(c.household, day)).toEqual([])
+  })
+
+  it('↻ does nothing on a skipped meal; filling empty meals and settings changes leave it alone', () => {
+    const c = ctx(25)
+    const plan = skipMeal(c, { ...at(generate(c), 3), slot: 'breakfast' }).plan
+    expect(swapMeal(c, { ...at(plan, 3), slot: 'breakfast' }).plan).toBe(plan)
+    const filled = generate(c, { existing: plan, fillEmptyOnly: true })
+    expect(filled.days[3].meals.breakfast.status).toBe('skipped')
+    const newCtx = { ...c, household: { ...c.household, excludedTerms: ['egg'] } }
+    expect(adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0].days[3].meals.breakfast.status).toBe('skipped')
+  })
+
+  it('starting the week over clears skipped meals', () => {
+    const c = ctx(26)
+    const plan = skipMeal(c, { ...at(generate(c), 3), slot: 'snack' }).plan
+    expect(generate(c, { existing: plan }).days[3].meals.snack.status).toBe('planned')
+  })
+
+  it('fill in again: lunch gets leftovers back, other meals get a dish', () => {
+    const c = ctx(27)
+    const plan = generate(c)
+    const skipped = skipMeal(c, { ...at(plan, 2), slot: 'lunch' }).plan
+    const lunch = refillMeal(c, { ...at(skipped, 2), slot: 'lunch' }).plan.days[2].meals.lunch
+    expect(lunch.status).toBe('leftovers')
+    expect(lunch.recipeId).toBe(plan.days[1].meals.dinner.recipeId)
+    expect(lunch.portions).toEqual(plan.days[2].meals.lunch.portions)
+    const noDinner = skipMeal(c, { ...at(plan, 1), slot: 'dinner' }).plan
+    const dinner = refillMeal(c, { ...at(noDinner, 1), slot: 'dinner' }).plan.days[1].meals.dinner
+    expect(dinner.status).toBe('planned')
+    expect(byId.get(dinner.recipeId!)?.categoryIds).toContain('dinner')
+    expect(Object.keys(dinner.portions).length).toBeGreaterThan(0)
+  })
+
+  it('undo brings back the dinner and the leftovers lunch after it', () => {
+    const c = ctx(28)
+    const plan = generate(c)
+    const after = skipMeal(c, { ...at(plan, 1), slot: 'dinner' }).plan
+    const changes = diffMeals([plan], [after])
+    expect(changes.map((x) => x.slot).sort()).toEqual(['dinner', 'lunch'])
+    const [restored] = revertChanges([after], changes)
+    expect(restored.days[1].meals.dinner).toEqual(plan.days[1].meals.dinner)
+    expect(restored.days[2].meals.lunch).toEqual(plan.days[2].meals.lunch)
   })
 })

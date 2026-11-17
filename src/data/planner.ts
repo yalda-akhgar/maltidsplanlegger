@@ -424,7 +424,7 @@ export interface SwapOptions {
 /**
  * Swaps one meal for another suitable recipe. A swapped dinner updates the
  * next day's lunch if it is still leftovers; a swapped leftovers lunch becomes
- * a quick lunch (#105). Meals that are "none" or "eating out" are unchanged.
+ * a quick lunch (#105). Meals that are "none", "eating out" or skipped are unchanged.
  */
 export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: WeekPlan; nextWeek?: WeekPlan } {
   const planner = new Planner(ctx)
@@ -434,7 +434,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
   if (i < 0) return { plan: options.plan, nextWeek: options.nextWeek }
   const day = days[i]
   const meal = day.meals[options.slot]
-  if (meal.status === 'none' || meal.status === 'eatingOut') return { plan: options.plan, nextWeek: options.nextWeek }
+  if (meal.status === 'none' || meal.status === 'eatingOut' || meal.status === 'skipped') return { plan: options.plan, nextWeek: options.nextWeek }
 
   const prevDay = i === 0 ? options.previousWeek?.days[6] : days[i - 1]
   const nextDay = i === 6 ? options.nextWeek?.days[0] : days[i + 1]
@@ -527,12 +527,61 @@ export function setEatingOut(
   ctx: PlannerContext,
   options: { plan: WeekPlan; date: IsoDate; slot: MealSlot; eatingOut: boolean; previousWeek?: WeekPlan; nextWeek?: WeekPlan; now?: Timestamp },
 ): { plan: WeekPlan; nextWeek?: WeekPlan } {
+  return clearMeal(ctx, options, options.eatingOut ? 'eatingOut' : 'none', true)
+}
+
+/**
+ * "Remove meal" (#168): the household skips the meal on purpose. It no longer
+ * counts in the day's protein target, and its extras go with it. A skipped
+ * leftovers lunch means fewer dinner portions the day before; a skipped
+ * dinner gives the next day a quick lunch (#108).
+ */
+export function skipMeal(ctx: PlannerContext, options: SwapOptions): { plan: WeekPlan; nextWeek?: WeekPlan } {
+  return clearMeal(ctx, options, 'skipped', false)
+}
+
+/**
+ * "Fill in again" on a skipped meal (#168): lunch gets leftovers from the
+ * previous day's dinner if it is cooked at home, otherwise the planner picks
+ * a dish as for ↻. Returns the plans unchanged if nothing fits.
+ */
+export function refillMeal(ctx: PlannerContext, options: SwapOptions): { plan: WeekPlan; nextWeek?: WeekPlan } {
+  const unchanged = { plan: options.plan, nextWeek: options.nextWeek }
+  const i = options.plan.days.findIndex((d) => d.date === options.date)
+  const meal = options.plan.days[i]?.meals[options.slot]
+  if (!meal || meal.status !== 'skipped') return unchanged
+  const now = options.now ?? new Date().toISOString()
+  const days = options.plan.days.map((d) => ({ ...d, meals: { ...d.meals } }))
+
+  if (options.slot === 'lunch') {
+    const prevDay = i === 0 ? options.previousWeek?.days[6] : days[i - 1]
+    const dinner = prevDay?.meals.dinner
+    if (prevDay && dinner?.status === 'planned' && dinner.recipeId) {
+      days[i].meals.lunch = { ...meal, status: 'leftovers', recipeId: dinner.recipeId, leftoversFrom: prevDay.date, portions: {} }
+      days[i] = new Planner(ctx).withPortions(days[i], i)
+      return { plan: { ...options.plan, days, updatedAt: now }, nextWeek: options.nextWeek }
+    }
+  }
+  // Let ↻ pick a dish for a placeholder meal without a recipe.
+  days[i].meals[options.slot] = { ...meal, status: 'planned', portions: {} }
+  const placeholder = { ...options.plan, days }
+  const result = swapMeal(ctx, { ...options, plan: placeholder })
+  return result.plan === placeholder ? unchanged : result
+}
+
+/** Empties a meal with a new status; a dinner's leftovers lunch the next day becomes a quick lunch (#108). */
+function clearMeal(
+  ctx: PlannerContext,
+  options: { plan: WeekPlan; date: IsoDate; slot: MealSlot; previousWeek?: WeekPlan; nextWeek?: WeekPlan; now?: Timestamp },
+  status: 'eatingOut' | 'skipped' | 'none',
+  keepExtras: boolean,
+): { plan: WeekPlan; nextWeek?: WeekPlan } {
   const now = options.now ?? new Date().toISOString()
   const i = options.plan.days.findIndex((d) => d.date === options.date)
   if (i < 0) return { plan: options.plan, nextWeek: options.nextWeek }
   const days = options.plan.days.map((d) => ({ ...d, meals: { ...d.meals } }))
   const old = days[i].meals[options.slot]
-  days[i].meals[options.slot] = { ...emptyMeal(options.eatingOut ? 'eatingOut' : 'none', old.guests), ...(old.extras ? { extras: old.extras } : {}) }
+  days[i].meals[options.slot] = { ...emptyMeal(status, old.guests), ...(keepExtras && old.extras ? { extras: old.extras } : {}) }
   let result: { plan: WeekPlan; nextWeek?: WeekPlan } = { plan: { ...options.plan, days, updatedAt: now }, nextWeek: options.nextWeek }
 
   const nextDay = i === 6 ? options.nextWeek?.days[0] : days[i + 1]

@@ -1189,3 +1189,30 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Keep a planned dinner on a new fixed day out.
 - **Rationale:** Made during the build and approved by the product owner afterwards.
 - **Consequences:** None beyond the above.
+
+## 168. "Remove meal" (skip a meal on purpose)
+- **Date:** 2026-11-17
+- **Decision:** Tapping a meal offers "Remove meal" (e.g. lunch on a day with low appetite). Found in the milestone G acceptance test. Rules:
+  - The meal gets its own plan status `skipped` and is shown as "[Meal] – skipped" in grey text on the day card.
+  - All four meals can be removed (breakfast, lunch, dinner, evening snack), for the whole household.
+  - A removed meal is not counted in the day's protein target (like "eating out", #109) and never leads to a protein boost message. It does not make the day "grey" (only empty meals do).
+  - Removing a leftovers lunch means fewer dinner portions the day before. Removing a dinner gives the next day a quick lunch (#108), also from Sunday to next Monday.
+  - Extras on the meal (e.g. a protein boost) are removed with it.
+  - A short message "Lunch removed" is shown; no day summary. ↶ undo brings back the meal, its extras and the lunch after a dinner.
+  - Tapping a removed meal offers "Fill in again" (the app picks; lunch gets leftovers back if the previous dinner is cooked at home) and "Pick a dish".
+  - "Fill the week" and settings changes leave removed meals alone; "Start the week over" clears them.
+- **Alternatives:** (1) Use the phase-2 outcome "skipped" (#106) instead of a plan status – mixes "planned to skip" with "skipped after all". (2) A switch like "Eating out" instead of a button. (3) Not for the evening snack. (4) Per person now (see backlog #9). (6) Only "Pick a dish". (7) "Fill the week" also fills removed meals. (8) "Start over" keeps them. (9) Keep the extras.
+- **Rationale:** Product owner's choice ("a" on all points). A plan status keeps phase-2 statistics clean; acting for the whole household matches the data model.
+- **Consequences:** New `MealStatus` value `skipped` (no migration needed; schema version unchanged). Planner functions `skipMeal` and `refillMeal`. Removing for one person only is in the backlog (#9, high priority for phase 5).
+
+## 169. Phase 2: daily or weekly check-in and summary
+- **Date:** 2026-11-17
+- **Decision:** Planned for phase 2 (not built now):
+  - A setting for check-in and summary: daily, weekly or off, with an optional time (e.g. 20:00, or Sunday evening).
+  - Check-in: "Did you eat what was planned today?" – tick everything with one tap, or change single meals (ate something else / skipped). Uses the meal outcome (#106).
+  - Summary with a positive tone, e.g. "Average 116 / 120 g protein per day. You reached your target on 5 of 7 days – well done!"
+  - When short: a constructive tip, e.g. "Wednesday and Thursday were 15–20 g short. Should the next week plan add a little extra? [Yes, adjust next week]".
+  - The tone is always encouraging, never shaming, and gives no medical advice.
+- **Alternatives:** Only the "✓ Eaten" buttons on each meal from the original phase-2 plan.
+- **Rationale:** Product owner's idea: recording what was eaten should be quick, and feedback should motivate.
+- **Consequences:** Added to phase 2 in `docs/PROMPT.md`. Without push notifications (phase 7) the check-in is shown the next time the app is opened after the chosen time. "Adjust next week" needs a planner option for slightly larger portions or boosts; to be designed in phase 2.

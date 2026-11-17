@@ -1,4 +1,4 @@
-import { ListIcon, MinusIcon, PlusIcon } from 'lucide-react'
+import { CircleMinusIcon, ListIcon, MinusIcon, PlusIcon, SparklesIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
@@ -20,22 +20,28 @@ type MealSheetProps = {
   portionsToCook: number
   onClose: () => void
   onPickAnother: () => void
+  /** "Remove meal" (#168). */
+  onSkip: () => void
+  /** "Fill in again" on a skipped meal (#168). */
+  onRefill: () => void
   onEatingOut: (eatingOut: boolean) => void
   onGuests: (guests: number) => void
 }
 
 /**
  * Tapping a meal (#126): the recipe with amounts for the household, plus
- * "Pick another dish", "Eating out" and guests.
+ * "Pick another dish", "Remove meal", "Eating out" and guests. A skipped meal
+ * offers "Fill in again" and "Pick a dish" instead (#168).
  */
-export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickAnother, onEatingOut, onGuests }: MealSheetProps) {
+export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickAnother, onSkip, onRefill, onEatingOut, onGuests }: MealSheetProps) {
   const { t } = useTranslation()
   const language = useLanguage()
   const recipe = meal?.recipeId ? data.recipes.find((r) => r.id === meal.recipeId) : undefined
   const open = target !== null && meal !== undefined
   const slotName = target ? t(`week.slots.${target.slot}`) : ''
   const eatingOut = meal?.status === 'eatingOut'
-  const showRecipe = recipe && !eatingOut
+  const skipped = meal?.status === 'skipped'
+  const showRecipe = recipe && !eatingOut && !skipped
   const name = (id: string) => data.household.people.find((p) => p.id === id)?.name ?? ''
 
   return (
@@ -45,15 +51,34 @@ export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickA
       title={showRecipe ? localize(recipe.name, language) : slotName}
       description={target ? `${slotName} · ${target.dayTitle}` : undefined}
       footer={
-        open ? (
-          <Button variant="outline" onClick={onPickAnother}>
-            <ListIcon aria-hidden />
-            {t('week.meal.pickAnother')}
-          </Button>
-        ) : null
+        !open ? null : skipped ? (
+          <>
+            <Button onClick={onRefill}>
+              <SparklesIcon aria-hidden />
+              {t('week.meal.refill')}
+            </Button>
+            <Button variant="outline" onClick={onPickAnother}>
+              <ListIcon aria-hidden />
+              {t('week.meal.pickDish')}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" onClick={onPickAnother}>
+              <ListIcon aria-hidden />
+              {t('week.meal.pickAnother')}
+            </Button>
+            <Button variant="outline" onClick={onSkip}>
+              <CircleMinusIcon aria-hidden />
+              {t('week.meal.skip')}
+            </Button>
+          </>
+        )
       }
     >
-      {open && target && meal ? (
+      {open && target && meal && skipped ? (
+        <p className="text-muted-foreground">{t('week.meal.skippedText')}</p>
+      ) : open && target && meal ? (
         <div className="space-y-5">
           <div className="space-y-3 rounded-2xl border p-3">
             <label className="flex min-h-11 items-center justify-between gap-3">

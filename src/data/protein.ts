@@ -121,8 +121,8 @@ export function extraNutrition(extra: MealExtra, ingredients: ReadonlyMap<Id, In
 
 /**
  * The part of a person's daily target that the planned meals should cover.
- * Meals outside the app ("eating out", dinner on a fixed day out) are left
- * out: the app only counts what is planned in it (#109). Empty meals still
+ * Meals outside the app ("eating out", dinner on a fixed day out) and skipped
+ * meals (#168) are left out: the app only counts what is planned in it (#109). Empty meals still
  * count, so progress grows while planning by hand (#112).
  */
 export function plannedTargetG(
@@ -135,7 +135,7 @@ export function plannedTargetG(
   const share = (Object.keys(day.meals) as MealSlot[])
     .filter((slot) => {
       const status = day.meals[slot].status
-      if (status === 'eatingOut') return false
+      if (status === 'eatingOut' || status === 'skipped') return false
       return !(slot === 'dinner' && status === 'none' && fixedDayOut)
     })
     .reduce((sum, slot) => sum + split[slot], 0)

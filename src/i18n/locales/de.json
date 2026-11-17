@@ -294,6 +294,7 @@
     },
     "leftoversFrom": "Reste von {{day}}",
     "eatingOut": "Auswärts essen",
+    "skipped": "{{slot}} – ausgelassen",
     "noDinnerAtHome": "Kein Abendessen zu Hause (fester Tag)",
     "pickDish": "Gericht wählen",
     "pickDishFor": "Gericht wählen: {{slot}}, {{day}}",
@@ -339,7 +340,9 @@
       "guests_one": "{{count}} Gast",
       "guests_other": "{{count}} Gäste",
       "extraRemoved": "Extra entfernt",
-      "autoMade": "Woche {{week}} wurde automatisch erstellt."
+      "autoMade": "Woche {{week}} wurde automatisch erstellt.",
+      "skipped": "{{slot}} entfernt",
+      "refilled": "Wieder aufgefüllt: {{name}}"
     },
     "meal": {
       "pickAnother": "Anderes Gericht wählen",
@@ -349,7 +352,11 @@
       "moreGuests": "Mehr Gäste",
       "portions": "Portionen pro Person",
       "leftoversHint": "Reste vom Abendessen am {{day}}. Die Menge wird beim Kochen mit eingeplant.",
-      "eatingOutText": "Ihr esst auswärts. Diese Mahlzeit zählt nicht zum Proteinziel des Tages."
+      "eatingOutText": "Ihr esst auswärts. Diese Mahlzeit zählt nicht zum Proteinziel des Tages.",
+      "skip": "Mahlzeit entfernen",
+      "refill": "Wieder auffüllen",
+      "pickDish": "Gericht wählen",
+      "skippedText": "Diese Mahlzeit wird ausgelassen. Sie zählt nicht zum Proteinziel des Tages. Du kannst sie jederzeit wieder auffüllen."
     },
     "pick": {
       "title": "{{slot}}, {{day}}",

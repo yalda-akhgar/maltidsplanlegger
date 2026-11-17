@@ -325,6 +325,7 @@
     },
     "leftoversFrom": "Rester fra {{day}}",
     "eatingOut": "Spiser ute",
+    "skipped": "{{slot}} – hoppet over",
     "noDinnerAtHome": "Ingen middag hjemme (fast dag)",
     "pickDish": "Velg rett",
     "pickDishFor": "Velg rett: {{slot}}, {{day}}",
@@ -370,7 +371,9 @@
       "guests_one": "{{count}} gjest",
       "guests_other": "{{count}} gjester",
       "extraRemoved": "Ekstra fjernet",
-      "autoMade": "Uke {{week}} er laget automatisk."
+      "autoMade": "Uke {{week}} er laget automatisk.",
+      "skipped": "{{slot}} er fjernet",
+      "refilled": "Fylt inn igjen: {{name}}"
     },
     "meal": {
       "pickAnother": "Velg annen rett",
@@ -380,7 +383,11 @@
       "moreGuests": "Flere gjester",
       "portions": "Porsjoner per person",
       "leftoversHint": "Rester fra middagen {{day}}. Mengden er tatt med når middagen lages.",
-      "eatingOutText": "Dere spiser ute. Dette måltidet telles ikke med i dagens proteinmål."
+      "eatingOutText": "Dere spiser ute. Dette måltidet telles ikke med i dagens proteinmål.",
+      "skip": "Fjern måltid",
+      "refill": "Fyll inn igjen",
+      "pickDish": "Velg rett",
+      "skippedText": "Dette måltidet er hoppet over. Det telles ikke med i dagens proteinmål. Du kan fylle det inn igjen når som helst."
     },
     "pick": {
       "title": "{{slot}}, {{day}}",

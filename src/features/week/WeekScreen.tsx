@@ -19,6 +19,8 @@ import {
   dinnerPortionsToCook,
   followSundayDinner,
   refreshPortions,
+  refillMeal,
+  skipMeal,
   emptyWeekPlan,
   filledNonFavorites,
   generateWeekPlan,
@@ -301,6 +303,31 @@ export function WeekScreen() {
     afterMealChange(date, result.plan, on ? t('week.toast.eatingOut') : t('week.toast.notEatingOut'))
   }
 
+  /** "Remove meal" (#168): a short message, no day summary or boost for the skipped meal. */
+  function skip(date: IsoDate, slot: MealSlot) {
+    const current = plansRef.current
+    if (!current || !ctx) return
+    const result = skipMeal(ctx, { plan: current.plan, date, slot, previousWeek: current.previous, nextWeek: current.next })
+    apply(result, { meal: { date, slot } })
+    const message = t('week.toast.skipped', { slot: t(`week.slots.${slot}`) })
+    setAnnouncement(message)
+    toast(message)
+  }
+
+  /** "Fill in again" on a skipped meal (#168). */
+  function refill(date: IsoDate, slot: MealSlot) {
+    const current = plansRef.current
+    if (!current || !ctx) return
+    const result = refillMeal(ctx, { plan: current.plan, date, slot, previousWeek: current.previous, nextWeek: current.next })
+    if (result.plan === current.plan) {
+      toast(t('week.toast.noAlternative'))
+      return
+    }
+    apply(result, { meal: { date, slot } })
+    const meal = result.plan.days.find((d) => d.date === date)?.meals[slot]
+    afterMealChange(date, result.plan, t('week.toast.refilled', { name: recipeName(meal?.recipeId) }))
+  }
+
   function changeGuests(date: IsoDate, slot: MealSlot, guests: number) {
     const current = plansRef.current
     if (!current) return
@@ -524,6 +551,16 @@ export function WeekScreen() {
           const target = mealTarget
           setMealTarget(null)
           if (target) openPickAfterSheet(target)
+        }}
+        onSkip={() => {
+          const target = mealTarget
+          setMealTarget(null)
+          if (target) skip(target.date, target.slot)
+        }}
+        onRefill={() => {
+          const target = mealTarget
+          setMealTarget(null)
+          if (target) refill(target.date, target.slot)
         }}
         onEatingOut={(on) => mealTarget && eatingOut(mealTarget.date, mealTarget.slot, on)}
         onGuests={(guests) => mealTarget && changeGuests(mealTarget.date, mealTarget.slot, guests)}

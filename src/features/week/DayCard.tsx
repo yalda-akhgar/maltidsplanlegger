@@ -148,6 +148,12 @@ function MealRow({
         )}
       </button>
     )
+  } else if (meal.status === 'skipped') {
+    content = (
+      <button type="button" className={cn(rowButton, 'text-sm text-muted-foreground italic')} onClick={() => onOpenMeal(slot)}>
+        {t('week.skipped', { slot: slotName })}
+      </button>
+    )
   } else if (meal.status === 'eatingOut') {
     content = (
       <button type="button" className={cn(rowButton, 'text-sm text-muted-foreground')} onClick={() => onOpenMeal(slot)}>

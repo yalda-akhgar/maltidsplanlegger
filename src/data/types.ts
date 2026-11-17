@@ -205,9 +205,11 @@ export interface HouseholdSettings {
  * - planned:    a recipe cooked for this meal
  * - leftovers:  leftovers from the previous day's dinner (lunch)
  * - eatingOut:  the household eats out – nothing to cook (#30)
+ * - skipped:    the household skips the meal on purpose, e.g. low appetite (#168).
+ *               Planned ahead; different from the phase-2 outcome "skipped" (#106).
  * - none:       nothing planned yet (an empty slot), or dinner on a fixed day out (#107)
  */
-export type MealStatus = 'planned' | 'leftovers' | 'eatingOut' | 'none'
+export type MealStatus = 'planned' | 'leftovers' | 'eatingOut' | 'skipped' | 'none'
 
 export interface PlannedMeal {
   status: MealStatus
