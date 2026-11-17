@@ -345,6 +345,11 @@
       "rangeEnd": "d. MMM"
     },
     "weekNav": "Velg uke",
-    "replaceFavorites": "Lag ny ukeplan – bare favoritter"
+    "replaceFavorites": "Lag ny ukeplan – bare favoritter",
+    "dev": {
+      "label": "Bare i utviklingsmodus:",
+      "exampleFamily": "Fyll inn eksempelfamilie",
+      "done": "Eksempelfamilien er lagt inn"
+    }
   }
 }

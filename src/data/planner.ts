@@ -548,6 +548,38 @@ export function setEatingOut(
   return result
 }
 
+/**
+ * Lets next week's Monday lunch follow this week's Sunday dinner, however the
+ * dinner was changed (#13, #143): leftovers from Sunday (or an empty lunch)
+ * get the new dinner; if Sunday's dinner is no longer cooked at home,
+ * leftovers become a quick lunch (#108). Returns `nextWeek` unchanged otherwise.
+ */
+export function followSundayDinner(
+  ctx: PlannerContext,
+  plan: WeekPlan,
+  nextWeek: WeekPlan | undefined,
+  now = new Date().toISOString(),
+): WeekPlan | undefined {
+  if (!nextWeek) return nextWeek
+  const sunday = plan.days[6]
+  const monday = nextWeek.days[0]
+  const dinner = sunday.meals.dinner
+  const lunch = monday.meals.lunch
+  const fromSunday = lunch.status === 'leftovers' && lunch.leftoversFrom === sunday.date
+
+  if (dinner.status === 'planned' && dinner.recipeId) {
+    if (!fromSunday && lunch.status !== 'none') return nextWeek
+    if (fromSunday && lunch.recipeId === dinner.recipeId) return nextWeek
+    const updated: DayPlan = {
+      ...monday,
+      meals: { ...monday.meals, lunch: { ...lunch, status: 'leftovers', recipeId: dinner.recipeId, leftoversFrom: sunday.date } },
+    }
+    return { ...nextWeek, days: [new Planner(ctx).withPortions(updated, 0), ...nextWeek.days.slice(1)], updatedAt: now }
+  }
+  if (fromSunday) return swapMeal(ctx, { plan: nextWeek, date: monday.date, slot: 'lunch', previousWeek: plan, now }).plan
+  return nextWeek
+}
+
 /** Sets the number of guests at a meal (#31). Portions per person do not change. */
 export function setGuests(plan: WeekPlan, date: IsoDate, slot: MealSlot, guests: number, now = new Date().toISOString()): WeekPlan {
   return {

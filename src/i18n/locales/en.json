@@ -314,6 +314,11 @@
       "rangeEnd": "d MMM"
     },
     "weekNav": "Choose week",
-    "replaceFavorites": "Make new week plan – favourites only"
+    "replaceFavorites": "Make new week plan – favourites only",
+    "dev": {
+      "label": "Development mode only:",
+      "exampleFamily": "Fill in example family",
+      "done": "Example family added"
+    }
   }
 }

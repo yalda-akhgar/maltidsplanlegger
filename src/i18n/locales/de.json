@@ -314,6 +314,11 @@
       "rangeEnd": "d. MMM"
     },
     "weekNav": "Woche wählen",
-    "replaceFavorites": "Neuen Wochenplan erstellen – nur Favoriten"
+    "replaceFavorites": "Neuen Wochenplan erstellen – nur Favoriten",
+    "dev": {
+      "label": "Nur im Entwicklungsmodus:",
+      "exampleFamily": "Beispielfamilie einfügen",
+      "done": "Beispielfamilie eingefügt"
+    }
   }
 }

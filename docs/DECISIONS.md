@@ -938,3 +938,80 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** A "Not a favourite" label on every filled-in dish.
 - **Rationale:** Informs once without cluttering the week.
 - **Consequences:** None.
+
+## 133. Empty meals count in the day's protein target
+- **Date:** 2026-11-17
+- **Decision:** An empty meal (nothing picked yet) still counts in the day's target, so progress grows while planning by hand. Only "eating out" and dinner on a fixed day out are left out (#109).
+- **Alternatives:** Count only meals that have a dish.
+- **Rationale:** Otherwise a day with only breakfast planned would already look "on target".
+- **Consequences:** Status `none` now means "empty meal" (or dinner on a fixed day out). Approved after milestone F.
+
+## 134. A dinner can be picked on a fixed day out
+- **Date:** 2026-11-17
+- **Decision:** On a fixed "no dinner at home" day the row shows "No dinner at home (fixed day)", but tapping it still lets the user pick a dinner (e.g. a Friday at home).
+- **Alternatives:** Not tappable; change the setting instead.
+- **Rationale:** Exceptions happen; the setting is for the normal week.
+- **Consequences:** Approved after milestone F.
+
+## 135. "We're eating out" in the pick list for empty meals
+- **Date:** 2026-11-17
+- **Decision:** When a meal is empty, the "Pick a dish" sheet also offers "We're eating out".
+- **Alternatives:** Only via the meal sheet (which needs a dish first).
+- **Rationale:** An empty meal has no meal sheet, so this is the only way to mark it.
+- **Consequences:** Approved after milestone F.
+
+## 136. Extras can be removed
+- **Date:** 2026-11-17
+- **Decision:** Each extra item on the evening ("+ extra for Anna: 2 dl milk") has an ✕ to remove it.
+- **Alternatives:** Only undo.
+- **Rationale:** The user may change their mind later, after undo history is gone.
+- **Consequences:** Approved after milestone F.
+
+## 137. Undo covers every change to the plan
+- **Date:** 2026-11-17
+- **Decision:** The undo history (#122, #129) includes every change: swaps, picks, fill, start over, eating out, guests and extras.
+- **Alternatives:** Only swaps.
+- **Rationale:** Consistent: "Undo" always means "the last change".
+- **Consequences:** Approved after milestone F.
+
+## 138. Thresholds for "on target"
+- **Date:** 2026-11-17
+- **Decision:** In the pick list, "on target" means within ±2 g. The day's progress shows ✓ when less than 5 g is missing (the boost threshold, #103).
+- **Alternatives:** Other thresholds.
+- **Rationale:** Small differences are not meaningful; 5 g matches when a boost is suggested.
+- **Consequences:** Approved after milestone F.
+
+## 139. Past days stay as they are when planning mid-week
+- **Date:** 2026-11-17
+- **Decision:** Making or filling a plan mid-week leaves earlier days as they are, also when they are empty (#104).
+- **Alternatives:** Fill past days too.
+- **Rationale:** Past meals have already happened; planning them is pointless.
+- **Consequences:** Approved after milestone F.
+
+## 140. Colours for status labels
+- **Date:** 2026-11-17
+- **Decision:** New design tokens `success` (green, "on target") and `warning` (yellow, "under target" and plan notes), in light and dark theme, checked by `npm run check:contrast`.
+- **Alternatives:** Only purple and grey.
+- **Rationale:** As in the approved draft; text always accompanies the colour (WCAG 1.4.1).
+- **Consequences:** Approved after milestone F.
+
+## 141. Stronger text in toast descriptions
+- **Date:** 2026-11-17
+- **Decision:** The second line of a toast uses the same full-strength colour as the title.
+- **Alternatives:** Keep the default grey.
+- **Rationale:** The default grey was too faint on the dark toast (WCAG 1.4.3).
+- **Consequences:** Applies to all toasts. Approved after milestone F.
+
+## 142. "Fill in example family" in development mode only
+- **Date:** 2026-11-17
+- **Decision:** The week-plan screen has a "Fill in example family" button (Anna 120 g, Ola 140 g, Noah who doesn't like salmon, Ella; no dinner at home on Fridays). It is only shown with `npm run dev` and is not included in the published app.
+- **Alternatives:** Wait for the onboarding wizard (milestone G) before testing.
+- **Rationale:** Makes the week plan testable with protein numbers before milestone G.
+- **Consequences:** Can be removed once the wizard exists.
+
+## 143. Monday's lunch always follows Sunday's dinner
+- **Date:** 2026-11-17
+- **Decision:** "Lunch = leftovers from the previous day's dinner" applies however the dinner was changed – also when "Fill" or "Make new week plan" changes Sunday's dinner, next week's Monday lunch is updated. If Sunday's dinner is no longer cooked at home, Monday gets a quick lunch. A Monday lunch the user picked themselves is left alone.
+- **Alternatives:** Only update on swap/pick (as built first).
+- **Rationale:** The rule must hold in every case.
+- **Consequences:** `followSundayDinner` in `planner.ts`, with tests.

@@ -13,6 +13,8 @@ import {
   boostSuggestions,
   dayProtein,
   dinnerPortionsToCook,
+  followSundayDinner,
+  refreshPortions,
   emptyWeekPlan,
   filledNonFavorites,
   generateWeekPlan,
@@ -31,6 +33,7 @@ import { MEAL_SLOTS, type Id, type IsoDate, type MealSlot, type WeekId, type Wee
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
 import { InstallCard } from '@/features/install/InstallCard'
 import { useRecipeData } from '@/features/recipes/useRecipeData'
+import { withExampleFamily } from './example-family'
 import { useLanguage } from '@/i18n/useLanguage'
 import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'
@@ -50,7 +53,7 @@ export function WeekScreen() {
   const { t } = useTranslation()
   const language = useLanguage()
   const navigate = useNavigate()
-  const { data } = useRecipeData()
+  const { data, reload } = useRecipeData()
   const [today] = useState(() => toIsoDate(new Date()))
   const [weekId, setWeekId] = useState(() => weekIdOf(new Date()))
   const [plans, setPlans] = useState<Plans | null>(null)
@@ -225,13 +228,29 @@ export function WeekScreen() {
       fillEmptyOnly: !replace,
       favoritesOnly,
     })
-    commit({ plan: generated, next: current.next })
+    // Next week's Monday lunch follows a changed Sunday dinner (#143).
+    commit({ plan: generated, next: followSundayDinner(ctx, generated, current.next) })
     const others = favoritesOnly ? filledNonFavorites(ctx, current.plan, generated) : 0
     toast(t(replace ? 'week.toast.replaced' : 'week.toast.filled'), {
       description: others > 0 ? t('week.toast.tooFewFavorites', { count: others }) : undefined,
       duration: others > 0 ? 10000 : 6000,
       action: { label: t('week.undo'), onClick: undo },
     })
+  }
+
+  /** Development only: puts in the example family and recalculates the shown weeks from today (#142). */
+  async function fillExampleFamily() {
+    const current = plansRef.current
+    if (!current || !ctx) return
+    const household = await repository.saveHousehold(withExampleFamily(ctx.household))
+    const newCtx = { ...ctx, household }
+    for (const week of [current.plan, current.next]) {
+      if (week && week.days.some((d) => MEAL_SLOTS.some((s) => d.meals[s].status !== 'none'))) {
+        await repository.saveWeekPlan(refreshPortions(newCtx, week, today))
+      }
+    }
+    await reload()
+    toast(t('week.dev.done'))
   }
 
   const openPickAfterSheet = (target: PickTarget) => window.setTimeout(() => setPickTarget(target), SHEET_SWITCH_MS)
@@ -277,6 +296,16 @@ export function WeekScreen() {
         </nav>
 
         {!hasAdults ? <p className="rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">{t('week.noPeople')}</p> : null}
+
+        {/* Development only (npm run dev), never in the published app (#142). */}
+        {import.meta.env.DEV ? (
+          <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-dashed p-3 text-sm">
+            <span className="text-muted-foreground">{t('week.dev.label')}</span>
+            <Button variant="outline" size="sm" onClick={() => void fillExampleFamily()}>
+              {t('week.dev.exampleFamily')}
+            </Button>
+          </div>
+        ) : null}
 
         {!planned ? (
           <div className="rounded-2xl bg-secondary p-4 text-sm">

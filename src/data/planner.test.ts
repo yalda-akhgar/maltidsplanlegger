@@ -8,6 +8,7 @@ import {
   dinnerPortionsToCook,
   emptyWeekPlan,
   filledNonFavorites,
+  followSundayDinner,
   generateWeekPlan,
   pickImpacts,
   setEatingOut,
@@ -484,5 +485,47 @@ describe('planning by hand, filling and favourites (milestone F)', () => {
     const after = dayProtein(c, plan.days[0])
     expect(after[0].proteinG).toBeCloseTo(before + s.boost.proteinG, 5)
     expect(plan.days[0].meals.snack.extras).toHaveLength(1)
+  })
+})
+
+describe("next week's Monday lunch follows Sunday's dinner (#143)", () => {
+  const NEXT = '2026-W48'
+  const setup = (seed: number) => {
+    const c = ctx(seed)
+    const plan = generate(c)
+    const next = generateWeekPlan(c, { weekId: NEXT, today: MONDAY, previousWeek: plan })
+    return { c, plan, next }
+  }
+
+  it('updates the leftovers when "fill" or "start over" changes Sunday dinner', () => {
+    for (let seed = 1; seed <= 50; seed++) {
+      const { c, plan, next } = setup(seed)
+      expect(next.days[0].meals.lunch).toMatchObject({ status: 'leftovers', recipeId: plan.days[6].meals.dinner.recipeId })
+      const redone = generate(ctx(seed + 1000), { existing: plan })
+      const followed = followSundayDinner(c, redone, next)!
+      expect(followed.days[0].meals.lunch).toMatchObject({
+        status: 'leftovers',
+        recipeId: redone.days[6].meals.dinner.recipeId,
+        leftoversFrom: '2026-11-22',
+      })
+      expect(Object.keys(followed.days[0].meals.lunch.portions).length).toBeGreaterThan(0)
+      expect(followed.days.slice(1)).toEqual(next.days.slice(1))
+    }
+  })
+
+  it('gives a quick lunch when Sunday dinner is no longer cooked at home', () => {
+    const { c, plan, next } = setup(2)
+    const out = { ...plan, days: plan.days.map((d, i) => (i === 6 ? { ...d, meals: { ...d.meals, dinner: { status: 'eatingOut' as const, portions: {}, guests: 0 } } } : d)) }
+    const lunch = followSundayDinner(c, out, next)!.days[0].meals.lunch
+    expect(lunch.status).toBe('planned')
+    expect(byId.get(lunch.recipeId!)?.categoryIds).toContain('lunch')
+  })
+
+  it("leaves a Monday lunch the user picked themselves alone", () => {
+    const { c, plan, next } = setup(3)
+    const quick = SEED_RECIPES.find((x) => x.categoryIds.includes('lunch'))!.id
+    const own = setMeal(c, { plan: next, date: '2026-11-23', slot: 'lunch', recipeId: quick }).plan
+    const redone = generate(ctx(77), { existing: plan })
+    expect(followSundayDinner(c, redone, own)).toBe(own)
   })
 })
