@@ -1,4 +1,4 @@
-import { CheckIcon, PlusIcon, RefreshCwIcon, XIcon } from 'lucide-react'
+import { CheckIcon, PlusIcon, RefreshCwIcon, Undo2Icon, XIcon } from 'lucide-react'
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -26,11 +26,18 @@ export type DayCardProps = {
   onPickMeal: (slot: MealSlot) => void
   onSwapMeal: (slot: MealSlot) => void
   onRemoveExtra: (index: number) => void
+  /** Whether the day still has meals to choose (#155). */
+  hasEmptyMeals: boolean
+  /** Screen-reader label of each meal's undo button; only meals that can be undone (#146, #147). */
+  undoLabels: Partial<Record<MealSlot, string>>
+  /** Text under a meal that changed along with the previous day's dinner (#150). */
+  followsText: Partial<Record<MealSlot, string>>
+  onUndoMeal: (slot: MealSlot) => void
 }
 
 /** One day of the week plan: date, protein per adult (#118) and the four meals (#117, #126, #127). */
 export const DayCard = forwardRef<HTMLElement, DayCardProps>(function DayCard(props, ref) {
-  const { day, isToday, fixedDayOut, people, protein, notes } = props
+  const { day, isToday, fixedDayOut, people, protein, notes, hasEmptyMeals } = props
   const { t } = useTranslation()
   const language = useLanguage()
   const title = formatDay(day.date, language, t)
@@ -51,26 +58,35 @@ export const DayCard = forwardRef<HTMLElement, DayCardProps>(function DayCard(pr
       </h2>
 
       {protein.length > 0 ? (
-        <ul aria-label={t('week.progress.label')} className="mt-2 space-y-1">
-          {protein.map((p) => {
-            const gap = Math.round(p.targetG - p.proteinG)
-            const ok = gap < BOOST_THRESHOLD_G
-            const pct = p.targetG > 0 ? Math.min(100, (p.proteinG / p.targetG) * 100) : 0
-            return (
-              <li key={p.personId} className="grid grid-cols-[minmax(3rem,auto)_1fr_auto] items-center gap-2 text-xs">
-                <span className="truncate text-muted-foreground">{personName(p.personId)}</span>
-                <span aria-hidden className="h-1.5 overflow-hidden rounded-full bg-accent">
-                  <span className="block h-full rounded-full bg-primary" style={{ width: `${pct}%` }} />
-                </span>
-                <span className={cn('flex items-center gap-1 font-semibold tabular-nums', ok ? 'text-success-foreground' : 'text-warning-foreground')}>
-                  {t('week.progress.value', { protein: Math.round(p.proteinG), target: Math.round(p.targetG) })}
-                  {ok ? <CheckIcon aria-hidden className="size-3.5" /> : null}
-                  <span className="sr-only">{ok ? t('week.progress.onTarget') : t('week.progress.under', { gap })}</span>
-                </span>
-              </li>
-            )
-          })}
-        </ul>
+        <div className="mt-2 space-y-1">
+          <ul aria-label={t('week.progress.label')} className="flex flex-wrap gap-1.5">
+            {protein.map((p) => {
+              const gap = Math.round(p.targetG - p.proteinG)
+              const ok = gap < BOOST_THRESHOLD_G
+              const value = t('week.progress.value', { protein: Math.round(p.proteinG), target: Math.round(p.targetG) })
+              return (
+                <li
+                  key={p.personId}
+                  className={cn(
+                    'inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold tabular-nums',
+                    hasEmptyMeals ? 'bg-muted text-muted-foreground' : ok ? 'bg-success text-success-foreground' : 'bg-warning text-warning-foreground',
+                  )}
+                >
+                  {personName(p.personId)} {value}
+                  {hasEmptyMeals ? null : ok ? (
+                    <>
+                      <CheckIcon aria-hidden className="size-3.5" />
+                      <span className="sr-only">{t('week.progress.onTarget')}</span>
+                    </>
+                  ) : (
+                    <> · {t('week.progress.under', { gap })}</>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+          {hasEmptyMeals ? <p className="text-xs text-muted-foreground">{t('week.progress.emptyMeals')}</p> : null}
+        </div>
       ) : null}
 
       <ul className="mt-2 divide-y">
@@ -96,6 +112,9 @@ function MealRow({
   onPickMeal,
   onSwapMeal,
   onRemoveExtra,
+  undoLabels,
+  followsText,
+  onUndoMeal,
 }: DayCardProps & { slot: MealSlot; title: string; personName: (id: Id) => string }) {
   const { t } = useTranslation()
   const language = useLanguage()
@@ -161,12 +180,15 @@ function MealRow({
   }
 
   const extras = meal.extras ?? []
+  const undoLabel = undoLabels[slot]
+  const follows = followsText[slot]
 
   return (
     <li className="grid grid-cols-[4.5rem_1fr_auto] items-start gap-x-2 py-1.5 sm:grid-cols-[6rem_1fr_auto]">
       <span className="pt-3 text-xs font-medium text-muted-foreground">{slotName}</span>
       <div className="min-w-0">
         <div className="flex">{content}</div>
+        {follows ? <p className="px-1 pb-1 text-xs text-muted-foreground">{follows}</p> : null}
         {notes.length > 0 || extras.length > 0 ? (
           <div className="flex flex-wrap gap-1 px-1 pb-1">
             {notes.map((note, i) => (
@@ -185,19 +207,27 @@ function MealRow({
           </div>
         ) : null}
       </div>
-      {hasDish ? (
-        <Button
-          variant="secondary"
-          size="icon"
-          className="rounded-xl text-primary-text"
-          aria-label={t('week.swap', { slot: slotName, day: title })}
-          onClick={() => onSwapMeal(slot)}
-        >
-          <RefreshCwIcon aria-hidden />
-        </Button>
-      ) : (
-        <span aria-hidden className="size-11" />
-      )}
+      <div className="flex gap-1">
+        {undoLabel ? (
+          <Button variant="outline" size="icon" className="rounded-xl border-2 border-primary" aria-label={undoLabel} title={undoLabel} onClick={() => onUndoMeal(slot)}>
+            <Undo2Icon aria-hidden />
+          </Button>
+        ) : null}
+        {hasDish ? (
+          <Button
+            variant="secondary"
+            size="icon"
+            className="rounded-xl text-primary-text"
+            aria-label={t('week.swap', { slot: slotName, day: title })}
+            title={t('week.swap', { slot: slotName, day: title })}
+            onClick={() => onSwapMeal(slot)}
+          >
+            <RefreshCwIcon aria-hidden />
+          </Button>
+        ) : undoLabel ? null : (
+          <span aria-hidden className="size-11" />
+        )}
+      </div>
     </li>
   )
 }

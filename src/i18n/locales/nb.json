@@ -242,8 +242,6 @@
     "nextWeek": "Neste uke",
     "weekLabel": "Uke {{week}} · {{range}}",
     "today": "I dag",
-    "undo": "Angre",
-    "undoLabel": "Angre siste endring",
     "makePlan": "Lag ukeplan",
     "fillEmpty": "Fyll ut tomme",
     "more": "Mer",
@@ -275,13 +273,14 @@
     "pickDish": "Velg rett",
     "pickDishFor": "Velg rett: {{slot}}, {{day}}",
     "meta": "{{minutes}} min · {{protein}} g",
-    "swap": "Bytt {{slot}}, {{day}}",
+    "swap": "Nytt forslag: {{slot}}, {{day}}",
     "openMeal": "{{slot}}: {{name}}",
     "progress": {
       "label": "Protein per voksen",
       "value": "{{protein}} / {{target}} g",
       "onTarget": "på målet",
-      "under": "{{gap}} g under målet"
+      "under": "{{gap}} g under",
+      "emptyMeals": "Dagen har tomme måltider"
     },
     "notes": {
       "dislike": "{{name}} liker ikke {{ingredients}}",
@@ -305,20 +304,16 @@
     "toast": {
       "swapped": "Byttet til {{name}}",
       "picked": "Valgt: {{name}}",
-      "under": "{{who}} under målet i dag.",
-      "who": "{{name}} {{gap}} g",
-      "addQuestion": "Legg til {{item}} som kveldssnacks?",
-      "addQuestionMany": "Legg til ekstra protein som kveldssnacks?",
-      "add": "Legg til {{item}}",
-      "addMany": "Legg til",
       "added": "Lagt til på kvelden",
-      "filled": "Ukeplanen er fylt ut",
-      "replaced": "Ny ukeplan er laget",
       "tooFewFavorites_one": "For få favoritter: {{count}} måltid fikk en annen rett.",
       "tooFewFavorites_other": "For få favoritter: {{count}} måltider fikk andre retter.",
       "noAlternative": "Fant ingen annen rett som passer.",
       "undone": "Angret",
-      "eatingOut": "Merket som «spiser ute»"
+      "eatingOut": "Merket som «spiser ute»",
+      "notEatingOut": "Spiser hjemme likevel",
+      "guests_one": "{{count}} gjest",
+      "guests_other": "{{count}} gjester",
+      "extraRemoved": "Ekstra fjernet"
     },
     "meal": {
       "pickAnother": "Velg annen rett",
@@ -350,6 +345,28 @@
       "label": "Bare i utviklingsmodus:",
       "exampleFamily": "Fyll inn eksempelfamilie",
       "done": "Eksempelfamilien er lagt inn"
+    },
+    "undoAction": "Angre «{{action}}»",
+    "undoActions": {
+      "make": "Lag ukeplan",
+      "fill": "Fyll ut",
+      "favorites": "Favorittuke",
+      "replace": "Ny ukeplan"
+    },
+    "undoSwap": "Angre bytte: {{slot}}, {{day}} – tilbake til {{name}}",
+    "undoChange": "Angre endring: {{slot}}, {{day}}",
+    "followsDinner": "Følger middagen fra {{day}}",
+    "summary": {
+      "title": "{{day}} er planlagt.",
+      "onTarget": "{{name}}: {{protein}} / {{target}} g ✓",
+      "under": "{{name}}: {{protein}} / {{target}} g (mangler {{gap}} g)",
+      "boostFor": "{{name}}: {{items}} (+{{protein}} g)",
+      "boostPartial": "{{name}}: {{items}} dekker {{protein}} av {{gap}} g",
+      "add": "Legg til {{items}} til {{name}} (+{{protein}} g)",
+      "addMany": "Legg til proteinboost ({{names}})",
+      "suggestion": "Forslag: {{list}}",
+      "weekTitle": "Uke {{week}} er planlagt.",
+      "weekDays": "{{ok}} av {{total}} dager når målet for alle."
     }
   }
 }

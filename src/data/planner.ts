@@ -26,7 +26,7 @@ import {
   plannedTargetG,
   proteinBoost,
   totalPortions,
-  type BoostSuggestion,
+  type BoostPlan,
 } from './protein'
 import type {
   DayPlan,
@@ -630,6 +630,19 @@ export function emptyWeekPlan(weekId: WeekId, household: HouseholdSettings, now 
   }
 }
 
+/** Meals still to be chosen: empty, except dinner on a fixed day out (#107, #133). */
+export function emptyMeals(household: HouseholdSettings, day: DayPlan): MealSlot[] {
+  const fixedDayOut = household.noDinnerAtHomeDays.includes(weekdayOf(day.date))
+  return (Object.keys(day.meals) as MealSlot[]).filter(
+    (slot) => day.meals[slot].status === 'none' && !(slot === 'dinner' && fixedDayOut),
+  )
+}
+
+/** Whether anything is planned on a day (a dish, leftovers or eating out). */
+export function dayStarted(day: DayPlan): boolean {
+  return Object.values(day.meals).some((m) => m.status !== 'none')
+}
+
 // ---------------------------------------------------------------------------
 // Protein per day, impact of a pick, boost suggestions
 // ---------------------------------------------------------------------------
@@ -680,9 +693,9 @@ export function pickImpacts(
 }
 
 /** Boost suggestions for the adults still under target on a day (#103, #115). */
-export function boostSuggestions(ctx: PlannerContext, day: DayPlan): { personId: Id; gapG: number; boost: BoostSuggestion }[] {
+export function boostSuggestions(ctx: PlannerContext, day: DayPlan): { personId: Id; gapG: number; boost: BoostPlan }[] {
   const planner = new Planner(ctx)
-  const out: { personId: Id; gapG: number; boost: BoostSuggestion }[] = []
+  const out: { personId: Id; gapG: number; boost: BoostPlan }[] = []
   for (const p of dayProteinWith(planner, day)) {
     const gapG = p.targetG - p.proteinG
     const boost = proteinBoost(gapG, ctx.ingredients, (i) => isIngredientExcluded(i, ctx.household))

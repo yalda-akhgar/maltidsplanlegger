@@ -11,6 +11,7 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 5 | Planner prefers fruit and vegetables | Planner actively prefers dishes with more fruit and vegetables. | Later | Kept the first planner simple; fruit/veg is shown in "Today's nutrition" (#99). | 2026-11-16 |
 | 6 | Longer weekend dinners | Longer weekend dinners (over 30 min). | Later | All dinners are ≤ 30 min in phase 1 (#97). | 2026-11-16 |
 | 7 | Food diary | Manual protein logging (add protein eaten outside the app, e.g. dinner out) together with logging what was actually eaten (eaten / "ate something else" / skipped). Logged protein is shown next to planned protein. Meal tracking is planned for phase 2 (#106); manual logging should be designed together with it. | Later | Phase 2; the data model is ready (#106). | 2026-11-16 |
+| 8 | Redo (↷) | Redo (↷) like in Word – add if testers miss it. Option: undo/redo pair in the top bar for all plan changes. | Maybe | Undo per meal (↶) is enough to start with (#146). | 2026-11-17 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.

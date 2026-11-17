@@ -164,16 +164,23 @@ export interface BoostSuggestion {
   proteinG: number
 }
 
+/** A protein boost: one or two different items and the protein they add together. */
+export interface BoostPlan {
+  items: BoostSuggestion[]
+  proteinG: number
+}
+
 /**
- * Suggests one boost item when the gap is at least 5 g: the smallest item that
- * covers the gap, or the largest one if none does. Excluded or deleted
- * ingredients are skipped.
+ * Suggests a boost when the gap is at least 5 g: the combination of up to two
+ * different items that covers the gap with the least extra, or the largest
+ * combination if none covers it (#103, #153). Excluded or deleted ingredients
+ * are skipped.
  */
 export function proteinBoost(
   gapG: number,
   ingredients: ReadonlyMap<Id, Ingredient>,
   isExcluded: (ingredient: Ingredient) => boolean,
-): BoostSuggestion | undefined {
+): BoostPlan | undefined {
   if (gapG < BOOST_THRESHOLD_G) return undefined
   const options: BoostSuggestion[] = []
   for (const item of BOOST_ITEMS) {
@@ -182,7 +189,10 @@ export function proteinBoost(
     if (!ingredient?.nutritionPer100g || grams === undefined || isExcluded(ingredient)) continue
     options.push({ ...item, proteinG: (ingredient.nutritionPer100g.proteinG * grams) / 100 })
   }
-  if (options.length === 0) return undefined
-  options.sort((a, b) => a.proteinG - b.proteinG)
-  return options.find((o) => o.proteinG >= gapG) ?? options[options.length - 1]
+  const plans: BoostPlan[] = options.map((o) => ({ items: [o], proteinG: o.proteinG }))
+  options.forEach((a, i) => options.slice(i + 1).forEach((b) => plans.push({ items: [a, b], proteinG: a.proteinG + b.proteinG })))
+  if (plans.length === 0) return undefined
+  // Least protein first; with equal protein, fewer items first.
+  plans.sort((a, b) => a.proteinG - b.proteinG || a.items.length - b.items.length)
+  return plans.find((p) => p.proteinG >= gapG) ?? plans[plans.length - 1]
 }

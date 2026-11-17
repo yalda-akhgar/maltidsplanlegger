@@ -211,8 +211,6 @@
     "nextWeek": "Nächste Woche",
     "weekLabel": "KW {{week}} · {{range}}",
     "today": "Heute",
-    "undo": "Rückgängig",
-    "undoLabel": "Letzte Änderung rückgängig machen",
     "makePlan": "Wochenplan erstellen",
     "fillEmpty": "Lücken füllen",
     "more": "Mehr",
@@ -244,13 +242,14 @@
     "pickDish": "Gericht wählen",
     "pickDishFor": "Gericht wählen: {{slot}}, {{day}}",
     "meta": "{{minutes}} Min. · {{protein}} g",
-    "swap": "{{slot}} tauschen, {{day}}",
+    "swap": "Neuer Vorschlag: {{slot}}, {{day}}",
     "openMeal": "{{slot}}: {{name}}",
     "progress": {
       "label": "Protein pro Erwachsenem",
       "value": "{{protein}} / {{target}} g",
       "onTarget": "Ziel erreicht",
-      "under": "{{gap}} g unter dem Ziel"
+      "under": "{{gap}} g darunter",
+      "emptyMeals": "Der Tag hat leere Mahlzeiten"
     },
     "notes": {
       "dislike": "{{name}} mag kein(e) {{ingredients}}",
@@ -274,20 +273,16 @@
     "toast": {
       "swapped": "Getauscht gegen {{name}}",
       "picked": "Gewählt: {{name}}",
-      "under": "{{who}} unter dem Ziel heute.",
-      "who": "{{name}} {{gap}} g",
-      "addQuestion": "{{item}} als Abendsnack hinzufügen?",
-      "addQuestionMany": "Extra Protein als Abendsnack hinzufügen?",
-      "add": "{{item}} hinzufügen",
-      "addMany": "Hinzufügen",
       "added": "Zum Abend hinzugefügt",
-      "filled": "Wochenplan ausgefüllt",
-      "replaced": "Neuer Wochenplan erstellt",
       "tooFewFavorites_one": "Zu wenige Favoriten: {{count}} Mahlzeit hat ein anderes Gericht bekommen.",
       "tooFewFavorites_other": "Zu wenige Favoriten: {{count}} Mahlzeiten haben andere Gerichte bekommen.",
       "noAlternative": "Kein anderes passendes Gericht gefunden.",
       "undone": "Rückgängig gemacht",
-      "eatingOut": "Als „auswärts essen“ markiert"
+      "eatingOut": "Als „auswärts essen“ markiert",
+      "notEatingOut": "Doch zu Hause essen",
+      "guests_one": "{{count}} Gast",
+      "guests_other": "{{count}} Gäste",
+      "extraRemoved": "Extra entfernt"
     },
     "meal": {
       "pickAnother": "Anderes Gericht wählen",
@@ -319,6 +314,28 @@
       "label": "Nur im Entwicklungsmodus:",
       "exampleFamily": "Beispielfamilie einfügen",
       "done": "Beispielfamilie eingefügt"
+    },
+    "undoAction": "„{{action}}“ rückgängig",
+    "undoActions": {
+      "make": "Wochenplan erstellen",
+      "fill": "Auffüllen",
+      "favorites": "Favoritenwoche",
+      "replace": "Neuer Wochenplan"
+    },
+    "undoSwap": "Tausch rückgängig: {{slot}}, {{day}} – zurück zu {{name}}",
+    "undoChange": "Änderung rückgängig: {{slot}}, {{day}}",
+    "followsDinner": "Folgt dem Abendessen vom {{day}}",
+    "summary": {
+      "title": "{{day}} ist geplant.",
+      "onTarget": "{{name}}: {{protein}} / {{target}} g ✓",
+      "under": "{{name}}: {{protein}} / {{target}} g (es fehlen {{gap}} g)",
+      "boostFor": "{{name}}: {{items}} (+{{protein}} g)",
+      "boostPartial": "{{name}}: {{items}} decken {{protein}} von {{gap}} g",
+      "add": "{{items}} für {{name}} hinzufügen (+{{protein}} g)",
+      "addMany": "Protein-Boost hinzufügen ({{names}})",
+      "suggestion": "Vorschlag: {{list}}",
+      "weekTitle": "Woche {{week}} ist geplant.",
+      "weekDays": "An {{ok}} von {{total}} Tagen erreichen alle ihr Ziel."
     }
   }
 }

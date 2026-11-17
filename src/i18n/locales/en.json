@@ -211,8 +211,6 @@
     "nextWeek": "Next week",
     "weekLabel": "Week {{week}} · {{range}}",
     "today": "Today",
-    "undo": "Undo",
-    "undoLabel": "Undo last change",
     "makePlan": "Make week plan",
     "fillEmpty": "Fill in empty",
     "more": "More",
@@ -244,13 +242,14 @@
     "pickDish": "Pick a dish",
     "pickDishFor": "Pick a dish: {{slot}}, {{day}}",
     "meta": "{{minutes}} min · {{protein}} g",
-    "swap": "Swap {{slot}}, {{day}}",
+    "swap": "New suggestion: {{slot}}, {{day}}",
     "openMeal": "{{slot}}: {{name}}",
     "progress": {
       "label": "Protein per adult",
       "value": "{{protein}} / {{target}} g",
       "onTarget": "on target",
-      "under": "{{gap}} g under target"
+      "under": "{{gap}} g under",
+      "emptyMeals": "The day has empty meals"
     },
     "notes": {
       "dislike": "{{name}} doesn’t like {{ingredients}}",
@@ -274,20 +273,16 @@
     "toast": {
       "swapped": "Swapped to {{name}}",
       "picked": "Picked: {{name}}",
-      "under": "{{who}} under today’s target.",
-      "who": "{{name}} {{gap}} g",
-      "addQuestion": "Add {{item}} as evening snack?",
-      "addQuestionMany": "Add extra protein as evening snack?",
-      "add": "Add {{item}}",
-      "addMany": "Add",
       "added": "Added to the evening",
-      "filled": "Week plan filled in",
-      "replaced": "New week plan made",
       "tooFewFavorites_one": "Too few favourites: {{count}} meal got another dish.",
       "tooFewFavorites_other": "Too few favourites: {{count}} meals got other dishes.",
       "noAlternative": "No other suitable dish found.",
       "undone": "Undone",
-      "eatingOut": "Marked as “eating out”"
+      "eatingOut": "Marked as “eating out”",
+      "notEatingOut": "Eating at home after all",
+      "guests_one": "{{count}} guest",
+      "guests_other": "{{count}} guests",
+      "extraRemoved": "Extra removed"
     },
     "meal": {
       "pickAnother": "Pick another dish",
@@ -319,6 +314,28 @@
       "label": "Development mode only:",
       "exampleFamily": "Fill in example family",
       "done": "Example family added"
+    },
+    "undoAction": "Undo “{{action}}”",
+    "undoActions": {
+      "make": "Make week plan",
+      "fill": "Fill",
+      "favorites": "Favourites week",
+      "replace": "New week plan"
+    },
+    "undoSwap": "Undo swap: {{slot}}, {{day}} – back to {{name}}",
+    "undoChange": "Undo change: {{slot}}, {{day}}",
+    "followsDinner": "Follows the dinner on {{day}}",
+    "summary": {
+      "title": "{{day}} is planned.",
+      "onTarget": "{{name}}: {{protein}} / {{target}} g ✓",
+      "under": "{{name}}: {{protein}} / {{target}} g ({{gap}} g missing)",
+      "boostFor": "{{name}}: {{items}} (+{{protein}} g)",
+      "boostPartial": "{{name}}: {{items}} cover {{protein}} of {{gap}} g",
+      "add": "Add {{items}} for {{name}} (+{{protein}} g)",
+      "addMany": "Add protein boost ({{names}})",
+      "suggestion": "Suggestion: {{list}}",
+      "weekTitle": "Week {{week}} is planned.",
+      "weekDays": "Everyone reaches their target on {{ok}} of {{total}} days."
     }
   }
 }

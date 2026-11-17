@@ -5,7 +5,9 @@ import {
   addExtras,
   boostSuggestions,
   dayProtein,
+  dayStarted,
   dinnerPortionsToCook,
+  emptyMeals,
   emptyWeekPlan,
   filledNonFavorites,
   followSundayDinner,
@@ -23,8 +25,9 @@ import {
 } from './planner'
 import { eatsMeal, personalPortion, personDayNutrition, plannedTargetG, proteinBoost } from './protein'
 import { SEED_INGREDIENTS } from './seed/ingredients'
+import { diffMeals, isCurrent, mealKey, revertChanges } from './undo'
 import { SEED_RECIPES } from './seed/recipes'
-import type { HouseholdSettings, Person, Recipe, WeekPlan } from './types'
+import type { HouseholdSettings, Ingredient, Person, Recipe, WeekPlan } from './types'
 
 const WEEK = '2026-W47' // Monday 2026-11-16 … Sunday 2026-11-22
 const MONDAY = '2026-11-16'
@@ -313,14 +316,20 @@ describe('portions and protein', () => {
     expect(plannedTargetG(empty, 'a1', c.household.proteinSplit, false)).toBe(120)
   })
 
-  it('suggests one protein boost item from 5 g missing', () => {
+  it('suggests up to two different boost items, covering the gap with the least extra (#103, #153)', () => {
     const none = () => false
+    const keys = (gap: number, excluded: (i: Ingredient) => boolean = none) => proteinBoost(gap, ingredients, excluded)?.items.map((i) => i.key)
     expect(proteinBoost(4, ingredients, none)).toBeUndefined()
-    expect(proteinBoost(6, ingredients, none)?.key).toBe('milk') // 7.0 g: least extra
-    expect(proteinBoost(7.2, ingredients, none)?.key).toBe('egg') // 7.5 g
-    expect(proteinBoost(10, ingredients, none)?.key).toBe('cottageCheese') // 13 g
-    expect(proteinBoost(40, ingredients, none)?.key).toBe('skyr') // largest
-    expect(proteinBoost(10, ingredients, (i) => i.tags.includes('dairy'))?.key).toBe('egg')
+    expect(keys(6)).toEqual(['milk']) // 7.0 g: least extra
+    expect(keys(7.2)).toEqual(['egg']) // 7.5 g
+    expect(keys(10)).toEqual(['cottageCheese']) // 13 g
+    expect(keys(14)).toEqual(['egg', 'milk']) // 14.5 g: a pair beats one large item
+    // 48 g cannot be covered: the largest pair, and the total says how much it covers.
+    const big = proteinBoost(48, ingredients, none)!
+    expect(big.items.map((i) => i.key)).toEqual(['cottageCheese', 'skyr'])
+    expect(big.proteinG).toBeLessThan(48)
+    expect(big.proteinG).toBeCloseTo(big.items[0].proteinG + big.items[1].proteinG, 5)
+    expect(keys(10, (i) => i.tags.includes('dairy'))).toEqual(['egg'])
   })
 })
 
@@ -481,10 +490,10 @@ describe('planning by hand, filling and favourites (milestone F)', () => {
     expect(suggestions.map((x) => x.personId)).toEqual(['a1', 'a2'])
     const before = dayProtein(c, plan.days[0])[0].proteinG
     const s = suggestions[0]
-    plan = addExtras(plan, MONDAY, [{ personId: s.personId, ingredientId: s.boost.ingredientId, amount: s.boost.amount, unit: s.boost.unit }])
+    plan = addExtras(plan, MONDAY, s.boost.items.map((b) => ({ personId: s.personId, ingredientId: b.ingredientId, amount: b.amount, unit: b.unit })))
     const after = dayProtein(c, plan.days[0])
     expect(after[0].proteinG).toBeCloseTo(before + s.boost.proteinG, 5)
-    expect(plan.days[0].meals.snack.extras).toHaveLength(1)
+    expect(plan.days[0].meals.snack.extras).toHaveLength(s.boost.items.length)
   })
 })
 
@@ -527,5 +536,43 @@ describe("next week's Monday lunch follows Sunday's dinner (#143)", () => {
     const own = setMeal(c, { plan: next, date: '2026-11-23', slot: 'lunch', recipeId: quick }).plan
     const redone = generate(ctx(77), { existing: plan })
     expect(followSundayDinner(c, redone, own)).toBe(own)
+  })
+})
+
+describe('undo per meal and per week action (#146–#152)', () => {
+  const TUESDAY = '2026-11-17'
+
+  it('undoing a dinner swap also restores the leftovers lunch that followed it', () => {
+    const c = ctx(3)
+    const plan = generate(c)
+    const swapped = swapMeal(c, { plan, date: MONDAY, slot: 'dinner' }).plan
+    const changes = diffMeals([plan], [swapped])
+    expect(changes.map((x) => mealKey(x.date, x.slot)).sort()).toEqual([mealKey(MONDAY, 'dinner'), mealKey(TUESDAY, 'lunch')])
+    const [restored] = revertChanges([swapped], changes)
+    expect(restored.days[0].meals.dinner).toEqual(plan.days[0].meals.dinner)
+    expect(restored.days[1].meals.lunch).toEqual(plan.days[1].meals.lunch)
+  })
+
+  it('never undoes a meal that was changed again afterwards', () => {
+    const c = ctx(4)
+    const plan = generate(c)
+    const swapped = swapMeal(c, { plan, date: MONDAY, slot: 'dinner' }).plan
+    const changes = diffMeals([plan], [swapped])
+    const lunchPicked = setMeal(c, { plan: swapped, date: TUESDAY, slot: 'lunch', recipeId: plan.days[3].meals.dinner.recipeId! }).plan
+    expect(isCurrent(changes.find((x) => x.slot === 'lunch')!, [lunchPicked])).toBe(false)
+    const [restored] = revertChanges([lunchPicked], changes)
+    expect(restored.days[0].meals.dinner).toEqual(plan.days[0].meals.dinner)
+    expect(restored.days[1].meals.lunch).toEqual(lunchPicked.days[1].meals.lunch)
+  })
+
+  it('finds the meals still to be chosen, but not dinner on a fixed day out', () => {
+    const c = ctx(5)
+    const empty = emptyWeekPlan(WEEK, c.household)
+    expect(emptyMeals(c.household, empty.days[0])).toEqual(['breakfast', 'lunch', 'dinner', 'snack'])
+    expect(emptyMeals(c.household, empty.days[4])).toEqual(['breakfast', 'lunch', 'snack'])
+    expect(dayStarted(empty.days[0])).toBe(false)
+    const plan = generate(c)
+    expect(emptyMeals(c.household, plan.days[4])).toEqual([])
+    expect(dayStarted(plan.days[4])).toBe(true)
   })
 })

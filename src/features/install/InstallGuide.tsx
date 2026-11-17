@@ -1,6 +1,6 @@
 import { CheckCircle2Icon, DownloadIcon } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { Button } from '@/components/ui/button'
 import { promptInstall, useInstallMode } from './install-prompt'
 

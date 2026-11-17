@@ -1021,7 +1021,7 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Decision:** Re-prioritized: shopping list moved ahead of phase 2 after acceptance testing showed it is core value. After phase 1 comes phase 3 (Home + shopping list), then phase 2. Phase numbers are kept so existing references stay valid.
 - **Alternatives:** Keep the original order (phase 2 first); renumber the phases.
 - **Rationale:** The acceptance test of milestone F showed that the shopping list is core value.
-- **Consequences:** `docs/PROMPT.md` and `CLAUDE.md` state the new order.
+- **Consequences:** `docs/PROMPT.md` and `CLAUDE.md` state the new order. Keeping the phase numbers was confirmed by the product owner.
 
 ## 145. Ask about used items when making the shopping list
 - **Date:** 2026-11-17
@@ -1029,3 +1029,73 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Track quantities in the pantry; don't ask.
 - **Rationale:** Keeps the pantry roughly correct without the effort of entering amounts.
 - **Consequences:** Added to phase 3 in `docs/PROMPT.md`.
+
+## 146. Undo per meal instead of undo messages
+- **Date:** 2026-11-17
+- **Decision:** No more undo toasts. A meal that was changed gets an ↶ undo button next to ↻ (new suggestion). It stays (does not disappear by itself) and goes back one step per tap. Every change to a meal counts: new suggestion, "Pick another dish", "Eating out", guests, and an added or removed protein boost. The ↶ button at the top is only for whole-week actions ("Make week plan", "Fill empty", favourites week, "New week plan") and names the action, e.g. "Undo «Fill»". Screen readers hear each change through a hidden live region.
+- **Alternatives:** Only dish swaps get ↶ (guests and "eating out" are undone in the sheet); keep the undo toasts (#122, #130).
+- **Rationale:** Acceptance test of milestone F: toasts disappear and pile up; undo belongs where the change is.
+- **Consequences:** Replaces #122, #129 and the undo part of #130. Redo (↷) is in the backlog (#8).
+
+## 147. Names of the meal buttons for screen readers
+- **Date:** 2026-11-17
+- **Decision:** ↻ is called "New suggestion: Dinner, Tuesday 17 Nov". ↶ after a swap is "Undo swap: Dinner, Tuesday 17 Nov – back to Fajitas"; after other changes "Undo change: Dinner, Tuesday 17 Nov". The two buttons have different icons.
+- **Alternatives:** Always just "Undo swap".
+- **Rationale:** Says exactly what will happen (WCAG 2.4.6).
+- **Consequences:** Also shown as a tooltip on PC.
+
+## 148. Never more than one message at a time
+- **Date:** 2026-11-17
+- **Decision:** A new toast replaces the old one, everywhere in the app. Outdated messages are removed: any change to the plan, and switching weeks, removes the current message.
+- **Alternatives:** Stack messages (sonner's default).
+- **Rationale:** Acceptance test: several messages at once were confusing.
+- **Consequences:** All toasts go through `src/lib/toast.ts`.
+
+## 149. Undo history lasts while the app is open
+- **Date:** 2026-11-17
+- **Decision:** The ↶ buttons survive switching tabs or weeks. Closing or reloading the app clears them.
+- **Alternatives:** Save the history with the week plan; only while on the week-plan screen.
+- **Rationale:** Simple, and no old undo buttons pile up over days.
+- **Consequences:** History is kept in memory (`undo-store.ts`), not in storage.
+
+## 150. Undoing a dinner also undoes the leftovers lunch
+- **Date:** 2026-11-17
+- **Decision:** When a dinner changes, the next day's leftovers lunch follows (#143). ↶ on the dinner also restores that lunch. The lunch shows "Follows the dinner on Tuesday" while the dinner can be undone, but has no ↶ of its own for that change.
+- **Alternatives:** The lunch gets its own ↶ as well.
+- **Rationale:** Lunch = leftovers is one rule; one button keeps it consistent.
+- **Consequences:** If the lunch was changed by hand afterwards, undoing the dinner leaves the lunch alone.
+
+## 151. Whole-week actions remove a meal's undo
+- **Date:** 2026-11-17
+- **Decision:** If a whole-week action changes a meal that has ↶, that ↶ disappears; the whole action is undone with the top button. The other way round, the top ↶ never undoes meals changed by hand after the week action.
+- **Alternatives:** The meal's ↶ stays and goes back to before the week action.
+- **Rationale:** Each button only undoes its own change, so nothing is lost by surprise.
+- **Consequences:** Undo restores a meal only if it still looks as it did right after the change (`src/data/undo.ts`, with tests).
+
+## 152. Summary when a day is fully planned
+- **Date:** 2026-11-17
+- **Decision:** No protein message while a day has empty meals. When the last empty meal of a day is chosen, and again after every later change to a meal on that day, one message sums up the day: "Tuesday 17 Nov is planned. Anna: 112 / 120 g (8 g missing) · Ola: 140 / 140 g ✓ [Add …]". After a whole-week action, one short week summary without a button: "Week 47 is planned. Everyone reaches their target on 5 of 7 days." Hidden when "Show protein alerts" is off.
+- **Alternatives:** Only when the day becomes complete; no week summary.
+- **Rationale:** Acceptance test: alerts about half-planned days were misleading.
+- **Consequences:** Replaces the protein part of #115 and #130.
+
+## 153. Honest protein boost with up to two items
+- **Date:** 2026-11-17
+- **Decision:** The boost combines up to two different items (egg, milk, cottage cheese, skyr) and picks the combination that covers the gap with the least extra. If even the largest combination is not enough, the message says how much it covers ("Anna: skyr + cottage cheese cover 31 of 48 g").
+- **Alternatives:** One item with an honest text ("Skyr covers 18 of 48 g").
+- **Rationale:** Acceptance test: "Add skyr" for a 48 g gap was misleading.
+- **Consequences:** Replaces the single-item rule in #103. `proteinBoost` returns a list of items.
+
+## 154. One boost button for everyone who is short
+- **Date:** 2026-11-17
+- **Decision:** If several adults are below target, the message has one button, "Add protein boost (Anna + Ola)", and the text above says what each gets.
+- **Alternatives:** One button per person.
+- **Rationale:** Keeps the message small; the boost can be removed per person with ✕.
+- **Consequences:** With only one person short, the button names the items: "Add milk for Anna (+7 g)".
+
+## 155. Day status on the day card
+- **Date:** 2026-11-17
+- **Decision:** The day card always shows each adult's status as a label: green "Anna 121 / 120 g ✓" when the target is reached (less than 5 g missing, also when over), yellow "Anna 112 / 120 g · 8 g under" when not. While the day has empty meals, the numbers are grey and "The day has empty meals" is shown below. Days with nothing planned show no status.
+- **Alternatives:** Only the grey text without numbers; keep the progress bars (#118).
+- **Rationale:** The status is always visible, so the message is not needed to see it. Text + colour (WCAG 1.4.1).
+- **Consequences:** Replaces the progress bars of #118.

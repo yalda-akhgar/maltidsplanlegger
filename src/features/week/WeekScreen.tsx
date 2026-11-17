@@ -2,7 +2,7 @@ import { ChevronLeftIcon, ChevronRightIcon, EllipsisIcon, SparklesIcon, Undo2Ico
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { toast } from 'sonner'
+import { toast } from '@/lib/toast'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
@@ -12,6 +12,8 @@ import {
   addExtras,
   boostSuggestions,
   dayProtein,
+  dayStarted,
+  emptyMeals,
   dinnerPortionsToCook,
   followSundayDinner,
   refreshPortions,
@@ -27,9 +29,10 @@ import {
   weekdayOf,
   type PlannerContext,
 } from '@/data/planner'
-import { totalPortions } from '@/data/protein'
+import { BOOST_THRESHOLD_G, totalPortions } from '@/data/protein'
 import { repository } from '@/data/repository'
-import { MEAL_SLOTS, type Id, type IsoDate, type MealSlot, type WeekId, type WeekPlan } from '@/data/types'
+import { MEAL_SLOTS, type DayPlan, type Id, type IsoDate, type MealSlot, type WeekId, type WeekPlan } from '@/data/types'
+import { diffMeals, isCurrent, revertChanges, type MealChange } from '@/data/undo'
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
 import { InstallCard } from '@/features/install/InstallCard'
 import { useRecipeData } from '@/features/recipes/useRecipeData'
@@ -39,12 +42,15 @@ import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'
 import { MoreSheet } from './MoreSheet'
 import { PickSheet, type PickTarget } from './PickSheet'
-import { formatDay, formatWeek, weekNumber } from './week-format'
+import { mealUndo, popMealStep, popWeekStep, pushMealStep, pushWeekStep, weekUndo, type MealUndoKind, type WeekAction } from './undo-store'
+import { formatDay, formatWeek, weekdayName, weekNumber } from './week-format'
 
 /** The plans the screen works on: this week, plus its neighbours for leftovers (#13). */
 type Plans = { weekId: WeekId; plan: WeekPlan; previous?: WeekPlan; next?: WeekPlan }
-/** One step of undo history (#122, #129). */
-type Snapshot = { plan: WeekPlan; next?: WeekPlan }
+/** A new version of the shown week and the next one (for Monday's leftovers). */
+type Change = { plan: WeekPlan; next?: WeekPlan }
+/** Which undo button a change belongs to: one meal's ↶ or the top button for a whole-week action (#146). */
+type UndoTarget = { meal: { date: IsoDate; slot: MealSlot } } | { week: WeekAction }
 
 /** Sheets close with an animation and their own history entry; wait before opening the next one. */
 const SHEET_SWITCH_MS = 350
@@ -57,7 +63,8 @@ export function WeekScreen() {
   const [today] = useState(() => toIsoDate(new Date()))
   const [weekId, setWeekId] = useState(() => weekIdOf(new Date()))
   const [plans, setPlans] = useState<Plans | null>(null)
-  const [history, setHistory] = useState<Snapshot[]>([])
+  /** Screen-reader announcement of the last change; replaces the old undo toasts (#146). */
+  const [announcement, setAnnouncement] = useState('')
   const [mealTarget, setMealTarget] = useState<MealTarget | null>(null)
   const [pickTarget, setPickTarget] = useState<PickTarget | null>(null)
   const [moreOpen, setMoreOpen] = useState(false)
@@ -65,12 +72,10 @@ export function WeekScreen() {
   const [confirmReplace, setConfirmReplace] = useState<{ favoritesOnly: boolean } | null>(null)
   const [alertsOn] = useState(() => repository.getProteinAlertsSync())
 
-  // Refs mirror the latest state for toast buttons, which run after later changes.
+  // The ref mirrors the latest state for toast buttons, which run after later changes.
   const plansRef = useRef(plans)
-  const historyRef = useRef(history)
   useEffect(() => {
     plansRef.current = plans
-    historyRef.current = history
   })
 
   const ctx = useMemo<PlannerContext | null>(
@@ -78,7 +83,7 @@ export function WeekScreen() {
     [data],
   )
 
-  // Load the week and its neighbours. The undo history belongs to one week (#129).
+  // Load the week and its neighbours. The undo history lives in undo-store while the app is open (#149).
   useEffect(() => {
     if (!data) return
     let active = true
@@ -89,7 +94,6 @@ export function WeekScreen() {
     ]).then(([previous, plan, next]) => {
       if (!active) return
       setPlans({ weekId, plan: plan ?? emptyWeekPlan(weekId, data.household), previous, next })
-      setHistory([])
     })
     return () => {
       active = false
@@ -133,55 +137,124 @@ export function WeekScreen() {
 
   // --- Changing the plan --------------------------------------------------
 
-  /** Saves a change and remembers the previous state for undo. */
-  function commit(change: Snapshot) {
-    const current = plansRef.current
-    if (!current) return
-    setHistory((h) => [...h, { plan: current.plan, next: current.next }])
-    setPlans({ ...current, plan: change.plan, next: change.next })
-    void repository.saveWeekPlan(change.plan)
+  const personName = (id: Id) => household.people.find((p) => p.id === id)?.name ?? ''
+
+  /** Saves new plan versions and shows them. Only weeks that actually changed are written. */
+  function show(current: Plans, change: Change) {
+    const updated = { ...current, plan: change.plan, next: change.next }
+    plansRef.current = updated
+    setPlans(updated)
+    if (change.plan !== current.plan) void repository.saveWeekPlan(change.plan)
     if (change.next && change.next !== current.next) void repository.saveWeekPlan(change.next)
   }
 
-  /** Steps back one change (#122, #129). */
-  function undo() {
+  /** Saves a change and records it for the matching undo button (#146). Returns the meals that changed. */
+  function apply(change: Change, undoTarget: UndoTarget): MealChange[] {
     const current = plansRef.current
-    const steps = historyRef.current
-    if (!current || steps.length === 0) return
-    const last = steps[steps.length - 1]
-    setHistory(steps.slice(0, -1))
-    setPlans({ ...current, plan: last.plan, next: last.next })
-    void repository.saveWeekPlan(last.plan)
-    if (last.next && last.next !== current.next) void repository.saveWeekPlan(last.next)
-    toast(t('week.toast.undone'))
+    if (!current) return []
+    const before = [current.plan, current.next]
+    const changes = diffMeals(before, [change.plan, change.next])
+    if (changes.length === 0) return []
+    if ('meal' in undoTarget) {
+      const { date, slot } = undoTarget.meal
+      const own = changes.find((c) => c.date === date && c.slot === slot)
+      const hadDish = own?.before.recipeId && (own.before.status === 'planned' || own.before.status === 'leftovers')
+      const kind: MealUndoKind = hadDish && own.after.recipeId && own.after.recipeId !== own.before.recipeId ? 'swap' : 'change'
+      pushMealStep(date, slot, { kind, previousRecipeId: kind === 'swap' ? own?.before.recipeId : undefined, changes }, before)
+    } else {
+      pushWeekStep(current.weekId, { action: undoTarget.week, changes })
+    }
+    show(current, change)
+    return changes
   }
 
-  /** One message after a swap or pick: Undo, plus a boost if protein is missing (#115, #122, #130). */
-  function announce(title: string, date: IsoDate, changed: WeekPlan) {
+  /** ↶ on one meal: one step back (#146). The leftovers lunch that followed a dinner goes back too (#150). */
+  function undoMeal(date: IsoDate, slot: MealSlot) {
+    const current = plansRef.current
+    const step = current && mealUndo(date, slot, [current.plan, current.next]) ? popMealStep(date, slot) : undefined
+    if (!current || !step) return
+    const [plan] = revertChanges([current.plan], step.changes)
+    const [next] = revertChanges([current.next], step.changes)
+    show(current, { plan, next })
+    afterMealChange(date, plan, t('week.toast.undone'))
+  }
+
+  /** The top ↶: undoes the last whole-week action, but not meals changed since (#146, #151). */
+  function undoWeek() {
+    const current = plansRef.current
+    const step = current && weekUndo(current.weekId, [current.plan, current.next]) ? popWeekStep(current.weekId) : undefined
+    if (!current || !step) return
+    const [plan] = revertChanges([current.plan], step.changes)
+    const [next] = revertChanges([current.next], step.changes)
+    show(current, { plan, next })
+    toast.dismiss()
+    setAnnouncement(t('week.toast.undone'))
+  }
+
+  /**
+   * After a change to a meal: outdated messages go away (#148), screen readers
+   * hear what happened, and a finished day gets its summary (#152).
+   */
+  function afterMealChange(date: IsoDate, changed: WeekPlan, message: string) {
+    toast.dismiss()
+    setAnnouncement(message)
     const day = changed.days.find((d) => d.date === date)
-    const suggestions = alertsOn && day && ctx ? boostSuggestions(ctx, day) : []
-    if (suggestions.length === 0) {
-      toast(title, { duration: 8000, action: { label: t('week.undo'), onClick: undo } })
-      return
+    if (day) summarizeDay(day)
+  }
+
+  /** "Tuesday is planned. Anna: 112 / 120 g (8 g missing) · Ola ✓ [Add boost]" (#152, #153, #154). */
+  function summarizeDay(day: DayPlan) {
+    if (!alertsOn || !ctx || emptyMeals(household, day).length > 0) return
+    const people = dayProtein(ctx, day)
+    if (people.length === 0) return
+    const status = people
+      .map((p) => {
+        const values = { name: personName(p.personId), protein: Math.round(p.proteinG), target: Math.round(p.targetG), gap: Math.round(p.targetG - p.proteinG) }
+        return values.gap < BOOST_THRESHOLD_G ? t('week.summary.onTarget', values) : t('week.summary.under', values)
+      })
+      .join(' · ')
+    type Suggestion = ReturnType<typeof boostSuggestions>[number]
+    const suggestions = boostSuggestions(ctx, day)
+    const items = (s: Suggestion) => s.boost.items.map((i) => t(`week.boostShort.${i.key}`)).join(' + ')
+    const covers = (s: Suggestion) => s.boost.proteinG >= s.gapG
+    const suggestionText = (s: Suggestion) => {
+      const values = { name: personName(s.personId), items: items(s), protein: Math.round(s.boost.proteinG), gap: Math.round(s.gapG) }
+      return covers(s) ? t('week.summary.boostFor', values) : t('week.summary.boostPartial', values)
     }
-    const name = (id: Id) => household.people.find((p) => p.id === id)?.name ?? ''
-    const who = suggestions.map((s) => t('week.toast.who', { name: name(s.personId), gap: Math.round(s.gapG) })).join(', ')
-    const keys = [...new Set(suggestions.map((s) => s.boost.key))]
-    const item = keys.length === 1 ? t(`week.boostShort.${keys[0]}`) : undefined
-    toast(title, {
-      duration: 12000,
-      description: `${t('week.toast.under', { who })} ${item ? t('week.toast.addQuestion', { item }) : t('week.toast.addQuestionMany')}`,
-      action: {
-        label: item ? t('week.toast.add', { item }) : t('week.toast.addMany'),
-        onClick: () => {
-          const current = plansRef.current
-          if (!current) return
-          const extras = suggestions.map((s) => ({ personId: s.personId, ingredientId: s.boost.ingredientId, amount: s.boost.amount, unit: s.boost.unit }))
-          commit({ plan: addExtras(current.plan, date, extras), next: current.next })
-          toast(t('week.toast.added'))
-        },
-      },
-      cancel: { label: t('week.undo'), onClick: undo },
+    let label = ''
+    let detail: string | undefined
+    if (suggestions.length === 1) {
+      const s = suggestions[0]
+      label = t('week.summary.add', { items: items(s), name: personName(s.personId), protein: Math.round(s.boost.proteinG) })
+      detail = covers(s) ? undefined : suggestionText(s)
+    } else if (suggestions.length > 1) {
+      label = t('week.summary.addMany', { names: suggestions.map((s) => personName(s.personId)).join(' + ') })
+      detail = t('week.summary.suggestion', { list: suggestions.map(suggestionText).join(' · ') })
+    }
+    toast(t('week.summary.title', { day: formatDay(day.date, language, t) }), {
+      description: (
+        <>
+          <span className="block">{status}</span>
+          {detail ? <span className="mt-1 block">{detail}</span> : null}
+        </>
+      ),
+      duration: suggestions.length > 0 ? 12000 : 6000,
+      action:
+        suggestions.length > 0
+          ? {
+              label,
+              onClick: () => {
+                const current = plansRef.current
+                if (!current) return
+                const extras = suggestions.flatMap((s) =>
+                  s.boost.items.map((b) => ({ personId: s.personId, ingredientId: b.ingredientId, amount: b.amount, unit: b.unit })),
+                )
+                const plan = addExtras(current.plan, day.date, extras)
+                apply({ plan, next: current.next }, { meal: { date: day.date, slot: 'snack' } })
+                afterMealChange(day.date, plan, t('week.toast.added'))
+              },
+            }
+          : undefined,
     })
   }
 
@@ -193,9 +266,9 @@ export function WeekScreen() {
       toast(t('week.toast.noAlternative'))
       return
     }
-    commit(result)
+    apply(result, { meal: { date, slot } })
     const meal = result.plan.days.find((d) => d.date === date)?.meals[slot]
-    announce(t('week.toast.swapped', { name: recipeName(meal?.recipeId) }), date, result.plan)
+    afterMealChange(date, result.plan, t('week.toast.swapped', { name: recipeName(meal?.recipeId) }))
   }
 
   function pick(recipeId: Id) {
@@ -205,16 +278,33 @@ export function WeekScreen() {
     const old = current.plan.days.find((d) => d.date === date)?.meals[slot]
     const result = setMeal(ctx, { plan: current.plan, date, slot, recipeId, nextWeek: current.next })
     setPickTarget(null)
-    commit(result)
+    apply(result, { meal: { date, slot } })
     const hadDish = old && (old.status === 'planned' || old.status === 'leftovers')
-    announce(t(hadDish ? 'week.toast.swapped' : 'week.toast.picked', { name: recipeName(recipeId) }), date, result.plan)
+    afterMealChange(date, result.plan, t(hadDish ? 'week.toast.swapped' : 'week.toast.picked', { name: recipeName(recipeId) }))
   }
 
   function eatingOut(date: IsoDate, slot: MealSlot, on: boolean) {
     const current = plansRef.current
     if (!current || !ctx) return
-    commit(setEatingOut(ctx, { plan: current.plan, date, slot, eatingOut: on, previousWeek: current.previous, nextWeek: current.next }))
-    if (on) toast(t('week.toast.eatingOut'), { action: { label: t('week.undo'), onClick: undo } })
+    const result = setEatingOut(ctx, { plan: current.plan, date, slot, eatingOut: on, previousWeek: current.previous, nextWeek: current.next })
+    apply(result, { meal: { date, slot } })
+    afterMealChange(date, result.plan, on ? t('week.toast.eatingOut') : t('week.toast.notEatingOut'))
+  }
+
+  function changeGuests(date: IsoDate, slot: MealSlot, guests: number) {
+    const current = plansRef.current
+    if (!current) return
+    const plan = setGuests(current.plan, date, slot, guests)
+    apply({ plan, next: current.next }, { meal: { date, slot } })
+    afterMealChange(date, plan, t('week.toast.guests', { count: guests }))
+  }
+
+  function deleteExtra(date: IsoDate, index: number) {
+    const current = plansRef.current
+    if (!current) return
+    const plan = removeExtra(current.plan, date, index)
+    apply({ plan, next: current.next }, { meal: { date, slot: 'snack' } })
+    afterMealChange(date, plan, t('week.toast.extraRemoved'))
   }
 
   function fill(favoritesOnly: boolean, replace = false) {
@@ -228,14 +318,24 @@ export function WeekScreen() {
       fillEmptyOnly: !replace,
       favoritesOnly,
     })
+    const action: WeekAction = replace ? 'replace' : favoritesOnly ? 'favorites' : planned ? 'fill' : 'make'
     // Next week's Monday lunch follows a changed Sunday dinner (#143).
-    commit({ plan: generated, next: followSundayDinner(ctx, generated, current.next) })
+    apply({ plan: generated, next: followSundayDinner(ctx, generated, current.next) }, { week: action })
+
+    // One short summary for the whole week, without a button (#152).
+    const days = generated.days.filter((d) => d.date >= today)
+    const lines: string[] = []
+    if (alertsOn && days.some((d) => dayProtein(ctx, d).length > 0)) {
+      const ok = days.filter(
+        (d) => emptyMeals(household, d).length === 0 && dayProtein(ctx, d).every((p) => p.targetG - p.proteinG < BOOST_THRESHOLD_G),
+      ).length
+      lines.push(t('week.summary.weekDays', { ok, total: days.length }))
+    }
     const others = favoritesOnly ? filledNonFavorites(ctx, current.plan, generated) : 0
-    toast(t(replace ? 'week.toast.replaced' : 'week.toast.filled'), {
-      description: others > 0 ? t('week.toast.tooFewFavorites', { count: others }) : undefined,
-      duration: others > 0 ? 10000 : 6000,
-      action: { label: t('week.undo'), onClick: undo },
-    })
+    if (others > 0) lines.push(t('week.toast.tooFewFavorites', { count: others }))
+    const title = t('week.summary.weekTitle', { week: weekNumber(current.weekId) })
+    setAnnouncement(title)
+    toast(title, { description: lines.length > 0 ? lines.join(' ') : undefined, duration: 8000 })
   }
 
   /** Development only: puts in the example family and recalculates the shown weeks from today (#142). */
@@ -253,6 +353,11 @@ export function WeekScreen() {
     toast(t('week.dev.done'))
   }
 
+  function changeWeek(step: number) {
+    toast.dismiss()
+    setWeekId((w) => shiftWeek(w, step))
+  }
+
   const openPickAfterSheet = (target: PickTarget) => window.setTimeout(() => setPickTarget(target), SHEET_SWITCH_MS)
 
   // --- Rendering -----------------------------------------------------------
@@ -265,6 +370,29 @@ export function WeekScreen() {
         ? dinnerPortionsToCook(ctx, plan, mealTarget.date, plans.next)
         : totalPortions(meal.portions, meal.guests)
       : 0
+  const shownPlans = [plans.previous, plan, plans.next]
+  const topUndo = weekUndo(plans.weekId, shownPlans)
+
+  /** Undo labels and "follows the dinner" texts for one day's meals (#147, #150). */
+  function undoInfo(dayIndex: number) {
+    const day = plan!.days[dayIndex]
+    const undoLabels: Partial<Record<MealSlot, string>> = {}
+    for (const slot of MEAL_SLOTS) {
+      const step = mealUndo(day.date, slot, shownPlans)
+      if (!step) continue
+      const values = { slot: t(`week.slots.${slot}`), day: dayTitle(day.date), name: recipeName(step.previousRecipeId) }
+      undoLabels[slot] = step.kind === 'swap' ? t('week.undoSwap', values) : t('week.undoChange', values)
+    }
+    const followsText: Partial<Record<MealSlot, string>> = {}
+    const previousDate = dayIndex > 0 ? plan!.days[dayIndex - 1].date : plans!.previous?.days[6]?.date
+    const dinnerStep = previousDate ? mealUndo(previousDate, 'dinner', shownPlans) : undefined
+    const lunchChange = dinnerStep?.changes.find((c) => c.date === day.date && c.slot === 'lunch')
+    if (previousDate && lunchChange && isCurrent(lunchChange, shownPlans)) {
+      followsText.lunch = t('week.followsDinner', { day: weekdayName(previousDate, language) })
+    }
+    return { undoLabels, followsText }
+  }
+
   const pickMeal = pickTarget ? plan.days.find((d) => d.date === pickTarget.date)?.meals[pickTarget.slot] : undefined
 
   return (
@@ -272,10 +400,10 @@ export function WeekScreen() {
       <PageHeader
         title={t('screens.week.title')}
         actions={
-          history.length > 0 ? (
-            <Button variant="secondary" onClick={undo} aria-label={t('week.undoLabel')}>
+          topUndo ? (
+            <Button variant="secondary" onClick={undoWeek}>
               <Undo2Icon aria-hidden />
-              {t('week.undo')}
+              {t('week.undoAction', { action: t(`week.undoActions.${topUndo.action}`) })}
             </Button>
           ) : null
         }
@@ -284,13 +412,13 @@ export function WeekScreen() {
 
       <div className="space-y-4">
         <nav aria-label={t('week.weekNav')} className="flex items-center justify-between gap-2">
-          <Button variant="outline" size="icon" aria-label={t('week.previousWeek')} onClick={() => setWeekId((w) => shiftWeek(w, -1))}>
+          <Button variant="outline" size="icon" aria-label={t('week.previousWeek')} onClick={() => changeWeek(-1)}>
             <ChevronLeftIcon />
           </Button>
           <p aria-live="polite" className="text-center font-semibold">
             {formatWeek(weekId, language, t)}
           </p>
-          <Button variant="outline" size="icon" aria-label={t('week.nextWeek')} onClick={() => setWeekId((w) => shiftWeek(w, 1))}>
+          <Button variant="outline" size="icon" aria-label={t('week.nextWeek')} onClick={() => changeWeek(1)}>
             <ChevronRightIcon />
           </Button>
         </nav>
@@ -329,6 +457,10 @@ export function WeekScreen() {
           ) : null}
         </div>
 
+        <p aria-live="polite" className="sr-only">
+          {announcement}
+        </p>
+
         <div className="grid gap-3 lg:grid-cols-2">
           {plan.days.map((day, i) => (
             <DayCard
@@ -338,7 +470,10 @@ export function WeekScreen() {
               isToday={day.date === today}
               fixedDayOut={fixedDayOut(day.date)}
               people={household.people}
-              protein={protein[i] ?? []}
+              protein={dayStarted(day) ? (protein[i] ?? []) : []}
+              hasEmptyMeals={emptyMeals(household, day).length > 0}
+              {...undoInfo(i)}
+              onUndoMeal={(slot) => undoMeal(day.date, slot)}
               notes={notes.filter((n) => n.date === day.date)}
               recipes={recipesById}
               ingredients={data.ingredientMap}
@@ -346,10 +481,7 @@ export function WeekScreen() {
               onOpenMeal={(slot) => setMealTarget({ date: day.date, slot, dayTitle: dayTitle(day.date) })}
               onPickMeal={(slot) => setPickTarget({ date: day.date, slot, dayTitle: dayTitle(day.date) })}
               onSwapMeal={(slot) => swap(day.date, slot)}
-              onRemoveExtra={(index) => {
-                const current = plansRef.current
-                if (current) commit({ plan: removeExtra(current.plan, day.date, index), next: current.next })
-              }}
+              onRemoveExtra={(index) => deleteExtra(day.date, index)}
             />
           ))}
         </div>
@@ -367,10 +499,7 @@ export function WeekScreen() {
           if (target) openPickAfterSheet(target)
         }}
         onEatingOut={(on) => mealTarget && eatingOut(mealTarget.date, mealTarget.slot, on)}
-        onGuests={(guests) => {
-          const current = plansRef.current
-          if (current && mealTarget) commit({ plan: setGuests(current.plan, mealTarget.date, mealTarget.slot, guests), next: current.next })
-        }}
+        onGuests={(guests) => mealTarget && changeGuests(mealTarget.date, mealTarget.slot, guests)}
       />
 
       <PickSheet

@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone F (week-plan screen) – built (decisions #114–#143); acceptance-test changes (undo per meal, day summary instead of protein toasts, one toast at a time, honest boost) are being designed – draft shown to the product owner, not built yet. Next: milestone G (onboarding wizard + settings: people, fixed days out, per-child lunch, protein alerts switch, automatic week plan #124).**
+**Phase 1, milestone F (week-plan screen) – built (decisions #114–#143), plus acceptance-test changes (#146–#155): undo per meal (↶, `src/data/undo.ts` + `features/week/undo-store.ts`), one toast at a time (`src/lib/toast.ts`), day/week summary instead of protein toasts, boost with up to two items, status labels on the day card. Waiting for the product owner's re-test. Next: milestone G (onboarding wizard + settings: people incl. protein targets, "My profile", fixed days out, per-child lunch, protein alerts switch, automatic week plan #124).**
 
 Milestone F delivered: `src/features/week/` – `WeekScreen` (week navigation, fill / favourites week / start over with confirmation, undo history + undo toasts, protein-alert toast with "Add"), `DayCard` (progress per adult, meals, notes, extras), `PickSheet` (search, filters, protein impact per adult), `MealSheet` (recipe with household amounts, eating out, guests), `MoreSheet`. Planner additions in `planner.ts`: `fillEmptyOnly`/`favoritesOnly`, `setMeal`, `setEatingOut`, `setGuests`, `addExtras`, `emptyWeekPlan`, `dayProtein`, `pickImpacts`, `boostSuggestions`, `filledNonFavorites`. Schema v4 (`PlannedMeal.extras`). Device preference `proteinAlerts`. New colour tokens `success`/`warning`. Status `none` = empty meal (or dinner on a fixed day out).
 
@@ -110,6 +110,7 @@ CLAUDE.md                This file
 Conventions:
 - All UI text comes from `src/i18n/locales/*.json` (nb is the fallback). Never hard-code UI text.
 - Bottom sheets use `components/ui/bottom-sheet.tsx` (swipe, close button, Android back button).
+- Toasts: import `toast` from `@/lib/toast` (never directly from `sonner`) – only one message at a time (#148).
 - Colours only via design tokens (`bg-primary`, `text-muted-foreground`, …), never raw hex in components. Purple **text** uses `text-primary-text` (not `text-primary`). After changing colours, run `npm run check:contrast`.
 - Touch targets ≥ 44 px (`h-11` / `min-h-11`). Respect safe areas with `env(safe-area-inset-*)`.
 - **Accessibility – WCAG 2.2 AA is a requirement** (decision #53): contrast in both themes; colour never the only signal; `aria-label` on icon-only buttons; full keyboard use with visible focus (`focus-visible:ring-2 ring-ring`); text sizes in rem; reduced motion respected (global rule in `index.css`). Each screen sets its title via `PageHeader`.
