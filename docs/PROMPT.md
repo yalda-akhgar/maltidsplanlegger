@@ -170,9 +170,9 @@ Du skal hjelpe meg å bygge en personlig måltidsplanlegger-app. Jeg er nybegynn
 1. **Fundament:** oppsett, design (inkl. **mørk modus**), språk, datamodell (med felt for næring, barnevennlig, vurdering, pris og utløpsdato fra start), oppskrifter, ukeplan med proteinmål, kveldssnacks, næringsbalanse, oppstartsveiviser, **barnevennlig + barnas preferanser** og **«spiser ute/besøk»**. Lagres lokalt.
 2. **Bruksopplevelse:** matlagingsmodus, vurder retten (👍/👎), ukesoppsummering og **marker måltider som spist**: knappen «✓ Spist» og «Jeg spiste noe annet → velg oppskrift» (eller hoppet over). Fremdriften viser spist protein i tillegg til planlagt.
 3. **Hjemme + handleliste:** har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS. Innstillingen **«Fast handledag»** (f.eks. søndag): handlelisten dekker perioden frem til neste handledag. Man kan også velge perioden selv (f.eks. man–fre eller man–søn).
-4. **Tale:** mikrofonknapp og talekommandoer.
+4. **Tale:** mikrofonknapp og talekommandoer, f.eks. «lag en favorittuke».
 5. **Innlogging + deling:** Supabase, Google + e-post/passord, passkeys (Face ID/fingeravtrykk), husholdning, invitasjon på e-post, sanntid. Flytt lokale data til databasen.
-6. **AI:** kjøleskap-forslag, bildegjenkjenning, import av oppskrift fra lenke/bilde (Edge Function + min egen API-nøkkel).
+6. **AI:** kjøleskap-forslag, bildegjenkjenning, import av oppskrift fra lenke/bilde (Edge Function + min egen API-nøkkel), og be om en ukeplan med friere ord (f.eks. «en uke med bare favorittene våre, men ikke fisk»).
 7. **Publisering + innsikt:** GitHub + Vercel, PWA-ikon, kun-se-lenke, valgfri kalendersynk, **påminnelser (push)**, **tilbakemeldingsknapp** og **PostHog-statistikk** med personvernerklæring.
 
 Begynn med å lese dette, still meg eventuelle spørsmål du har, og lag deretter en kort plan for fase 1 før du skriver kode.

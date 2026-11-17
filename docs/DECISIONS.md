@@ -826,3 +826,66 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** No setting (always on).
 - **Rationale:** Some users find repeated alerts annoying; the numbers remain available.
 - **Consequences:** Stored in household settings or as a device preference – decided in milestone G.
+
+## 117. Week-plan layout: all seven days in one list
+- **Date:** 2026-11-17
+- **Decision:** The week-plan screen shows all seven days as cards below each other (as in the prototype). Today is highlighted and the screen scrolls to it automatically.
+- **Alternatives:** Day tabs showing one day at a time; compact day cards that expand on tap.
+- **Rationale:** Best overview of the week with the least tapping.
+- **Consequences:** None.
+
+## 118. Protein progress per adult on each day
+- **Date:** 2026-11-17
+- **Decision:** Each day card shows one progress line per adult, e.g. "Anna 118 / 120 g ✓".
+- **Alternatives:** One combined line for the household.
+- **Rationale:** Targets are personal (#19); matches the product owner's original request.
+- **Consequences:** The day target excludes meals outside the app (#109).
+
+## 119. Pick list shows the impact per adult
+- **Date:** 2026-11-17
+- **Decision:** In the "pick a dish" list, every dish shows one label per adult with the effect on the day's target ("Anna: on target · Ola: +5 g over").
+- **Alternatives:** Only the adult furthest from the target; only one chosen person.
+- **Rationale:** Precise, and consistent with the per-adult progress (#118).
+- **Consequences:** Implements #115.
+
+## 120. "Add" in the protein alert adds an extra item to the evening
+- **Date:** 2026-11-17
+- **Decision:** "Add" in the protein alert adds the boost as an extra item on that evening ("+ extra: 170 g skyr"); the planned evening snack stays. The data model gets a field for extras on a meal (schema v4).
+- **Alternatives:** Replace the evening snack with the boost; only a tip with no button.
+- **Rationale:** The family keeps the snack they planned, and the gap is closed with one tap.
+- **Consequences:** Schema migration to v4. Extras go on the shopping list in phase 3.
+
+## 121. "Make week plan" fills only empty meals
+- **Date:** 2026-11-17
+- **Decision:** In an empty week the main button is "Make week plan"; once something is planned it becomes "Fill in empty" and keeps what the user picked. "Make new week plan" (replace everything) is under "More" and asks for confirmation first. Manual planning (empty week, pick yourself) and swapping along the way work as in the draft (#112).
+- **Alternatives:** One button that always regenerates the whole week (with confirmation).
+- **Rationale:** The user's own picks are never lost by accident.
+- **Consequences:** The planner must be able to fill only empty slots and treat the user's picks as fixed.
+
+## 122. Undo after every swap
+- **Date:** 2026-11-17
+- **Decision:** After every swap (↻ or "Pick another dish") a message "Swapped to [dish] · Undo" appears. Undo restores the previous dish together with its portions and the next day's lunch. Pressing ↻ several times and then Undo steps back one swap at a time. The "Pick a dish" sheet can be closed without choosing anything.
+- **Alternatives:** No undo (swap back manually).
+- **Rationale:** ↻ is quick to press by mistake, and the previous dish may have been the better one.
+- **Consequences:** The week screen keeps a history of plan states. How long the history lasts is a milestone F question.
+
+## 123. Favourites week
+- **Date:** 2026-11-17
+- **Decision:** Under "More", "Make week plan" can be run with all dishes or with favourites only. If there are too few favourites, the rest is filled with regular dishes and a short note says so.
+- **Alternatives:** Favourites only weighted higher (as today, #97).
+- **Rationale:** Some weeks the family just wants dishes they know they like.
+- **Consequences:** The planner gets a "favourites only" option; all other rules (exclusions, 30 min, variety) still apply.
+
+## 124. Automatic week plan (milestone G)
+- **Date:** 2026-11-17
+- **Decision:** A setting "Make new week plan automatically" (on/off, chosen day, all dishes or favourites only). Default off. Until phase 5 the plan is made when the app is opened on or after the chosen day.
+- **Alternatives:** Only manual planning.
+- **Rationale:** Saves a step for families with a fixed weekly rhythm.
+- **Consequences:** Built in milestone G. Without a server (before phase 5) nothing happens until the app is opened.
+
+## 125. Favourites week by voice and AI (phases 4 and 6)
+- **Date:** 2026-11-17
+- **Decision:** Asking for a favourites week by voice (phase 4) and in freer words via AI (phase 6) is added to `docs/PROMPT.md`.
+- **Alternatives:** Not planned.
+- **Rationale:** Natural extension of #123.
+- **Consequences:** None for phase 1.
