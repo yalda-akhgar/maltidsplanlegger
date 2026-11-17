@@ -1,4 +1,4 @@
-import { XIcon } from 'lucide-react'
+import { XIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type * as React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -12,6 +12,7 @@ import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodA
 import { fromDraft, parseTarget, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
 import { ProteinTargetField } from '@/features/household/ProteinTargetField'
+import { withExampleFamily } from '@/features/household/example-family'
 import { makeFirstWeekPlan, saveSettings, showSavedToast } from '@/features/household/save-settings'
 import { cn } from '@/lib/utils'
 
@@ -108,6 +109,16 @@ export function OnboardingScreen() {
     }
   }
 
+  /** "Try with an example family" (#176): a finished week plan in one click, for testers and employers. */
+  async function tryExample() {
+    if (!loaded) return
+    setBusy(true)
+    const household: HouseholdSettings = { ...withExampleFamily(loaded.household), onboardingDone: true }
+    await saveSettings(loaded.household, household)
+    await makeFirstWeekPlan(household)
+    navigate('/week', { replace: true })
+  }
+
   const titles = ['welcome', 'protein', 'household', 'food', 'week', 'done'] as const
   const title =
     step === 2 && draft.name.trim() ? t('onboarding.protein.titleNamed', { name: draft.name.trim() }) : t(`onboarding.${titles[step - 1]}.title`)
@@ -136,6 +147,15 @@ export function OnboardingScreen() {
           </h1>
 
           {step === 1 ? <WelcomeStep name={draft.name} onName={(name) => set({ name })} /> : null}
+          {step === 1 && !again ? (
+            <div className="mt-auto space-y-3 rounded-2xl bg-secondary p-4">
+              <p className="text-sm text-secondary-foreground">{t('onboarding.welcome.exampleText')}</p>
+              <Button variant="outline" className="w-full" disabled={busy} onClick={() => void tryExample()}>
+                <UsersIcon aria-hidden />
+                {t('onboarding.welcome.example')}
+              </Button>
+            </div>
+          ) : null}
           {step === 2 ? (
             <ProteinTargetField label={t('onboarding.protein.label')} value={draft.target} onChange={(target) => set({ target })} withCalculator />
           ) : null}

@@ -13,6 +13,7 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 7 | Food diary | Manual protein logging (add protein eaten outside the app, e.g. dinner out) together with logging what was actually eaten (eaten / "ate something else" / skipped). Logged protein is shown next to planned protein. Meal tracking is planned for phase 2 (#106); manual logging should be designed together with it. | Later | Phase 2; the data model is ready (#106). | 2026-11-16 |
 | 8 | Redo (↷) | Redo (↷) like in Word – add if testers miss it. Option: undo/redo pair in the top bar for all plan changes. | Maybe | Undo per meal (↶) is enough to start with (#146). | 2026-11-17 |
 | 9 | Skip a meal for one person | Skip a meal for one person only (e.g. low appetite) – only that person's portion and protein change. **High priority for phase 5.** | Planned (phase 5) | "Remove meal" works for the whole household for now (#168); per person needs changes to the data model. | 2026-11-17 |
+| 10 | Pantry step and reminder | If testers use the pantry toggle a lot: consider a pantry step in onboarding and a weekly reminder. | Maybe | The "use what we have at home first" toggle is an unvalidated idea, shipped small and off by default first (#177). | 2026-11-17 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.

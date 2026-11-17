@@ -185,9 +185,12 @@ Rekkefølge nå: 1 → publisering → 3 → 2 → 4 → 5 → 6 → 7.
    5. I handlelisten kan jeg legge til egne varer.
    6. Bytter jeg en rett etter godkjenning (f.eks. laks → kylling): dialog – laks ikke kjøpt: [Bytt] / [Behold laks, legg til kylling]; laks allerede kjøpt: «Legge til kylling?» [Ja]/[Nei] + tips «Bruke laksen en annen dag?»; kylling finnes hjemme: bare «Kylling har dere hjemme ✓»; brukes laksen i en annen rett samme uke, fjernes bare den ekstra mengden.
 
+   7. **«Bruk det vi har hjemme først»** (#177): en valgfri bryter i «Lag ukeplan», AV som standard, med forklaringen «Legg inn varene dine under Hjemme, så bruker jeg dem i planen». Ingen pop-up, ingen ekstra veiviser-steg, ingen ukentlige påminnelser.
+   8. **Hjemme uten ork** (#178): Hjemme fylles automatisk av varer som krysses av som kjøpt. Manuell registrering skjer med ett trykk fra en liste gruppert etter kategori (protein, basisvarer, grønt, meieri), pluss skrivefelt. Fokus på hovedingredienser. Appen fungerer fint med tom Hjemme-liste.
+
    I tillegg: har/tom, automatisk handleliste (inkl. snacks), **utløpsdatoer**, **matpakke-modus**, **ukebudsjett** og **del handlelisten** på WhatsApp/SMS. Når handlelisten lages, spør appen om varer forrige ukeplan brukte («Har dere fortsatt igjen?»). Innstillingen **«Fast handledag»** (f.eks. søndag): handlelisten dekker perioden frem til neste handledag. Man kan også velge perioden selv (f.eks. man–fre eller man–søn).
 4. **Tale:** mikrofonknapp og talekommandoer, f.eks. «lag en favorittuke».
-5. **Innlogging + deling:** Supabase, Google + e-post/passord, passkeys (Face ID/fingeravtrykk), husholdning, invitasjon på e-post, sanntid. Flytt lokale data til databasen.
+5. **Innlogging + deling:** **Innlogging er valgfri** (#179): appen brukes fullt ut uten konto. Konto tilbys først ved «Del med familien», flere enheter eller sikkerhetskopi, og lokale data flyttes med. Supabase, Google + e-post/passord, passkeys (Face ID/fingeravtrykk), husholdning, invitasjon på e-post, sanntid. Flytt lokale data til databasen.
 6. **AI:** kjøleskap-forslag, bildegjenkjenning, import av oppskrift fra lenke/bilde (Edge Function + min egen API-nøkkel), og be om en ukeplan med friere ord (f.eks. «en uke med bare favorittene våre, men ikke fisk»).
 7. **Publisering + innsikt:** ~~GitHub + Vercel~~ (flyttet til rett etter fase 1, #174), PWA-ikon (ferdig i fase 1), kun-se-lenke, valgfri kalendersynk, **påminnelser (push)**, **tilbakemeldingsknapp** og **PostHog-statistikk** med personvernerklæring.
 

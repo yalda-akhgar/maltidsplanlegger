@@ -48,5 +48,8 @@ export function formatAmount(amount: number, language: Language): string {
   return new Intl.NumberFormat(language === 'nb' ? 'nb-NO' : language, { maximumFractionDigits: 1 }).format(amount)
 }
 
+/** Count for a unit's plural form: up to 1 reads as singular ("½ can", "1 can", "2 cans"). */
+export const unitCount = (amount: number) => (amount > 1 ? 2 : 1)
+
 /** Formats a number of portions, e.g. 2.5 → "2½". */
 export const formatPortions = formatAmount

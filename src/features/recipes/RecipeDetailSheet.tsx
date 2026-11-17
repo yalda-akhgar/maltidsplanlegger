@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
-import { formatAmount, formatPortions, householdPortions, roundAmount } from '@/data/amounts'
+import { formatAmount, formatPortions, householdPortions, roundAmount, unitCount } from '@/data/amounts'
 import { localize } from '@/data/localize'
 import { recipeNutrition } from '@/data/nutrition'
 import type { Recipe } from '@/data/types'
@@ -135,7 +135,7 @@ export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Re
             return (
               <li key={`${line.ingredientId}-${index}`} className="flex gap-3 px-4 py-2.5">
                 <span className="w-24 shrink-0 font-medium tabular-nums">
-                  {formatAmount(amount, language)} {t(`units.short.${line.unit}`)}
+                  {formatAmount(amount, language)} {t(`units.short.${line.unit}`, { count: unitCount(amount) })}
                 </span>
                 <span className="min-w-0 break-words">
                   {localize(ingredient?.name, language)}

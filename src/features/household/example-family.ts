@@ -1,6 +1,7 @@
 /**
- * Example family for testing the week plan before the onboarding wizard
- * exists (milestone G). Only offered in development (`npm run dev`) (#142).
+ * Example family (#142): "Try with an example family" on the first screen of
+ * the wizard (also in the published app, #176), and "Fill in example family"
+ * on the week plan in development mode.
  */
 import type { HouseholdSettings, Person } from '@/data/types'
 

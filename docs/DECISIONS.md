@@ -1007,7 +1007,7 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Decision:** The week-plan screen has a "Fill in example family" button (Anna 120 g, Ola 140 g, Noah who doesn't like salmon, Ella; no dinner at home on Fridays). It is only shown with `npm run dev` and is not included in the published app.
 - **Alternatives:** Wait for the onboarding wizard (milestone G) before testing.
 - **Rationale:** Makes the week plan testable with protein numbers before milestone G.
-- **Consequences:** Kept after milestone G (2026-11-17): the product owner finds it useful for testing, even though the wizard now exists. Still never in the published app.
+- **Consequences:** Kept after milestone G (2026-11-17): the product owner finds it useful for testing, even though the wizard now exists. **Updated 2026-11-17 (#176):** the published app now has "Try with an example family" on the first screen of the wizard (same family, finished week plan in one click). The week-plan button stays development-only.
 
 ## 143. Monday's lunch always follows Sunday's dinner
 - **Date:** 2026-11-17
@@ -1286,3 +1286,37 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Placeholders only. (2) Norwegian screenshots. (4) An empty template. (6) Translate the planning files. (7) Fixed vendor chunks, or hiding the warning. (8) MIT licence. (10) Only explain `npm run dev -- --host`.
 - **Rationale:** Product owner's choice ("a" on all, live demo wording changed).
 - **Consequences:** See the README and the new docs.
+
+## 176. How the app is published
+- **Date:** 2026-11-17
+- **Decision:**
+  1. Vercel is connected to the GitHub repository: every push to `main` publishes the app automatically.
+  2. Address `maltidsplanlegger.vercel.app` (free), if the name is available.
+  3. Search engines stay blocked (#55) until the brand name is decided (backlog #3).
+  4. "Try with an example family" on the first screen of the wizard, also in the published app: the example family from #142 gets a finished week plan in one click.
+  5. No Vercel analytics; analytics with a privacy notice come in phase 7.
+  6. Units have plural forms (e.g. "1 can", "1½ cans"; "1 boks", "1½ bokser"; "1 Dose", "2 Dosen").
+- **Alternatives:** (1) Deploying by hand. (2) An own domain. (3) Allowing search engines. (4) Visitors start with an empty app. (5) Vercel analytics on. (6) Fix plurals later.
+- **Rationale:** Product owner's choice ("a" on all except 4, which is "b"): employers and testers should see a finished week plan in one click.
+- **Consequences:** `vercel.json` sends every path to the app, so links like `/week` work on reload. The example family is moved to `src/features/household/example-family.ts`. Everything visitors enter stays in their own browser.
+
+## 177. Phase 3: "Use what we have at home first" as a small opt-in
+- **Date:** 2026-11-17
+- **Decision:** An optional switch in "Make week plan", **off by default**, with the explanation "Add your items under Home, and I'll use them in the plan". No pop-up, no extra wizard step, no weekly reminders.
+- **Alternatives:** A pantry step in onboarding; weekly reminders to update Home.
+- **Rationale:** Unvalidated idea – shipped as a small opt-in toggle to learn whether users want it.
+- **Consequences:** Added to phase 3 in `docs/PROMPT.md`. Backlog #10: if testers use the toggle a lot, consider a pantry step in onboarding and a weekly reminder.
+
+## 178. Phase 3: Home without effort
+- **Date:** 2026-11-17
+- **Decision:** Home is filled automatically by items ticked off as bought on the shopping list. Manual entry is one tap from a list grouped by category (protein, staples, vegetables and fruit, dairy), plus a text field. The focus is on main ingredients. The app works well with an empty Home list.
+- **Alternatives:** Manual entry of every item with amounts.
+- **Rationale:** Reduce onboarding friction.
+- **Consequences:** Added to phase 3 in `docs/PROMPT.md`. Ingredients need a Home category (can share data with the store section from #173).
+
+## 179. Phase 5: login is optional
+- **Date:** 2026-11-17
+- **Decision:** The app can be used fully without an account. An account is offered only when it adds something: "Share with the family", using several devices, or a backup. Local data is moved into the account.
+- **Alternatives:** Login required from the start of phase 5.
+- **Rationale:** Lazy registration – value first, account only when it adds value; less personal data stored (GDPR).
+- **Consequences:** Added to phase 5 in `docs/PROMPT.md`. The repository must keep working without a server after phase 5, and needs a one-time move of local data to the account.

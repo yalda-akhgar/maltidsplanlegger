@@ -142,8 +142,11 @@
       "tsp": "tsp",
       "pcs": "pcs",
       "pinch": "pinch",
+      "pinch_other": "pinches",
       "pack": "pack",
-      "can": "can"
+      "pack_other": "packs",
+      "can": "can",
+      "can_other": "cans"
     },
     "long": {
       "g": "grams",
@@ -486,7 +489,9 @@
     "welcome": {
       "title": "Welcome to Måltidsplanlegger",
       "text": "The app makes week plans where every adult reaches their own protein target. A few short questions first – everything can be skipped and changed later.",
-      "name": "What's your name?"
+      "name": "What's your name?",
+      "example": "Try with an example family",
+      "exampleText": "Just want to see how it works? Anna and Ola (120 and 140 g protein) and two children get a finished week plan. Everything can be changed later."
     },
     "protein": {
       "title": "How much protein do you need per day?",

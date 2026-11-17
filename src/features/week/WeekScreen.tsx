@@ -40,7 +40,7 @@ import { diffMeals, isCurrent, revertChanges, type MealChange } from '@/data/und
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
 import { InstallCard } from '@/features/install/InstallCard'
 import { useRecipeData } from '@/features/recipes/useRecipeData'
-import { withExampleFamily } from './example-family'
+import { withExampleFamily } from '@/features/household/example-family'
 import { useLanguage } from '@/i18n/useLanguage'
 import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'

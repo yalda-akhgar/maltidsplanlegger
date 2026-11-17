@@ -173,8 +173,10 @@
       "tsp": "ts",
       "pcs": "stk",
       "pinch": "klype",
+      "pinch_other": "klyper",
       "pack": "pk",
-      "can": "boks"
+      "can": "boks",
+      "can_other": "bokser"
     },
     "long": {
       "g": "gram",
@@ -517,7 +519,9 @@
     "welcome": {
       "title": "Velkommen til Måltidsplanlegger",
       "text": "Appen lager ukeplaner der hver voksen når sitt eget proteinmål. Noen korte spørsmål først – alt kan hoppes over og endres senere.",
-      "name": "Hva heter du?"
+      "name": "Hva heter du?",
+      "example": "Prøv med eksempelfamilie",
+      "exampleText": "Vil du bare se hvordan appen virker? Anna og Ola (120 og 140 g protein) og to barn får en ferdig ukeplan. Alt kan endres etterpå."
     },
     "protein": {
       "title": "Hvor mye protein trenger du daglig?",

@@ -1,4 +1,5 @@
 import { CheckIcon, PlusIcon, RefreshCwIcon, Undo2Icon, XIcon } from 'lucide-react'
+import { unitCount } from '@/data/amounts'
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
@@ -241,7 +242,7 @@ function MealRow({
 function ExtraLabel({ extra, personName, onRemove }: { extra: MealExtra; personName: string; onRemove: () => void }) {
   const { t } = useTranslation()
   const key = BOOST_ITEMS.find((b) => b.ingredientId === extra.ingredientId)?.key
-  const item = key ? t(`week.boost.${key}`) : `${extra.amount} ${t(`units.short.${extra.unit}`)}`
+  const item = key ? t(`week.boost.${key}`) : `${extra.amount} ${t(`units.short.${extra.unit}`, { count: unitCount(extra.amount) })}`
   return (
     <span className="inline-flex items-center gap-0.5 rounded-md bg-secondary py-0.5 pl-1.5 text-xs font-semibold text-secondary-foreground">
       {t('week.extra', { name: personName, item })}

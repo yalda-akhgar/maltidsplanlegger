@@ -74,7 +74,7 @@ npm run lint         # oxlint
 npm run check:contrast   # check all colour pairs against WCAG AA
 ```
 
-In development mode the week plan has a **Fill in example family** button (two adults, two children) for quick testing. It is not part of the production build.
+To see the app with data right away, tap **Try with an example family** on the first screen: two adults with protein targets and two children get a finished week plan.
 
 ## Accessibility
 

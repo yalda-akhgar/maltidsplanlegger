@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done – approved 2026-11-17 (milestones A–H). Next: publish the app (Vercel, product owner's private account, #174) – choices being asked. Then phase 3 (core flow #173), then phase 2.**
+**Phase 1 done – approved 2026-11-17 (milestones A–H). Now: publishing (#174, #176). Code is ready (`vercel.json`, "Try with an example family" on the wizard's first screen, plural units); waiting for the product owner to create the Vercel project with their private GitHub account. Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
 
 Milestone H delivered: README for employers (screenshots in `docs/screenshots/`, English UI, "Live demo: coming soon", roadmap, product-owner section, all rights reserved), `docs/PRD.md` (draft – success metrics to be confirmed by the product owner), `docs/FEEDBACK_LOG.md` (template + F/G acceptance-test findings), `docs/README.md` (docs index; Norwegian brief files kept as originals), route-level code splitting in `src/app/router.tsx` (main bundle 755 → 381 kB, warning gone, #94), `npm run dev:phone` (`vite --host`).
 
