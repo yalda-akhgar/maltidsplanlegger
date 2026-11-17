@@ -125,7 +125,7 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation – done.** Milestones **A–F** done, **H** done – phase 1 complete. Next: publish → phase 3 → phase 2 (#144, #174).
+**Phase 1 – Foundation – done.** Milestones **A–H** done. Next: publish → phase 3 → phase 2 (#144, #174).
 
 **Phase order (decisions #144, #174):** phase 1 → publish (live demo) → phase 3 (Home + shopping list) → phase 2 → 4 → 5 → 6 → 7. Phase numbers are unchanged.
 
