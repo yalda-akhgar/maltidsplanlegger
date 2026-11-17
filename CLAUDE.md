@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1, milestone H (documentation) – built (#175), waiting for the product owner's review. When approved, phase 1 is done. Next: publish (Vercel, product owner's private account, #174), then phase 3 (core flow #173), then phase 2.**
+**Phase 1 done – approved 2026-11-17 (milestones A–H). Next: publish the app (Vercel, product owner's private account, #174) – choices being asked. Then phase 3 (core flow #173), then phase 2.**
 
 Milestone H delivered: README for employers (screenshots in `docs/screenshots/`, English UI, "Live demo: coming soon", roadmap, product-owner section, all rights reserved), `docs/PRD.md` (draft – success metrics to be confirmed by the product owner), `docs/FEEDBACK_LOG.md` (template + F/G acceptance-test findings), `docs/README.md` (docs index; Norwegian brief files kept as originals), route-level code splitting in `src/app/router.tsx` (main bundle 755 → 381 kB, warning gone, #94), `npm run dev:phone` (`vite --host`).
 
@@ -125,7 +125,7 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A–F** done, **G** done, **H (documentation)** built and awaiting review. Then: publish → phase 3 → phase 2 (#144, #174).
+**Phase 1 – Foundation – done.** Milestones **A–F** done, **H** done – phase 1 complete. Next: publish → phase 3 → phase 2 (#144, #174).
 
 **Phase order (decisions #144, #174):** phase 1 → publish (live demo) → phase 3 (Home + shopping list) → phase 2 → 4 → 5 → 6 → 7. Phase numbers are unchanged.
 
