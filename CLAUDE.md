@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-16 – resume here)
-**Phase 1, milestone E (planner logic + tests) – done, incl. the product owner's answers in `docs/SVAR_DELMAL_E.md` (#106–#113). Next: present the week-plan screen design (milestone F) and ask about its choices BEFORE building it. Point 6 of SVAR_DELMAL_E.md may get a paragraph on protein impact when picking/swapping a dish – re-read it first.**
+**Phase 1, milestone F (week-plan screen) – built (decisions #114–#132), waiting for the product owner's review. Next: milestone G (onboarding wizard + settings: people, fixed days out, per-child lunch, protein alerts switch, automatic week plan #124).**
+
+Milestone F delivered: `src/features/week/` – `WeekScreen` (week navigation, fill / favourites week / start over with confirmation, undo history + undo toasts, protein-alert toast with "Add"), `DayCard` (progress per adult, meals, notes, extras), `PickSheet` (search, filters, protein impact per adult), `MealSheet` (recipe with household amounts, eating out, guests), `MoreSheet`. Planner additions in `planner.ts`: `fillEmptyOnly`/`favoritesOnly`, `setMeal`, `setEatingOut`, `setGuests`, `addExtras`, `emptyWeekPlan`, `dayProtein`, `pickImpacts`, `boostSuggestions`, `filledNonFavorites`. Schema v4 (`PlannedMeal.extras`). Device preference `proteinAlerts`. New colour tokens `success`/`warning`. Status `none` = empty meal (or dinner on a fixed day out).
 
 Milestone E delivered: `src/data/planner.ts` (generateWeekPlan, swapMeal, refreshPortions, dinnerPortionsToCook, planNotes, exclusion + protein-source helpers) and `src/data/protein.ts` (personal portions, children/lunch rule, day nutrition, protein boost). Tests in `src/data/planner.test.ts` (rules checked over 200 seeded weeks). Decisions #95–#105, #107–#111. `Person.eatsWeekdayLunchAtHome` added (optional). Household `noDinnerAtHomeDays` (schema v3) replaces the hard-coded Friday. `PlannedMeal.outcome` reserved for phase 2 (#106).
 
@@ -115,6 +117,6 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation**, milestones **A–D** done, **E** logic done (open questions); milestone **F (week-plan screen)** next.
+**Phase 1 – Foundation**, milestones **A–F** done; milestone **G (onboarding + settings)** next.
 
 Milestones: A setup/GitHub · B design system + app shell · C data model · D recipes + snacks · E planner logic + tests · F week-plan screen · G onboarding + settings · H documentation.

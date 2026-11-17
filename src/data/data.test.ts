@@ -86,7 +86,7 @@ describe('repository', () => {
 
   it('survives corrupt stored data', async () => {
     const repo = createRepository(
-      memoryStorage({ 'mp:schemaVersion': '3', 'mp:seedVersion': '1', 'mp:recipes': '{not json' }),
+      memoryStorage({ 'mp:schemaVersion': String(SCHEMA_VERSION), 'mp:seedVersion': '1', 'mp:recipes': '{not json' }),
     )
     expect(await repo.listRecipes()).toEqual([])
   })

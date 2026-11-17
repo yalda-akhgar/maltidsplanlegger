@@ -58,12 +58,13 @@ export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onE
   )
 }
 
-function RecipeDetailBody({ recipe, data }: { recipe: Recipe; data: RecipeData }) {
+/** Stats, portion stepper, scaled ingredients and steps. Also used in the week plan's meal sheet. */
+export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Recipe; data: RecipeData; initialPortions?: number }) {
   const { t } = useTranslation()
   const language = useLanguage()
   const nutrition = recipeNutrition(recipe, data.ingredientMap)
   const household = householdPortions(data.household)
-  const [portions, setPortions] = useState(household > 0 ? household : recipe.servings)
+  const [portions, setPortions] = useState(initialPortions && initialPortions > 0 ? initialPortions : household > 0 ? household : recipe.servings)
   const factor = portions / (recipe.servings || 1)
   const badges = recipeBadges(recipe, t)
 

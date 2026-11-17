@@ -20,6 +20,10 @@
   --color-input: var(--input);
   --color-border: var(--border);
   --color-destructive: var(--destructive);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
   --color-muted-foreground: var(--muted-foreground);
@@ -77,6 +81,11 @@
   --sidebar-accent-foreground: #6d28d9;
   --sidebar-border: #e9e6f0;
   --sidebar-ring: #7c3aed;
+  /* Status labels in the week plan: on target / under target, plan notes (#118, #127) */
+  --success: #dcfce7;
+  --success-foreground: #166534;
+  --warning: #fef3c7;
+  --warning-foreground: #92400e;
 }
 
 /* Dark theme – see docs/DECISIONS.md #44 */
@@ -109,6 +118,10 @@
   --sidebar-accent-foreground: #ddd6fe;
   --sidebar-border: #2e2a3d;
   --sidebar-ring: #8b5cf6;
+  --success: #14321f;
+  --success-foreground: #86efac;
+  --warning: #3a2b0e;
+  --warning-foreground: #fcd34d;
   color-scheme: dark;
 }
 

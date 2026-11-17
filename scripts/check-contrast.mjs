@@ -52,6 +52,10 @@ const PAIRS = [
   ['Focus ring vs page', 'ring', 'background', 3],
   ['Focus ring vs card', 'ring', 'card', 3],
   ['Primary fill vs page (selected chip)', 'primary', 'background', 3],
+  ['On-target label', 'success-foreground', 'success', 4.5],
+  ['Under-target label / plan note', 'warning-foreground', 'warning', 4.5],
+  ['Success text on card', 'success-foreground', 'card', 4.5],
+  ['Warning text on card', 'warning-foreground', 'card', 4.5],
 ]
 
 let failures = 0

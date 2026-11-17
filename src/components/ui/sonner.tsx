@@ -40,6 +40,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       toastOptions={{
         classNames: {
           toast: "cn-toast",
+          // Full-strength text: the default grey description is too faint on the dark toast (WCAG 1.4.3).
+          description: "!text-[var(--normal-text)]",
         },
       }}
       {...props}

@@ -3,7 +3,7 @@
  * Pure functions – no storage access – so they are easy to test.
  */
 import { gramsOf } from './nutrition'
-import type { DayPlan, HouseholdSettings, Id, Ingredient, MealSlot, Nutrition, Person, Unit } from './types'
+import type { DayPlan, HouseholdSettings, Id, Ingredient, MealExtra, MealSlot, Nutrition, Person, Unit } from './types'
 
 export const PORTION_MIN = 0.75
 export const PORTION_MAX = 2
@@ -81,9 +81,18 @@ export function personDayNutrition(
   day: DayPlan,
   personId: Id,
   nutritionOf: (recipeId: Id) => (Nutrition & { incomplete: boolean }) | undefined,
+  ingredients?: ReadonlyMap<Id, Ingredient>,
 ): DayNutrition {
   const total: DayNutrition = { proteinG: 0, kcal: 0, fiberG: 0, fruitVegPortions: 0, incomplete: false }
   for (const meal of Object.values(day.meals)) {
+    for (const extra of meal.extras ?? []) {
+      if (extra.personId !== personId || !ingredients) continue
+      const n = extraNutrition(extra, ingredients)
+      total.proteinG += n.proteinG
+      total.kcal += n.kcal
+      total.fiberG += n.fiberG
+      total.fruitVegPortions += n.fruitVegPortions
+    }
     const portion = meal.portions[personId]
     if (!portion || !meal.recipeId || (meal.status !== 'planned' && meal.status !== 'leftovers')) continue
     const n = nutritionOf(meal.recipeId)
@@ -100,15 +109,35 @@ export function personDayNutrition(
   return total
 }
 
+/** Nutrition of an extra item (#120). Unknown nutrition counts as 0. */
+export function extraNutrition(extra: MealExtra, ingredients: ReadonlyMap<Id, Ingredient>): Nutrition {
+  const ingredient = ingredients.get(extra.ingredientId)
+  const grams = gramsOf(extra, ingredient)
+  const per100 = ingredient?.nutritionPer100g
+  if (!per100 || grams === undefined) return { proteinG: 0, kcal: 0, fiberG: 0, fruitVegPortions: 0 }
+  const f = grams / 100
+  return { proteinG: per100.proteinG * f, kcal: per100.kcal * f, fiberG: per100.fiberG * f, fruitVegPortions: per100.fruitVegPortions * f }
+}
+
 /**
  * The part of a person's daily target that the planned meals should cover.
- * Meals outside the app ("eating out", no dinner at home) are left out:
- * the app only counts what is planned in it (#109).
+ * Meals outside the app ("eating out", dinner on a fixed day out) are left
+ * out: the app only counts what is planned in it (#109). Empty meals still
+ * count, so progress grows while planning by hand (#112).
  */
-export function plannedTargetG(day: DayPlan, personId: Id, split: HouseholdSettings['proteinSplit']): number {
+export function plannedTargetG(
+  day: DayPlan,
+  personId: Id,
+  split: HouseholdSettings['proteinSplit'],
+  fixedDayOut: boolean,
+): number {
   const target = day.targetsG[personId] ?? 0
   const share = (Object.keys(day.meals) as MealSlot[])
-    .filter((slot) => day.meals[slot].status !== 'eatingOut' && day.meals[slot].status !== 'none')
+    .filter((slot) => {
+      const status = day.meals[slot].status
+      if (status === 'eatingOut') return false
+      return !(slot === 'dinner' && status === 'none' && fixedDayOut)
+    })
     .reduce((sum, slot) => sum + split[slot], 0)
   return (target * share) / 100
 }

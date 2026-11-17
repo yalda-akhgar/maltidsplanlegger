@@ -2,8 +2,17 @@ import { describe, expect, it } from 'vitest'
 import { defaultHousehold } from './defaults'
 import { recipeNutrition } from './nutrition'
 import {
+  addExtras,
+  boostSuggestions,
+  dayProtein,
   dinnerPortionsToCook,
+  emptyWeekPlan,
+  filledNonFavorites,
   generateWeekPlan,
+  pickImpacts,
+  setEatingOut,
+  setGuests,
+  setMeal,
   isRecipeAllowed,
   mainProteinSource,
   planNotes,
@@ -292,12 +301,15 @@ describe('portions and protein', () => {
     const day = plan.days[0]
     const nutrition = personDayNutrition(day, 'a1', (id) => recipeNutrition(byId.get(id)!, ingredients))
     expect(nutrition.proteinG).toBeGreaterThan(80)
-    expect(plannedTargetG(day, 'a1', c.household.proteinSplit)).toBe(120)
+    expect(plannedTargetG(day, 'a1', c.household.proteinSplit, false)).toBe(120)
     const out = { ...day, meals: { ...day.meals, dinner: { status: 'eatingOut' as const, portions: {}, guests: 0 } } }
-    expect(plannedTargetG(out, 'a1', c.household.proteinSplit)).toBe(84) // 70 % of 120
+    expect(plannedTargetG(out, 'a1', c.household.proteinSplit, false)).toBe(84) // 70 % of 120
     // A fixed day out (Friday) only counts the meals planned in the app (#109).
     expect(plan.days[4].meals.dinner.status).toBe('none')
-    expect(plannedTargetG(plan.days[4], 'a1', c.household.proteinSplit)).toBe(84)
+    expect(plannedTargetG(plan.days[4], 'a1', c.household.proteinSplit, true)).toBe(84)
+    // An empty meal still counts while planning by hand (#112).
+    const empty = { ...day, meals: { ...day.meals, breakfast: { status: 'none' as const, portions: {}, guests: 0 } } }
+    expect(plannedTargetG(empty, 'a1', c.household.proteinSplit, false)).toBe(120)
   })
 
   it('suggests one protein boost item from 5 g missing', () => {
@@ -369,5 +381,108 @@ describe('regenerating and swapping', () => {
     const c = ctx(15)
     const plan = generate(c)
     expect(swapMeal(c, { plan, date: plan.days[4].date, slot: 'dinner' }).plan).toBe(plan)
+  })
+})
+
+describe('planning by hand, filling and favourites (milestone F)', () => {
+  const dinners = SEED_RECIPES.filter((x) => x.categoryIds.includes('dinner'))
+
+  it('starts an empty week with every meal empty', () => {
+    const plan = emptyWeekPlan(WEEK, household())
+    expect(plan.days).toHaveLength(7)
+    expect(plan.days.every((d) => Object.values(d.meals).every((m) => m.status === 'none'))).toBe(true)
+    expect(plan.days[0].targetsG).toEqual({ a1: 120, a2: 140 })
+  })
+
+  it('puts a picked dinner on the plan and makes the next lunch leftovers (#112, #114)', () => {
+    const c = ctx(1)
+    const pick = dinners[0].id
+    const { plan } = setMeal(c, { plan: emptyWeekPlan(WEEK, c.household), date: MONDAY, slot: 'dinner', recipeId: pick })
+    expect(plan.days[0].meals.dinner).toMatchObject({ status: 'planned', recipeId: pick })
+    expect(plan.days[0].meals.dinner.portions.a1).toBeGreaterThan(0)
+    expect(plan.days[1].meals.lunch).toMatchObject({ status: 'leftovers', recipeId: pick, leftoversFrom: MONDAY })
+  })
+
+  it('fills only empty meals and keeps what the user picked (#121)', () => {
+    forManyWeeks(
+      (_, c) => {
+        const picked = dinners[1].id
+        const start = setMeal(c, { plan: emptyWeekPlan(WEEK, c.household), date: '2026-11-18', slot: 'dinner', recipeId: picked }).plan
+        const filled = generate(c, { existing: start, fillEmptyOnly: true })
+        expect(filled.days[2].meals.dinner.recipeId).toBe(picked)
+        expect(filled.days[3].meals.lunch).toMatchObject({ status: 'leftovers', recipeId: picked })
+        expect(filled.days[4].meals.dinner.status).toBe('none') // fixed day out
+        for (const [i, day] of filled.days.entries()) {
+          for (const slot of ['breakfast', 'lunch', 'snack'] as const) expect(day.meals[slot].status, `${i} ${slot}`).not.toBe('none')
+          if (i !== 4) expect(day.meals.dinner.status).toBe('planned')
+        }
+        expect(dinnerIds(filled).filter((id) => id === picked)).toHaveLength(1)
+      },
+    )
+  })
+
+  it('uses favourites first in a favourites week and tops up with regular dishes (#123, #131, #132)', () => {
+    const favs = new Set(dinners.slice(0, 3).map((x) => x.id))
+    const recipes = SEED_RECIPES.map((x) => (favs.has(x.id) ? { ...x, favorite: true } : x))
+    const allowedFavs = dinners.filter((x) => favs.has(x.id) && x.timeMinutes <= 30 && isRecipeAllowed(x, ingredients, household())).length
+    let weightedOnly = 0
+    for (let seed = 1; seed <= 200; seed++) {
+      const c = ctx(seed, { recipes })
+      const plan = generate(c, { favoritesOnly: true })
+      const used = dinnerIds(plan).filter((id) => id && favs.has(id))
+      expect(new Set(used).size).toBe(allowedFavs)
+      expect(plan.days.filter((d) => d.meals.dinner.status === 'planned')).toHaveLength(6)
+      expect(filledNonFavorites(c, undefined, plan)).toBeGreaterThan(0)
+      // Without the option, favourites are only weighted.
+      weightedOnly += new Set(dinnerIds(generate(ctx(seed, { recipes }))).filter((id) => id && favs.has(id))).size
+    }
+    expect(weightedOnly / 200).toBeLessThan(allowedFavs)
+  })
+
+  it('marks a dinner as eaten out and turns the next leftovers into a quick lunch (#30, #108)', () => {
+    const c = ctx(4)
+    const plan = generate(c)
+    const { plan: out } = setEatingOut(c, { plan, date: MONDAY, slot: 'dinner', eatingOut: true })
+    expect(out.days[0].meals.dinner.status).toBe('eatingOut')
+    expect(out.days[1].meals.lunch.status).toBe('planned')
+    expect(byId.get(out.days[1].meals.lunch.recipeId!)?.categoryIds).toContain('lunch')
+    const back = setEatingOut(c, { plan: out, date: MONDAY, slot: 'dinner', eatingOut: false }).plan
+    expect(back.days[0].meals.dinner.status).toBe('none')
+  })
+
+  it('sets guests and cooks for them', () => {
+    const c = ctx(5)
+    const plan = generate(c)
+    const before = dinnerPortionsToCook(c, plan, MONDAY)
+    const withGuests = setGuests(plan, MONDAY, 'dinner', 2)
+    expect(dinnerPortionsToCook(c, withGuests, MONDAY)).toBe(before + 2)
+  })
+
+  it('shows the protein impact of a pick per adult (#115, #119)', () => {
+    const c = ctx(6)
+    const plan = generate(c)
+    const ids = dinners.map((x) => x.id)
+    const impacts = pickImpacts(c, { plan, date: MONDAY, slot: 'dinner', recipeIds: ids })
+    expect(impacts.size).toBe(ids.length)
+    for (const [id, list] of impacts) {
+      expect(list.map((p) => p.personId)).toEqual(['a1', 'a2'])
+      const { plan: picked } = setMeal(c, { plan, date: MONDAY, slot: 'dinner', recipeId: id })
+      const day = dayProtein(c, picked.days[0])
+      list.forEach((p, k) => expect(p.diffG).toBeCloseTo(day[k].proteinG - day[k].targetG, 5))
+    }
+  })
+
+  it('suggests boosts for adults under target, and an added extra counts (#103, #120)', () => {
+    const c = ctx(7)
+    let plan = emptyWeekPlan(WEEK, c.household)
+    plan = setMeal(c, { plan, date: MONDAY, slot: 'breakfast', recipeId: SEED_RECIPES.find((x) => x.categoryIds.includes('breakfast'))!.id }).plan
+    const suggestions = boostSuggestions(c, plan.days[0])
+    expect(suggestions.map((x) => x.personId)).toEqual(['a1', 'a2'])
+    const before = dayProtein(c, plan.days[0])[0].proteinG
+    const s = suggestions[0]
+    plan = addExtras(plan, MONDAY, [{ personId: s.personId, ingredientId: s.boost.ingredientId, amount: s.boost.amount, unit: s.boost.unit }])
+    const after = dayProtein(c, plan.days[0])
+    expect(after[0].proteinG).toBeCloseTo(before + s.boost.proteinG, 5)
+    expect(plan.days[0].meals.snack.extras).toHaveLength(1)
   })
 })

@@ -15,16 +15,26 @@
  * - If rules cannot all be met they are relaxed in a fixed order (#100, #110).
  * - Portions are scaled per person to the protein target (#19, #27, #101).
  */
-import { addDays, parseISO } from 'date-fns'
+import { addDays, getISODay, parseISO } from 'date-fns'
 import { allTranslations } from './localize'
 import { recipeNutrition, recipeTags, type RecipeNutrition } from './nutrition'
-import { currentTargets, mealPortions, eatsMeal, totalPortions } from './protein'
+import {
+  currentTargets,
+  eatsMeal,
+  mealPortions,
+  personDayNutrition,
+  plannedTargetG,
+  proteinBoost,
+  totalPortions,
+  type BoostSuggestion,
+} from './protein'
 import type {
   DayPlan,
   HouseholdSettings,
   Id,
   Ingredient,
   IsoDate,
+  MealExtra,
   MealSlot,
   PlannedMeal,
   Recipe,
@@ -136,12 +146,20 @@ class Planner {
   private readonly allowed: Recipe[]
 
   readonly ctx: PlannerContext
+  /** "Favourites only" week (#123, #131): favourites first, then regular dishes. */
+  readonly favoritesOnly: boolean
 
-  constructor(ctx: PlannerContext) {
+  constructor(ctx: PlannerContext, favoritesOnly = false) {
     this.ctx = ctx
     this.random = ctx.random ?? Math.random
     this.household = ctx.household
+    this.favoritesOnly = favoritesOnly
     this.allowed = ctx.recipes.filter((r) => isRecipeAllowed(r, ctx.ingredients, ctx.household))
+  }
+
+  /** Picks with the soft rules; in a favourites week a favourite is preferred while all other rules hold. */
+  choose(candidates: Recipe[], rules: Rule[]): Recipe | undefined {
+    return pick(candidates, this.favoritesOnly ? [(r) => r.favorite, ...rules] : rules, this.random)
   }
 
   recipe(id: Id | undefined): Recipe | undefined {
@@ -219,13 +237,12 @@ function lunchFor(
   if (dinner?.status === 'planned' && dinner.recipeId) {
     return { status: 'leftovers', recipeId: dinner.recipeId, leftoversFrom: yesterday.date, portions: {}, guests }
   }
-  const recipe = pick(
-    planner.quickLunches(),
-    [planner.notSameAs(yesterday.lunchId), planner.noDislikes('lunch', dayIndex)],
-    planner.random,
-  )
+  const recipe = planner.choose(planner.quickLunches(), [planner.notSameAs(yesterday.lunchId), planner.noDislikes('lunch', dayIndex)])
   return recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests } : emptyMeal('none', guests)
 }
+
+/** 0 = Monday … 6 = Sunday. */
+export const weekdayOf = (date: IsoDate) => ((getISODay(parseISO(date)) - 1) as Weekday)
 
 const previousDate = (date: IsoDate) => toIsoDate(addDays(parseISO(date), -1))
 
@@ -237,6 +254,10 @@ export interface GenerateOptions {
   existing?: WeekPlan
   /** The previous week's plan, for Monday's leftovers (#13). */
   previousWeek?: WeekPlan
+  /** Only fill empty meals; everything already planned stays (#121). Default: re-create from today. */
+  fillEmptyOnly?: boolean
+  /** Favourites first, topped up with regular dishes (#123, #131). */
+  favoritesOnly?: boolean
   now?: Timestamp
 }
 
@@ -274,9 +295,11 @@ function planDinners(
       const recipe = strict
         ? (() => {
             const ok = candidates.filter((r) => rules.every((rule) => rule(r)))
-            return ok.length > 0 ? weightedPick(ok, planner.random) : undefined
+            const favorites = planner.favoritesOnly ? ok.filter((r) => r.favorite) : []
+            const pool = favorites.length > 0 ? favorites : ok
+            return pool.length > 0 ? weightedPick(pool, planner.random) : undefined
           })()
-        : pick(candidates, rules, planner.random)
+        : planner.choose(candidates, rules)
       if (!recipe && strict && candidates.length > 0) return undefined
       if (recipe) used.add(recipe.id)
       ids.push(recipe?.id)
@@ -292,7 +315,7 @@ function planDinners(
 
 /** Creates (or re-creates from today onwards) the plan for a week. */
 export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions): WeekPlan {
-  const planner = new Planner(ctx)
+  const planner = new Planner(ctx, options.favoritesOnly)
   const now = options.now ?? new Date().toISOString()
   const dates = datesOfWeek(options.weekId)
   const targets = currentTargets(ctx.household)
@@ -301,14 +324,32 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
   const isKept = (date: IsoDate) => existingDay(date) !== undefined && date < options.today
   const noDinnerAtHome = (dayIndex: number) => ctx.household.noDinnerAtHomeDays.includes(dayIndex as Weekday)
 
+  /**
+   * A meal that stays as it is: "eating out" always; when only filling empty
+   * meals, everything that is not empty (#121).
+   */
+  const fixedMeal = (date: IsoDate, slot: MealSlot): PlannedMeal | undefined => {
+    const meal = existingDay(date)?.meals[slot]
+    if (!meal) return undefined
+    if (meal.status === 'eatingOut') return { ...emptyMeal('eatingOut', meal.guests), extras: meal.extras }
+    return options.fillEmptyOnly && meal.status !== 'none' ? meal : undefined
+  }
+  /** Guests (and, when filling, extras) carry over to a newly picked meal. */
+  const carried = (date: IsoDate, slot: MealSlot) => {
+    const meal = existingDay(date)?.meals[slot]
+    return { guests: meal?.guests ?? 0, extras: options.fillEmptyOnly ? meal?.extras : undefined }
+  }
+  const withCarried = (meal: PlannedMeal, date: IsoDate, slot: MealSlot): PlannedMeal => {
+    const { guests, extras } = carried(date, slot)
+    return extras ? { ...meal, guests, extras } : { ...meal, guests }
+  }
+
   const dinnerIds = planDinners(
     planner,
     dates.map((date, i) => {
-      if (isKept(date)) {
-        const dinner = existingDay(date)!.meals.dinner
-        return { kept: dinner.status === 'planned' ? dinner.recipeId : undefined }
-      }
-      return { cook: !noDinnerAtHome(i) && existingDay(date)?.meals.dinner.status !== 'eatingOut' }
+      const fixed = isKept(date) ? existingDay(date)!.meals.dinner : fixedMeal(date, 'dinner')
+      if (fixed) return { kept: fixed.status === 'planned' ? fixed.recipeId : undefined }
+      return { cook: !noDinnerAtHome(i) }
     }),
     previousDinnerId(options.previousWeek?.days[6]),
   )
@@ -320,42 +361,34 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
       return
     }
     const yesterday = i === 0 ? options.previousWeek?.days[6] : days[i - 1]
-    const keep = (slot: MealSlot) => ({
-      guests: old?.meals[slot].guests ?? 0,
-      eatingOut: old?.meals[slot].status === 'eatingOut',
-    })
 
     // Dinner
-    const d = keep('dinner')
-    let dinner: PlannedMeal
-    if (noDinnerAtHome(i)) dinner = emptyMeal('none', d.guests)
-    else if (d.eatingOut) dinner = emptyMeal('eatingOut', d.guests)
-    else {
-      const recipeId = dinnerIds[i]
-      dinner = recipeId ? { status: 'planned', recipeId, portions: {}, guests: d.guests } : emptyMeal('none', d.guests)
+    let dinner = fixedMeal(date, 'dinner')
+    if (!dinner) {
+      const recipeId = noDinnerAtHome(i) ? undefined : dinnerIds[i]
+      dinner = withCarried(recipeId ? { status: 'planned', recipeId, portions: {}, guests: 0 } : emptyMeal(), date, 'dinner')
     }
 
     // Lunch
-    const l = keep('lunch')
-    const lunch = l.eatingOut
-      ? emptyMeal('eatingOut', l.guests)
-      : lunchFor(
+    const lunch =
+      fixedMeal(date, 'lunch') ??
+      withCarried(
+        lunchFor(
           planner,
           i,
           { dinner: yesterday?.meals.dinner, date: yesterday?.date ?? previousDate(date), lunchId: yesterday?.meals.lunch.recipeId },
-          l.guests,
-        )
+          0,
+        ),
+        date,
+        'lunch',
+      )
 
     // Breakfast and snack
     const simple = (slot: 'breakfast' | 'snack', candidates: Recipe[]): PlannedMeal => {
-      const k = keep(slot)
-      if (k.eatingOut) return emptyMeal('eatingOut', k.guests)
-      const recipe = pick(
-        candidates,
-        [planner.notSameAs(yesterday?.meals[slot].recipeId), planner.noDislikes(slot, i)],
-        planner.random,
-      )
-      return recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests: k.guests } : emptyMeal('none', k.guests)
+      const fixed = fixedMeal(date, slot)
+      if (fixed) return fixed
+      const recipe = planner.choose(candidates, [planner.notSameAs(yesterday?.meals[slot].recipeId), planner.noDislikes(slot, i)])
+      return withCarried(recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests: 0 } : emptyMeal(), date, slot)
     }
 
     const day: DayPlan = {
@@ -430,21 +463,217 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
     )
   }
   if (!recipe) return { plan: options.plan, nextWeek: options.nextWeek }
+  return applyMeal(planner, { ...options, nextWeek }, recipe.id, now)
+}
 
-  day.meals[options.slot] = { status: 'planned', recipeId: recipe.id, portions: {}, guests: meal.guests }
+/**
+ * Puts a recipe on a meal, recalculates portions (#114) and lets the next
+ * day's lunch follow a dinner: leftovers from this dinner are updated, and an
+ * empty lunch becomes leftovers (#13).
+ */
+function applyMeal(
+  planner: Planner,
+  options: { plan: WeekPlan; date: IsoDate; slot: MealSlot; nextWeek?: WeekPlan },
+  recipeId: Id,
+  now: Timestamp,
+): { plan: WeekPlan; nextWeek?: WeekPlan } {
+  const days = options.plan.days.map((d) => ({ ...d, meals: { ...d.meals } }))
+  const i = days.findIndex((d) => d.date === options.date)
+  if (i < 0) return { plan: options.plan, nextWeek: options.nextWeek }
+  const day = days[i]
+  const old = day.meals[options.slot]
+  const meal: PlannedMeal = { ...old, status: 'planned', recipeId, portions: {} }
+  delete meal.leftoversFrom
+  day.meals[options.slot] = meal
   days[i] = planner.withPortions(day, i)
 
-  // The next day's leftovers follow the new dinner.
-  if (options.slot === 'dinner' && nextDay?.meals.lunch.status === 'leftovers' && nextDay.meals.lunch.leftoversFrom === day.date) {
-    const updated = { ...nextDay, meals: { ...nextDay.meals, lunch: { ...nextDay.meals.lunch, recipeId: recipe.id } } }
+  let nextWeek = options.nextWeek
+  const nextDay = i === 6 ? nextWeek?.days[0] : days[i + 1]
+  const lunch = nextDay?.meals.lunch
+  const follows = lunch && ((lunch.status === 'leftovers' && lunch.leftoversFrom === day.date) || lunch.status === 'none')
+  if (options.slot === 'dinner' && nextDay && lunch && follows) {
+    const updated = {
+      ...nextDay,
+      meals: { ...nextDay.meals, lunch: { ...lunch, status: 'leftovers' as const, recipeId, leftoversFrom: day.date } },
+    }
     if (i === 6 && nextWeek) {
       nextWeek = { ...nextWeek, days: [planner.withPortions(updated, 0), ...nextWeek.days.slice(1)], updatedAt: now }
     } else if (i < 6) {
       days[i + 1] = planner.withPortions(updated, i + 1)
     }
   }
-
   return { plan: { ...options.plan, days, updatedAt: now }, nextWeek }
+}
+
+export interface SetMealOptions {
+  plan: WeekPlan
+  date: IsoDate
+  slot: MealSlot
+  recipeId: Id
+  nextWeek?: WeekPlan
+  now?: Timestamp
+}
+
+/** Puts a recipe the user picked on a meal (#112). Any recipe may be picked, also on a fixed day out. */
+export function setMeal(ctx: PlannerContext, options: SetMealOptions): { plan: WeekPlan; nextWeek?: WeekPlan } {
+  return applyMeal(new Planner(ctx), options, options.recipeId, options.now ?? new Date().toISOString())
+}
+
+/**
+ * Marks a meal as "eating out" (#30) or back to empty. When a dinner is eaten
+ * out, the next day's leftovers become a quick lunch (#108).
+ */
+export function setEatingOut(
+  ctx: PlannerContext,
+  options: { plan: WeekPlan; date: IsoDate; slot: MealSlot; eatingOut: boolean; previousWeek?: WeekPlan; nextWeek?: WeekPlan; now?: Timestamp },
+): { plan: WeekPlan; nextWeek?: WeekPlan } {
+  const now = options.now ?? new Date().toISOString()
+  const i = options.plan.days.findIndex((d) => d.date === options.date)
+  if (i < 0) return { plan: options.plan, nextWeek: options.nextWeek }
+  const days = options.plan.days.map((d) => ({ ...d, meals: { ...d.meals } }))
+  const old = days[i].meals[options.slot]
+  days[i].meals[options.slot] = { ...emptyMeal(options.eatingOut ? 'eatingOut' : 'none', old.guests), ...(old.extras ? { extras: old.extras } : {}) }
+  let result: { plan: WeekPlan; nextWeek?: WeekPlan } = { plan: { ...options.plan, days, updatedAt: now }, nextWeek: options.nextWeek }
+
+  const nextDay = i === 6 ? options.nextWeek?.days[0] : days[i + 1]
+  const lunch = nextDay?.meals.lunch
+  if (options.slot === 'dinner' && nextDay && lunch?.status === 'leftovers' && lunch.leftoversFrom === options.date) {
+    if (i < 6) {
+      result = swapMeal(ctx, { ...options, plan: result.plan, date: nextDay.date, slot: 'lunch', now })
+    } else if (result.nextWeek) {
+      const swapped = swapMeal(ctx, { plan: result.nextWeek, date: nextDay.date, slot: 'lunch', previousWeek: result.plan, now })
+      result = { ...result, nextWeek: swapped.plan }
+    }
+  }
+  return result
+}
+
+/** Sets the number of guests at a meal (#31). Portions per person do not change. */
+export function setGuests(plan: WeekPlan, date: IsoDate, slot: MealSlot, guests: number, now = new Date().toISOString()): WeekPlan {
+  return {
+    ...plan,
+    updatedAt: now,
+    days: plan.days.map((d) =>
+      d.date === date ? { ...d, meals: { ...d.meals, [slot]: { ...d.meals[slot], guests: Math.max(0, Math.round(guests)) } } } : d,
+    ),
+  }
+}
+
+/** Adds extra items (e.g. protein boosts) to a day's evening snack (#120). */
+export function addExtras(plan: WeekPlan, date: IsoDate, extras: MealExtra[], now = new Date().toISOString()): WeekPlan {
+  return {
+    ...plan,
+    updatedAt: now,
+    days: plan.days.map((d) =>
+      d.date === date ? { ...d, meals: { ...d.meals, snack: { ...d.meals.snack, extras: [...(d.meals.snack.extras ?? []), ...extras] } } } : d,
+    ),
+  }
+}
+
+/** Removes one extra item from a day's evening snack. */
+export function removeExtra(plan: WeekPlan, date: IsoDate, index: number, now = new Date().toISOString()): WeekPlan {
+  return {
+    ...plan,
+    updatedAt: now,
+    days: plan.days.map((d) =>
+      d.date === date
+        ? { ...d, meals: { ...d.meals, snack: { ...d.meals.snack, extras: (d.meals.snack.extras ?? []).filter((_, j) => j !== index) } } }
+        : d,
+    ),
+  }
+}
+
+/** A week with nothing planned yet (#112). Not saved until the user changes something. */
+export function emptyWeekPlan(weekId: WeekId, household: HouseholdSettings, now = new Date().toISOString()): WeekPlan {
+  const targets = currentTargets(household)
+  return {
+    weekId,
+    days: datesOfWeek(weekId).map((date) => ({
+      date,
+      meals: { breakfast: emptyMeal(), lunch: emptyMeal(), dinner: emptyMeal(), snack: emptyMeal() },
+      targetsG: { ...targets },
+    })),
+    createdAt: now,
+    updatedAt: now,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Protein per day, impact of a pick, boost suggestions
+// ---------------------------------------------------------------------------
+
+export interface PersonDayProtein {
+  personId: Id
+  proteinG: number
+  /** The part of the target the planned meals should cover (#109). */
+  targetG: number
+}
+
+function dayProteinWith(planner: Planner, day: DayPlan): PersonDayProtein[] {
+  const fixedDayOut = planner.household.noDinnerAtHomeDays.includes(weekdayOf(day.date))
+  return planner.household.people
+    .filter((p) => p.kind === 'adult' && day.targetsG[p.id])
+    .map((p) => ({
+      personId: p.id,
+      proteinG: personDayNutrition(day, p.id, (id) => planner.nutritionOf(id), planner.ctx.ingredients).proteinG,
+      targetG: plannedTargetG(day, p.id, planner.household.proteinSplit, fixedDayOut),
+    }))
+}
+
+/** Planned protein and target per adult for one day (#118). */
+export function dayProtein(ctx: PlannerContext, day: DayPlan): PersonDayProtein[] {
+  return dayProteinWith(new Planner(ctx), day)
+}
+
+/**
+ * For each recipe: how far each adult would be from the day's target if the
+ * recipe were picked for this meal (positive = over) (#115, #119).
+ */
+export function pickImpacts(
+  ctx: PlannerContext,
+  options: { plan: WeekPlan; date: IsoDate; slot: MealSlot; recipeIds: Id[] },
+): Map<Id, { personId: Id; diffG: number }[]> {
+  const planner = new Planner(ctx)
+  const result = new Map<Id, { personId: Id; diffG: number }[]>()
+  for (const recipeId of options.recipeIds) {
+    const { plan } = applyMeal(planner, options, recipeId, options.plan.updatedAt)
+    const day = plan.days.find((d) => d.date === options.date)
+    if (!day) continue
+    result.set(
+      recipeId,
+      dayProteinWith(planner, day).map((p) => ({ personId: p.personId, diffG: p.proteinG - p.targetG })),
+    )
+  }
+  return result
+}
+
+/** Boost suggestions for the adults still under target on a day (#103, #115). */
+export function boostSuggestions(ctx: PlannerContext, day: DayPlan): { personId: Id; gapG: number; boost: BoostSuggestion }[] {
+  const planner = new Planner(ctx)
+  const out: { personId: Id; gapG: number; boost: BoostSuggestion }[] = []
+  for (const p of dayProteinWith(planner, day)) {
+    const gapG = p.targetG - p.proteinG
+    const boost = proteinBoost(gapG, ctx.ingredients, (i) => isIngredientExcluded(i, ctx.household))
+    if (boost) out.push({ personId: p.personId, gapG, boost })
+  }
+  return out
+}
+
+/**
+ * How many meals a favourites week had to fill with regular dishes (#132):
+ * meals that changed from `before` to `after` and are not favourites.
+ */
+export function filledNonFavorites(ctx: PlannerContext, before: WeekPlan | undefined, after: WeekPlan): number {
+  let count = 0
+  after.days.forEach((day, i) => {
+    for (const slot of Object.keys(day.meals) as MealSlot[]) {
+      const meal = day.meals[slot]
+      const old = before?.days[i]?.meals[slot]
+      if (meal.status !== 'planned' || !meal.recipeId || (old?.status === meal.status && old.recipeId === meal.recipeId)) continue
+      if (!ctx.recipes.find((r) => r.id === meal.recipeId)?.favorite) count++
+    }
+  })
+  return count
 }
 
 // ---------------------------------------------------------------------------

@@ -236,5 +236,115 @@
       "save": "Legg til ingrediens",
       "nameRequired": "Skriv inn et navn."
     }
+  },
+  "week": {
+    "previousWeek": "Forrige uke",
+    "nextWeek": "Neste uke",
+    "weekLabel": "Uke {{week}} · {{range}}",
+    "today": "I dag",
+    "undo": "Angre",
+    "undoLabel": "Angre siste endring",
+    "makePlan": "Lag ukeplan",
+    "fillEmpty": "Fyll ut tomme",
+    "more": "Mer",
+    "moreLabel": "Flere valg for uken",
+    "moreTitle": "Uke {{week}}",
+    "withAll": "{{action}} – alle retter",
+    "withFavorites": "{{action}} – bare favoritter",
+    "favoritesHint": "Har du for få favoritter, fylles resten med vanlige retter.",
+    "replace": "Lag ny ukeplan (alt på nytt)",
+    "replaceHint": "Erstatter alt fra i dag av. Du får spørsmål først.",
+    "replaceConfirm": {
+      "title": "Lage ny ukeplan?",
+      "description": "Alt som er planlagt fra i dag av, blir byttet ut. Du kan angre etterpå.",
+      "cancel": "Behold planen",
+      "confirm": "Lag ny ukeplan"
+    },
+    "emptyTitle": "Uke {{week}} er ikke planlagt ennå.",
+    "emptyText": "Trykk «Lag ukeplan» for å fylle hele uken, eller velg retter selv nedenfor. Du kan også blande.",
+    "noPeople": "Familien er ikke satt opp ennå, så appen kan ikke regne ut porsjoner og proteinmål. Det gjør du i oppstartsveiviseren, som kommer snart.",
+    "slots": {
+      "breakfast": "Frokost",
+      "lunch": "Lunsj",
+      "dinner": "Middag",
+      "snack": "Kveld"
+    },
+    "leftoversFrom": "Rester fra {{day}}",
+    "eatingOut": "Spiser ute",
+    "noDinnerAtHome": "Ingen middag hjemme (fast dag)",
+    "pickDish": "Velg rett",
+    "pickDishFor": "Velg rett: {{slot}}, {{day}}",
+    "meta": "{{minutes}} min · {{protein}} g",
+    "swap": "Bytt {{slot}}, {{day}}",
+    "openMeal": "{{slot}}: {{name}}",
+    "progress": {
+      "label": "Protein per voksen",
+      "value": "{{protein}} / {{target}} g",
+      "onTarget": "på målet",
+      "under": "{{gap}} g under målet"
+    },
+    "notes": {
+      "dislike": "{{name}} liker ikke {{ingredients}}",
+      "repeatedDinner": "Gjentas denne uken",
+      "sameProteinSource": "Samme proteinkilde som dagen før"
+    },
+    "extra": "+ ekstra til {{name}}: {{item}}",
+    "removeExtra": "Fjern ekstra til {{name}}: {{item}}",
+    "boost": {
+      "egg": "1 egg",
+      "milk": "2 dl melk",
+      "cottageCheese": "100 g cottage cheese",
+      "skyr": "170 g skyr"
+    },
+    "boostShort": {
+      "egg": "egg",
+      "milk": "melk",
+      "cottageCheese": "cottage cheese",
+      "skyr": "skyr"
+    },
+    "toast": {
+      "swapped": "Byttet til {{name}}",
+      "picked": "Valgt: {{name}}",
+      "under": "{{who}} under målet i dag.",
+      "who": "{{name}} {{gap}} g",
+      "addQuestion": "Legg til {{item}} som kveldssnacks?",
+      "addQuestionMany": "Legg til ekstra protein som kveldssnacks?",
+      "add": "Legg til {{item}}",
+      "addMany": "Legg til",
+      "added": "Lagt til på kvelden",
+      "filled": "Ukeplanen er fylt ut",
+      "replaced": "Ny ukeplan er laget",
+      "tooFewFavorites_one": "For få favoritter: {{count}} måltid fikk en annen rett.",
+      "tooFewFavorites_other": "For få favoritter: {{count}} måltider fikk andre retter.",
+      "noAlternative": "Fant ingen annen rett som passer.",
+      "undone": "Angret",
+      "eatingOut": "Merket som «spiser ute»"
+    },
+    "meal": {
+      "pickAnother": "Velg annen rett",
+      "eatingOut": "Spiser ute",
+      "guests": "Gjester",
+      "fewerGuests": "Færre gjester",
+      "moreGuests": "Flere gjester",
+      "portions": "Porsjoner per person",
+      "leftoversHint": "Rester fra middagen {{day}}. Mengden er tatt med når middagen lages.",
+      "eatingOutText": "Dere spiser ute. Dette måltidet telles ikke med i dagens proteinmål."
+    },
+    "pick": {
+      "title": "{{slot}}, {{day}}",
+      "description": "Tallene viser dagens protein hvis du velger retten.",
+      "onTarget": "{{name}}: på målet",
+      "over": "{{name}}: +{{diff}} g over",
+      "under": "{{name}}: {{diff}} g under",
+      "eatingOut": "Vi spiser ute"
+    },
+    "dateFormats": {
+      "day": "EEEE d. MMM",
+      "rangeStart": "d.",
+      "rangeStartOtherMonth": "d. MMM",
+      "rangeEnd": "d. MMM"
+    },
+    "weekNav": "Velg uke",
+    "replaceFavorites": "Lag ny ukeplan – bare favoritter"
   }
 }

@@ -205,5 +205,115 @@
       "save": "Add ingredient",
       "nameRequired": "Enter a name."
     }
+  },
+  "week": {
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "weekLabel": "Week {{week}} · {{range}}",
+    "today": "Today",
+    "undo": "Undo",
+    "undoLabel": "Undo last change",
+    "makePlan": "Make week plan",
+    "fillEmpty": "Fill in empty",
+    "more": "More",
+    "moreLabel": "More options for the week",
+    "moreTitle": "Week {{week}}",
+    "withAll": "{{action}} – all dishes",
+    "withFavorites": "{{action}} – favourites only",
+    "favoritesHint": "If there are too few favourites, the rest is filled with other dishes.",
+    "replace": "Make new week plan (start over)",
+    "replaceHint": "Replaces everything from today. You will be asked first.",
+    "replaceConfirm": {
+      "title": "Make a new week plan?",
+      "description": "Everything planned from today on will be replaced. You can undo it afterwards.",
+      "cancel": "Keep the plan",
+      "confirm": "Make new plan"
+    },
+    "emptyTitle": "Week {{week}} is not planned yet.",
+    "emptyText": "Tap “Make week plan” to fill the whole week, or pick dishes yourself below. You can also mix.",
+    "noPeople": "The family is not set up yet, so the app cannot work out portions and protein targets. You do that in the setup wizard, coming soon.",
+    "slots": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Evening snack"
+    },
+    "leftoversFrom": "Leftovers from {{day}}",
+    "eatingOut": "Eating out",
+    "noDinnerAtHome": "No dinner at home (fixed day)",
+    "pickDish": "Pick a dish",
+    "pickDishFor": "Pick a dish: {{slot}}, {{day}}",
+    "meta": "{{minutes}} min · {{protein}} g",
+    "swap": "Swap {{slot}}, {{day}}",
+    "openMeal": "{{slot}}: {{name}}",
+    "progress": {
+      "label": "Protein per adult",
+      "value": "{{protein}} / {{target}} g",
+      "onTarget": "on target",
+      "under": "{{gap}} g under target"
+    },
+    "notes": {
+      "dislike": "{{name}} doesn’t like {{ingredients}}",
+      "repeatedDinner": "Repeated this week",
+      "sameProteinSource": "Same protein source as the day before"
+    },
+    "extra": "+ extra for {{name}}: {{item}}",
+    "removeExtra": "Remove extra for {{name}}: {{item}}",
+    "boost": {
+      "egg": "1 egg",
+      "milk": "2 dl milk",
+      "cottageCheese": "100 g cottage cheese",
+      "skyr": "170 g skyr"
+    },
+    "boostShort": {
+      "egg": "egg",
+      "milk": "milk",
+      "cottageCheese": "cottage cheese",
+      "skyr": "skyr"
+    },
+    "toast": {
+      "swapped": "Swapped to {{name}}",
+      "picked": "Picked: {{name}}",
+      "under": "{{who}} under today’s target.",
+      "who": "{{name}} {{gap}} g",
+      "addQuestion": "Add {{item}} as evening snack?",
+      "addQuestionMany": "Add extra protein as evening snack?",
+      "add": "Add {{item}}",
+      "addMany": "Add",
+      "added": "Added to the evening",
+      "filled": "Week plan filled in",
+      "replaced": "New week plan made",
+      "tooFewFavorites_one": "Too few favourites: {{count}} meal got another dish.",
+      "tooFewFavorites_other": "Too few favourites: {{count}} meals got other dishes.",
+      "noAlternative": "No other suitable dish found.",
+      "undone": "Undone",
+      "eatingOut": "Marked as “eating out”"
+    },
+    "meal": {
+      "pickAnother": "Pick another dish",
+      "eatingOut": "Eating out",
+      "guests": "Guests",
+      "fewerGuests": "Fewer guests",
+      "moreGuests": "More guests",
+      "portions": "Portions per person",
+      "leftoversHint": "Leftovers from {{day}}’s dinner. The amount is included when the dinner is cooked.",
+      "eatingOutText": "You are eating out. This meal is not counted in the day’s protein target."
+    },
+    "pick": {
+      "title": "{{slot}}, {{day}}",
+      "description": "The numbers show the day’s protein if you pick the dish.",
+      "onTarget": "{{name}}: on target",
+      "over": "{{name}}: +{{diff}} g over",
+      "under": "{{name}}: {{diff}} g under",
+      "eatingOut": "We’re eating out"
+    },
+    "dateFormats": {
+      "day": "EEEE d MMM",
+      "rangeStart": "d",
+      "rangeStartOtherMonth": "d MMM",
+      "rangeEnd": "d MMM"
+    },
+    "weekNav": "Choose week",
+    "replaceFavorites": "Make new week plan – favourites only"
   }
 }

@@ -205,5 +205,115 @@
       "save": "Zutat hinzufügen",
       "nameRequired": "Bitte einen Namen eingeben."
     }
+  },
+  "week": {
+    "previousWeek": "Vorherige Woche",
+    "nextWeek": "Nächste Woche",
+    "weekLabel": "KW {{week}} · {{range}}",
+    "today": "Heute",
+    "undo": "Rückgängig",
+    "undoLabel": "Letzte Änderung rückgängig machen",
+    "makePlan": "Wochenplan erstellen",
+    "fillEmpty": "Lücken füllen",
+    "more": "Mehr",
+    "moreLabel": "Weitere Optionen für die Woche",
+    "moreTitle": "KW {{week}}",
+    "withAll": "{{action}} – alle Gerichte",
+    "withFavorites": "{{action}} – nur Favoriten",
+    "favoritesHint": "Gibt es zu wenige Favoriten, wird der Rest mit anderen Gerichten gefüllt.",
+    "replace": "Neuen Wochenplan erstellen (alles neu)",
+    "replaceHint": "Ersetzt alles ab heute. Du wirst vorher gefragt.",
+    "replaceConfirm": {
+      "title": "Neuen Wochenplan erstellen?",
+      "description": "Alles ab heute wird ersetzt. Du kannst es danach rückgängig machen.",
+      "cancel": "Plan behalten",
+      "confirm": "Neuen Plan erstellen"
+    },
+    "emptyTitle": "KW {{week}} ist noch nicht geplant.",
+    "emptyText": "Tippe auf „Wochenplan erstellen“, um die ganze Woche zu füllen, oder wähle unten selbst Gerichte aus. Du kannst auch beides mischen.",
+    "noPeople": "Die Familie ist noch nicht eingerichtet, daher kann die App keine Portionen und Proteinziele berechnen. Das geht im Einrichtungsassistenten, der bald kommt.",
+    "slots": {
+      "breakfast": "Frühstück",
+      "lunch": "Mittagessen",
+      "dinner": "Abendessen",
+      "snack": "Abendsnack"
+    },
+    "leftoversFrom": "Reste von {{day}}",
+    "eatingOut": "Auswärts essen",
+    "noDinnerAtHome": "Kein Abendessen zu Hause (fester Tag)",
+    "pickDish": "Gericht wählen",
+    "pickDishFor": "Gericht wählen: {{slot}}, {{day}}",
+    "meta": "{{minutes}} Min. · {{protein}} g",
+    "swap": "{{slot}} tauschen, {{day}}",
+    "openMeal": "{{slot}}: {{name}}",
+    "progress": {
+      "label": "Protein pro Erwachsenem",
+      "value": "{{protein}} / {{target}} g",
+      "onTarget": "Ziel erreicht",
+      "under": "{{gap}} g unter dem Ziel"
+    },
+    "notes": {
+      "dislike": "{{name}} mag kein(e) {{ingredients}}",
+      "repeatedDinner": "Kommt diese Woche mehrmals vor",
+      "sameProteinSource": "Gleiche Proteinquelle wie am Vortag"
+    },
+    "extra": "+ extra für {{name}}: {{item}}",
+    "removeExtra": "Extra für {{name}} entfernen: {{item}}",
+    "boost": {
+      "egg": "1 Ei",
+      "milk": "2 dl Milch",
+      "cottageCheese": "100 g Hüttenkäse",
+      "skyr": "170 g Skyr"
+    },
+    "boostShort": {
+      "egg": "Ei",
+      "milk": "Milch",
+      "cottageCheese": "Hüttenkäse",
+      "skyr": "Skyr"
+    },
+    "toast": {
+      "swapped": "Getauscht gegen {{name}}",
+      "picked": "Gewählt: {{name}}",
+      "under": "{{who}} unter dem Ziel heute.",
+      "who": "{{name}} {{gap}} g",
+      "addQuestion": "{{item}} als Abendsnack hinzufügen?",
+      "addQuestionMany": "Extra Protein als Abendsnack hinzufügen?",
+      "add": "{{item}} hinzufügen",
+      "addMany": "Hinzufügen",
+      "added": "Zum Abend hinzugefügt",
+      "filled": "Wochenplan ausgefüllt",
+      "replaced": "Neuer Wochenplan erstellt",
+      "tooFewFavorites_one": "Zu wenige Favoriten: {{count}} Mahlzeit hat ein anderes Gericht bekommen.",
+      "tooFewFavorites_other": "Zu wenige Favoriten: {{count}} Mahlzeiten haben andere Gerichte bekommen.",
+      "noAlternative": "Kein anderes passendes Gericht gefunden.",
+      "undone": "Rückgängig gemacht",
+      "eatingOut": "Als „auswärts essen“ markiert"
+    },
+    "meal": {
+      "pickAnother": "Anderes Gericht wählen",
+      "eatingOut": "Auswärts essen",
+      "guests": "Gäste",
+      "fewerGuests": "Weniger Gäste",
+      "moreGuests": "Mehr Gäste",
+      "portions": "Portionen pro Person",
+      "leftoversHint": "Reste vom Abendessen am {{day}}. Die Menge wird beim Kochen mit eingeplant.",
+      "eatingOutText": "Ihr esst auswärts. Diese Mahlzeit zählt nicht zum Proteinziel des Tages."
+    },
+    "pick": {
+      "title": "{{slot}}, {{day}}",
+      "description": "Die Zahlen zeigen das Tagesprotein, wenn du das Gericht wählst.",
+      "onTarget": "{{name}}: Ziel erreicht",
+      "over": "{{name}}: +{{diff}} g darüber",
+      "under": "{{name}}: {{diff}} g darunter",
+      "eatingOut": "Wir essen auswärts"
+    },
+    "dateFormats": {
+      "day": "EEEE, d. MMM",
+      "rangeStart": "d.",
+      "rangeStartOtherMonth": "d. MMM",
+      "rangeEnd": "d. MMM"
+    },
+    "weekNav": "Woche wählen",
+    "replaceFavorites": "Neuen Wochenplan erstellen – nur Favoriten"
   }
 }

@@ -193,7 +193,7 @@ export interface HouseholdSettings {
  * - planned:    a recipe cooked for this meal
  * - leftovers:  leftovers from the previous day's dinner (lunch)
  * - eatingOut:  the household eats out – nothing to cook (#30)
- * - none:       no meal planned (e.g. Friday dinner)
+ * - none:       nothing planned yet (an empty slot), or dinner on a fixed day out (#107)
  */
 export type MealStatus = 'planned' | 'leftovers' | 'eatingOut' | 'none'
 
@@ -207,8 +207,18 @@ export interface PlannedMeal {
   portions: Record<Id, number>
   /** Extra guests eating this meal; each gets a standard adult portion (#31). */
   guests: number
+  /** Extra items for single people, e.g. a protein boost on the evening (#120). */
+  extras?: MealExtra[]
   /** What actually happened. Missing = still just planned. Used from phase 2 (#106). */
   outcome?: MealOutcome
+}
+
+/** An extra item for one person on a meal, e.g. 170 g skyr as a protein boost (#120). */
+export interface MealExtra {
+  personId: Id
+  ingredientId: Id
+  amount: number
+  unit: Unit
 }
 
 /**

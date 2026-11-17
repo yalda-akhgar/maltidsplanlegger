@@ -30,7 +30,7 @@ import {
 } from './types'
 
 /** Bump when the stored format changes, and add a migration below (#73). */
-export const SCHEMA_VERSION = 3
+export const SCHEMA_VERSION = 4
 
 /** Bump when new seed recipes/ingredients should be added to existing installs. */
 export const SEED_VERSION = 1
@@ -48,6 +48,7 @@ const KEYS = {
   pantry: 'pantry',
   installCardDismissed: 'installCardDismissed',
   language: 'language', // device preference (#74)
+  proteinAlerts: 'proteinAlerts', // device preference (#128)
 } as const
 
 /** Minimal storage interface – localStorage in the app, in-memory in tests. */
@@ -147,7 +148,8 @@ export function createRepository(storage: KeyValueStorage) {
       const household = read<HouseholdSettings>(KEYS.household, defaultHousehold())
       write(KEYS.household, { ...household, noDinnerAtHomeDays: household.noDinnerAtHomeDays ?? [] })
     }
-    // Future migrations: if (version < 4) { … }
+    // v4 adds optional extras on meals (#120): no stored data changes.
+    // Future migrations: if (version < 5) { … }
 
     write(KEYS.schemaVersion, SCHEMA_VERSION)
   }
@@ -268,6 +270,13 @@ export function createRepository(storage: KeyValueStorage) {
     },
     setLanguage(language: Language): void {
       write(KEYS.language, language)
+    },
+    /** "Show protein alerts" on this device (#116, #128). Default on. */
+    getProteinAlertsSync(): boolean {
+      return read<boolean>(KEYS.proteinAlerts, true) !== false
+    },
+    setProteinAlerts(on: boolean): void {
+      write(KEYS.proteinAlerts, on)
     },
     isInstallCardDismissed(): boolean {
       return read(KEYS.installCardDismissed, false)
