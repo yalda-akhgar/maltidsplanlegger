@@ -9,7 +9,9 @@ import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { ConfirmDialog } from '@/components/ui/confirm-dialog'
 import { localize } from '@/data/localize'
+import { substitutionKey, withSubstitutions } from '@/data/allergens'
 import { recipeNutrition } from '@/data/nutrition'
+import { useAllergyText } from '@/features/household/allergy-text'
 import {
   addExtras,
   boostSuggestions,
@@ -24,6 +26,9 @@ import {
   emptyWeekPlan,
   filledNonFavorites,
   generateWeekPlan,
+  mealSafety,
+  noSafeDish,
+  pickSafety,
   planNotes,
   removeExtra,
   setEatingOut,
@@ -42,6 +47,7 @@ import { InstallCard } from '@/features/install/InstallCard'
 import { useRecipeData } from '@/features/recipes/useRecipeData'
 import { withExampleFamily } from '@/features/household/example-family'
 import { useLanguage } from '@/i18n/useLanguage'
+import type { AllergyNoteTexts } from './AllergyNotes'
 import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'
 import { MoreSheet } from './MoreSheet'
@@ -128,7 +134,20 @@ export function WeekScreen() {
     () => new Map((data?.recipes ?? []).map((r) => [r.id, recipeNutrition(r, data!.ingredientMap)])),
     [data],
   )
-  const nutritionOf = useCallback((id: Id) => nutritionById.get(id), [nutritionById])
+  // With safe alternatives (#180) the nutrition is computed for the dish as cooked (cheap, so not cached).
+  const nutritionOf = useCallback(
+    (id: Id, substitutions?: Record<Id, Id>) => {
+      if (!substitutionKey(substitutions)) return nutritionById.get(id)
+      const recipe = recipesById.get(id)
+      return recipe && data ? recipeNutrition(withSubstitutions(recipe, substitutions), data.ingredientMap) : undefined
+    },
+    [nutritionById, recipesById, data],
+  )
+  const allergyText = useAllergyText(data?.ingredientMap ?? new Map(), (id) => data?.household.people.find((p) => p.id === id)?.name ?? '')
+  /** Safety of every dish for the meal being picked (#180). */
+  const pickSafetyMap = useMemo(() => (ctx && pickTarget ? pickSafety(ctx, pickTarget.date, pickTarget.slot) : undefined), [ctx, pickTarget])
+  /** Set while asking "Pick anyway?" for a dish with an allergen (#180). */
+  const [confirmPick, setConfirmPick] = useState<Id | null>(null)
 
   const plan = plans?.plan
   const notes = useMemo(() => (ctx && plan ? planNotes(ctx, plan, plans?.previous) : []), [ctx, plan, plans?.previous])
@@ -283,9 +302,14 @@ export function WeekScreen() {
     afterMealChange(date, result.plan, t('week.toast.swapped', { name: recipeName(meal?.recipeId) }))
   }
 
-  function pick(recipeId: Id) {
+  /** A dish with an allergen for someone at the meal needs "Pick anyway" first (#180). */
+  function pick(recipeId: Id, confirmed = false) {
     const current = plansRef.current
     if (!current || !ctx || !pickTarget) return
+    if (!confirmed && pickSafetyMap?.get(recipeId)?.status === 'unsafe') {
+      setConfirmPick(recipeId)
+      return
+    }
     const { date, slot } = pickTarget
     const old = current.plan.days.find((d) => d.date === date)?.meals[slot]
     const result = setMeal(ctx, { plan: current.plan, date, slot, recipeId, nextWeek: current.next })
@@ -432,6 +456,26 @@ export function WeekScreen() {
 
   const pickMeal = pickTarget ? plan.days.find((d) => d.date === pickTarget.date)?.meals[pickTarget.slot] : undefined
 
+  /** Allergy labels for each meal of a day (#180). */
+  function allergyInfo(day: DayPlan) {
+    const allergyNotes: Partial<Record<MealSlot, AllergyNoteTexts>> = {}
+    const noSafe: Partial<Record<MealSlot, boolean>> = {}
+    for (const slot of MEAL_SLOTS) {
+      const safety = mealSafety(ctx!, day, slot)
+      if (safety) {
+        allergyNotes[slot] = {
+          withText: allergyText.withText(day.meals[slot].substitutions),
+          conflicts: allergyText.conflictTexts(safety),
+          unknown: safety.status === 'unknown' ? t('allergens.unknown') : undefined,
+        }
+      } else if (day.date >= today && isEmpty(day.date, slot, day.meals[slot].status)) {
+        noSafe[slot] = noSafeDish(ctx!, day.date, slot)
+      }
+    }
+    return { allergyNotes, noSafeDish: noSafe }
+  }
+  const confirmSafety = confirmPick ? pickSafetyMap?.get(confirmPick) : undefined
+
   return (
     <>
       <PageHeader
@@ -527,6 +571,7 @@ export function WeekScreen() {
               protein={dayStarted(day) ? (protein[i] ?? []) : []}
               hasEmptyMeals={emptyMeals(household, day).length > 0}
               {...undoInfo(i)}
+              {...allergyInfo(day)}
               onUndoMeal={(slot) => undoMeal(day.date, slot)}
               notes={notes.filter((n) => n.date === day.date)}
               recipes={recipesById}
@@ -564,6 +609,7 @@ export function WeekScreen() {
         }}
         onEatingOut={(on) => mealTarget && eatingOut(mealTarget.date, mealTarget.slot, on)}
         onGuests={(guests) => mealTarget && changeGuests(mealTarget.date, mealTarget.slot, guests)}
+        allergyNotes={mealDay && mealTarget ? allergyInfo(mealDay).allergyNotes[mealTarget.slot] : undefined}
       />
 
       <PickSheet
@@ -573,7 +619,9 @@ export function WeekScreen() {
         people={household.people}
         canMarkEatingOut={pickMeal?.status === 'none'}
         onClose={() => setPickTarget(null)}
-        onPick={pick}
+        onPick={(id) => pick(id)}
+        safety={pickSafetyMap}
+        allergyText={allergyText}
         onEatingOut={() => {
           const target = pickTarget
           setPickTarget(null)
@@ -581,6 +629,24 @@ export function WeekScreen() {
         }}
         // Replace the sheet's history entry, so Back from the form returns to the week plan.
         onNewRecipe={() => navigate('/recipes/new', { replace: true })}
+      />
+
+      <ConfirmDialog
+        open={confirmPick !== null}
+        title={t('allergens.pickAnyway.title')}
+        description={
+          confirmPick && confirmSafety
+            ? t('allergens.pickAnyway.description', { dish: recipeName(confirmPick), ...allergyText.conflictSummary(confirmSafety) })
+            : ''
+        }
+        cancelLabel={t('allergens.pickAnyway.cancel')}
+        confirmLabel={t('allergens.pickAnyway.confirm')}
+        onCancel={() => setConfirmPick(null)}
+        onConfirm={() => {
+          const id = confirmPick
+          setConfirmPick(null)
+          if (id) pick(id, true)
+        }}
       />
 
       <MoreSheet

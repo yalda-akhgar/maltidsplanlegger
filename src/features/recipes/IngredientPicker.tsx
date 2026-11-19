@@ -8,7 +8,8 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { allTranslations, localize } from '@/data/localize'
 import { newId, repository } from '@/data/repository'
-import { STORE_SECTIONS, type Ingredient, type StoreSection } from '@/data/types'
+import { ALLERGENS, STORE_SECTIONS, type Allergen, type Ingredient, type StoreSection } from '@/data/types'
+import { Chip } from '@/components/ui/chip'
 import { useLanguage } from '@/i18n/useLanguage'
 
 type IngredientPickerProps = {
@@ -141,7 +142,13 @@ function CreateForm({
   const [section, setSection] = useState<StoreSection>('produce')
   const [protein, setProtein] = useState('')
   const [kcal, setKcal] = useState('')
+  /** undefined = "allergens not stated", [] = "No allergens" (#180). */
+  const [allergens, setAllergens] = useState<Allergen[] | undefined>(undefined)
   const [showError, setShowError] = useState(false)
+  const toggleAllergen = (a: Allergen) => {
+    const current = allergens ?? []
+    setAllergens(current.includes(a) ? current.filter((x) => x !== a) : ALLERGENS.filter((x) => x === a || current.includes(x)))
+  }
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -161,6 +168,7 @@ function CreateForm({
         : {}),
       gramsPerUnit: {},
       tags: [],
+      ...(allergens !== undefined ? { allergens } : {}),
       storeSection: section,
       isStaple: false,
       source: 'user',
@@ -217,6 +225,20 @@ function CreateForm({
         </div>
       </div>
       <p className="text-sm text-muted-foreground">{t('recipes.newIngredient.hint')}</p>
+      <fieldset className="space-y-2">
+        <legend className="text-sm font-medium">{t('allergens.ingredient.label')}</legend>
+        <p className="text-sm text-muted-foreground">{t('allergens.ingredient.hint')}</p>
+        <div className="flex flex-wrap gap-2">
+          <Chip selected={allergens !== undefined && allergens.length === 0} onClick={() => setAllergens(allergens?.length === 0 ? undefined : [])}>
+            {t('allergens.ingredient.none')}
+          </Chip>
+          {ALLERGENS.map((a) => (
+            <Chip key={a} selected={allergens?.includes(a) ?? false} onClick={() => toggleAllergen(a)}>
+              {t(`allergens.names.${a}`)}
+            </Chip>
+          ))}
+        </div>
+      </fieldset>
       <div className="flex flex-wrap gap-2">
         <Button type="submit">{t('recipes.newIngredient.save')}</Button>
         <Button type="button" variant="outline" onClick={onCancel}>

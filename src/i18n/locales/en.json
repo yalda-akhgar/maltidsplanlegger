@@ -524,5 +524,70 @@
       "makePlan": "Make my first week plan",
       "save": "Save"
     }
+  },
+  "allergens": {
+    "names": {
+      "gluten": "Gluten",
+      "milk": "Milk (allergy)",
+      "lactose": "Lactose (intolerance)",
+      "egg": "Egg",
+      "fish": "Fish",
+      "crustaceans": "Crustaceans",
+      "molluscs": "Molluscs",
+      "nuts": "Tree nuts",
+      "peanuts": "Peanuts",
+      "soy": "Soy",
+      "sesame": "Sesame",
+      "celery": "Celery",
+      "mustard": "Mustard",
+      "lupin": "Lupin",
+      "sulphites": "Sulphites"
+    },
+    "short": {
+      "gluten": "gluten",
+      "milk": "milk",
+      "lactose": "lactose",
+      "egg": "egg",
+      "fish": "fish",
+      "crustaceans": "crustaceans",
+      "molluscs": "molluscs",
+      "nuts": "tree nuts",
+      "peanuts": "peanuts",
+      "soy": "soy",
+      "sesame": "sesame",
+      "celery": "celery",
+      "mustard": "mustard",
+      "lupin": "lupin",
+      "sulphites": "sulphites"
+    },
+    "label": "Allergies and intolerances:",
+    "none": "none",
+    "change": "Change",
+    "edit": "Change allergies and intolerances for {{name}}",
+    "title": "Allergies – {{name}}",
+    "description": "Dishes with these are never suggested for meals {{name}} eats.",
+    "done": "Done",
+    "lactoseHint": "Lactose-free food still contains milk protein. Choose “Milk (allergy)” for a milk allergy, and “Lactose (intolerance)” if lactose-free food is fine.",
+    "disclaimer": "The app is an aid. Always check the label – contents can vary between brands.",
+    "wizardNote": "Allergies and intolerances are set for each person. Dishes with allergens are never suggested. The app is an aid – always check the label.",
+    "contains": "Contains: {{list}}",
+    "containsNone": "Contains none of the common allergens.",
+    "notStated": "Allergens not stated for: {{list}}",
+    "with": "With {{list}}",
+    "conflict": "Contains {{allergen}} – not for {{names}}",
+    "unknown": "Allergens not stated – check yourself",
+    "noSafeDish": "No dish fits all the allergies",
+    "and": "{{a}} and {{b}}",
+    "pickAnyway": {
+      "title": "Pick anyway?",
+      "description": "{{dish}} contains {{allergens}}. It is not suitable for {{names}}.",
+      "confirm": "Pick anyway",
+      "cancel": "Cancel"
+    },
+    "ingredient": {
+      "label": "Allergens",
+      "none": "No allergens",
+      "hint": "Choose all that are in the item, hidden ones too (e.g. soy sauce = gluten). If you choose nothing, it says “allergens not stated”."
+    }
   }
 }

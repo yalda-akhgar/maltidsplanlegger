@@ -26,6 +26,7 @@ Families who care about protein end up doing arithmetic every evening: one adult
 
 - **Personal protein targets.** Every adult has a daily target, split across the day (25 / 30 / 30 / 15 %, adjustable). Portions are scaled per person (0.75×–2×). Children get half a portion and no target.
 - **A week plan in one tap.** Dinners take at most 30 minutes, never repeat within the week and never use the same protein source two days in a row. Favourites come up twice as often. Excluded food (pork by default) is never suggested, and children's dislikes are avoided where possible.
+- **Allergies come first.** Allergies and intolerances are set per person (the EU's 14 allergens plus lactose). A dish with an allergen for anyone at the meal is never suggested; where possible the dish is kept with a safe alternative for everyone, e.g. gluten-free pasta or lactose-free skyr. Hidden allergens are labelled on every ingredient (soy sauce → gluten).
 - **Leftovers for lunch.** Dinner is cooked with extra portions for the next day's lunch. If a dinner is not cooked at home, the next lunch becomes a quick lunch, and the leftovers come back when the dinner does.
 - **Clear status per person and day.** Each day shows "Anna 118 / 120 g ✓" or "Ola 134 / 140 g · 6 g under". When a day is short, the app suggests an honest protein boost (e.g. skyr + milk) that can be added in one tap.
 - **Plan it yourself.** Swap a dish (↻), pick one from a list that shows the effect on every adult's target before choosing, mark a meal as eating out, add guests, or remove a meal on a day with low appetite. Every change has its own undo (↶).
@@ -43,7 +44,7 @@ Data is stored on the device for now. Accounts and sharing within a household co
 | Routing and text | React Router (each screen loaded on demand), react-i18next (nb, de, en), date-fns |
 | PWA | vite-plugin-pwa (installable, offline, auto-updating) |
 | Data | `localStorage` behind one repository module, so it can be swapped for Supabase later |
-| Quality | Vitest (97 tests on the planning and protein rules), oxlint, a colour contrast check, Lighthouse |
+| Quality | Vitest (116 tests on the planning, protein and allergy rules), oxlint, a colour contrast check, Lighthouse |
 
 The planner is a set of pure functions (`src/data/planner.ts`, `src/data/protein.ts`) with no UI code, which makes the business rules easy to test. The generator's rules are checked over 200 seeded random weeks.
 

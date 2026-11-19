@@ -8,7 +8,10 @@ import { Input } from '@/components/ui/input'
 import { localize } from '@/data/localize'
 import { isRecipeAllowed, pickImpacts, type PlannerContext } from '@/data/planner'
 import type { Id, IsoDate, MealSlot, Person, WeekPlan } from '@/data/types'
+import type { RecipeSafety } from '@/data/allergens'
+import type { useAllergyText } from '@/features/household/allergy-text'
 import { useLanguage } from '@/i18n/useLanguage'
+import { AllergyNotes } from './AllergyNotes'
 import { cn } from '@/lib/utils'
 
 export type PickTarget = { date: IsoDate; slot: MealSlot; dayTitle: string }
@@ -24,6 +27,9 @@ type PickSheetProps = {
   onPick: (recipeId: Id) => void
   onEatingOut: () => void
   onNewRecipe: () => void
+  /** Safety of every dish for this meal (#180): dishes with an allergen come last, with a red warning. */
+  safety?: ReadonlyMap<Id, RecipeSafety>
+  allergyText: ReturnType<typeof useAllergyText>
 }
 
 /** Within this many grams of the target counts as "on target". */
@@ -61,7 +67,7 @@ export function PickSheet({ target, ...rest }: PickSheetProps) {
   )
 }
 
-function PickList({ target, ctx, plan, people, onPick }: Omit<PickSheetProps, 'target'> & { target: PickTarget }) {
+function PickList({ target, ctx, plan, people, onPick, safety, allergyText }: Omit<PickSheetProps, 'target'> & { target: PickTarget }) {
   const { t } = useTranslation()
   const language = useLanguage()
   const [query, setQuery] = useState('')
@@ -79,6 +85,7 @@ function PickList({ target, ctx, plan, people, onPick }: Omit<PickSheetProps, 't
 
   const visible = useMemo(() => {
     const q = query.trim().toLocaleLowerCase(language)
+    const rank = (r: { id: Id }) => (safety?.get(r.id)?.status === 'unsafe' ? 1 : 0)
     return allowed.filter((r) => {
       if (inSlot && !r.categoryIds.includes(target.slot)) return false
       if (favorites && !r.favorite) return false
@@ -86,8 +93,8 @@ function PickList({ target, ctx, plan, people, onPick }: Omit<PickSheetProps, 't
       if (!q) return true
       const names = [r.name, ...r.ingredients.map((line) => ctx.ingredients.get(line.ingredientId)?.name)]
       return names.some((name) => localize(name, language).toLocaleLowerCase(language).includes(q))
-    })
-  }, [allowed, query, inSlot, favorites, kidFriendly, target.slot, ctx.ingredients, language])
+    }).sort((a, b) => rank(a) - rank(b)) // dishes with an allergen last (#180); the sort is stable
+  }, [allowed, query, inSlot, favorites, kidFriendly, target.slot, ctx.ingredients, language, safety])
 
   const impacts = useMemo(
     () => pickImpacts(ctx, { plan, date: target.date, slot: target.slot, recipeIds: visible.map((r) => r.id) }),
@@ -133,6 +140,10 @@ function PickList({ target, ctx, plan, people, onPick }: Omit<PickSheetProps, 't
               const kind = Math.abs(diff) <= ON_TARGET_G ? 'onTarget' : diff > 0 ? 'over' : 'under'
               return { id: p.personId, kind, text: t(`week.pick.${kind}`, { name: name(p.personId), diff: Math.abs(diff) }) }
             })
+            const s = safety?.get(recipe.id)
+            const allergy = s
+              ? { withText: allergyText.withText(s.substitutions), conflicts: allergyText.conflictTexts(s), unknown: s.status === 'unknown' ? t('allergens.unknown') : undefined }
+              : undefined
             return (
               <li key={recipe.id}>
                 <button
@@ -167,6 +178,7 @@ function PickList({ target, ctx, plan, people, onPick }: Omit<PickSheetProps, 't
                       ))}
                     </span>
                   ) : null}
+                  {allergy && (allergy.withText || allergy.conflicts.length > 0 || allergy.unknown) ? <AllergyNotes notes={allergy} /> : null}
                 </button>
               </li>
             )

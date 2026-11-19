@@ -523,5 +523,70 @@
       "makePlan": "Meinen ersten Wochenplan erstellen",
       "save": "Speichern"
     }
+  },
+  "allergens": {
+    "names": {
+      "gluten": "Gluten",
+      "milk": "Milch (Allergie)",
+      "lactose": "Laktose (Intoleranz)",
+      "egg": "Ei",
+      "fish": "Fisch",
+      "crustaceans": "Krebstiere",
+      "molluscs": "Weichtiere",
+      "nuts": "Schalenfrüchte (Nüsse)",
+      "peanuts": "Erdnüsse",
+      "soy": "Soja",
+      "sesame": "Sesam",
+      "celery": "Sellerie",
+      "mustard": "Senf",
+      "lupin": "Lupinen",
+      "sulphites": "Sulfite"
+    },
+    "short": {
+      "gluten": "Gluten",
+      "milk": "Milch",
+      "lactose": "Laktose",
+      "egg": "Ei",
+      "fish": "Fisch",
+      "crustaceans": "Krebstiere",
+      "molluscs": "Weichtiere",
+      "nuts": "Nüsse",
+      "peanuts": "Erdnüsse",
+      "soy": "Soja",
+      "sesame": "Sesam",
+      "celery": "Sellerie",
+      "mustard": "Senf",
+      "lupin": "Lupinen",
+      "sulphites": "Sulfite"
+    },
+    "label": "Allergien und Unverträglichkeiten:",
+    "none": "keine",
+    "change": "Ändern",
+    "edit": "Allergien und Unverträglichkeiten für {{name}} ändern",
+    "title": "Allergien – {{name}}",
+    "description": "Gerichte damit werden nie für Mahlzeiten vorgeschlagen, die {{name}} isst.",
+    "done": "Fertig",
+    "lactoseHint": "Laktosefreie Lebensmittel enthalten trotzdem Milcheiweiß. Wähle „Milch (Allergie)“ bei Milchallergie und „Laktose (Intoleranz)“, wenn laktosefreie Lebensmittel vertragen werden.",
+    "disclaimer": "Die App ist ein Hilfsmittel. Prüfe immer die Zutatenliste – der Inhalt kann je nach Marke variieren.",
+    "wizardNote": "Allergien und Unverträglichkeiten werden pro Person eingestellt. Gerichte mit Allergenen werden nie vorgeschlagen. Die App ist ein Hilfsmittel – prüfe immer die Zutatenliste.",
+    "contains": "Enthält: {{list}}",
+    "containsNone": "Enthält keines der üblichen Allergene.",
+    "notStated": "Allergene nicht angegeben für: {{list}}",
+    "with": "Mit {{list}}",
+    "conflict": "Enthält {{allergen}} – nicht für {{names}}",
+    "unknown": "Allergene nicht angegeben – selbst prüfen",
+    "noSafeDish": "Kein Gericht passt zu allen Allergien",
+    "and": "{{a}} und {{b}}",
+    "pickAnyway": {
+      "title": "Trotzdem wählen?",
+      "description": "{{dish}} enthält {{allergens}}. Das ist nicht geeignet für {{names}}.",
+      "confirm": "Trotzdem wählen",
+      "cancel": "Abbrechen"
+    },
+    "ingredient": {
+      "label": "Allergene",
+      "none": "Keine Allergene",
+      "hint": "Wähle alle, die enthalten sind, auch versteckte (z. B. Sojasoße = Gluten). Ohne Auswahl steht dort „Allergene nicht angegeben“."
+    }
   }
 }

@@ -3,7 +3,7 @@
  * Number fields are kept as text while typing and parsed when saving.
  */
 import { newId } from '@/data/repository'
-import type { HouseholdSettings, Id, Person, Weekday } from '@/data/types'
+import type { Allergen, HouseholdSettings, Id, Person, Weekday } from '@/data/types'
 
 export interface PersonDraft {
   id: Id
@@ -15,6 +15,8 @@ export interface PersonDraft {
   dislikes: Id[]
   /** Children: eats lunch at home on weekdays (#102). */
   lunchAtHome: boolean
+  /** Everyone: allergies and intolerances (#180). */
+  allergies: Allergen[]
 }
 
 export const MAX_TARGET_G = 500
@@ -36,11 +38,12 @@ export function toDraft(person: Person): PersonDraft {
     target: person.proteinTargetG ? String(person.proteinTargetG) : '',
     dislikes: [...person.dislikedIngredientIds],
     lunchAtHome: person.eatsWeekdayLunchAtHome === true,
+    allergies: [...(person.allergies ?? [])],
   }
 }
 
 export function newDraft(kind: 'adult' | 'child'): PersonDraft {
-  return { id: newId(), kind, name: '', target: '', dislikes: [], lunchAtHome: false }
+  return { id: newId(), kind, name: '', target: '', dislikes: [], lunchAtHome: false, allergies: [] }
 }
 
 /** Turns a draft back into a person. An empty name gets `fallbackName`. */
@@ -53,6 +56,7 @@ export function fromDraft(draft: PersonDraft, fallbackName: string): Person {
     person.dislikedIngredientIds = [...draft.dislikes]
     if (draft.lunchAtHome) person.eatsWeekdayLunchAtHome = true
   }
+  if (draft.allergies.length > 0) person.allergies = [...draft.allergies]
   return person
 }
 

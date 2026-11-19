@@ -2,6 +2,7 @@
  * Settings pages for the family (#163): My profile, Household, Food and week,
  * Protein split. Each has a Save button; saving updates planned weeks (#162).
  */
+import { AllergyRow } from '@/features/household/AllergiesSheet'
 import { MinusIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -52,13 +53,13 @@ export function ProfileSettings() {
 function ProfileForm({ household }: { household: HouseholdSettings }) {
   const { t } = useTranslation()
   const self = selfOf(household)
-  const initial = { name: self?.name ?? '', target: self?.proteinTargetG ? String(self.proteinTargetG) : '' }
+  const initial = { name: self?.name ?? '', target: self?.proteinTargetG ? String(self.proteinTargetG) : '', allergies: [...(self?.allergies ?? [])] }
   const [form, setForm] = useState(initial)
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
   const { dialog, busy, save } = useSave(household, dirty)
 
   const submit = () => {
-    const person = fromDraft({ ...(self ? toDraft(self) : { id: newId(), kind: 'adult' as const, dislikes: [], lunchAtHome: false }), ...form }, t('onboarding.me'))
+    const person = fromDraft({ ...(self ? toDraft(self) : { id: newId(), kind: 'adult' as const, dislikes: [], lunchAtHome: false, allergies: [] }), ...form }, t('onboarding.me'))
     const people = self ? household.people.map((p) => (p.id === self.id ? person : p)) : [person, ...household.people]
     void save({ ...household, people })
   }
@@ -73,6 +74,7 @@ function ProfileForm({ household }: { household: HouseholdSettings }) {
         <Input id="profile-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="given-name" />
       </div>
       <ProteinTargetField label={t('settings.profile.target')} value={form.target} onChange={(target) => setForm({ ...form, target })} withCalculator />
+      <AllergyRow name={form.name.trim() || t('onboarding.me')} allergies={form.allergies} onChange={(allergies) => setForm({ ...form, allergies })} />
       {dialog}
     </SettingsPage>
   )

@@ -8,6 +8,7 @@ import { Switch } from '@/components/ui/switch'
 import { localize } from '@/data/localize'
 import type { Ingredient } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
+import { AllergyRow } from './AllergiesSheet'
 import { DislikesSheet } from './DislikesSheet'
 import { newDraft, type PersonDraft } from './household-draft'
 import { ProteinTargetField } from './ProteinTargetField'
@@ -21,7 +22,7 @@ type Props = {
   self?: React.ReactNode
 }
 
-/** Person cards for the household: adults with an optional target, children with lunch + dislikes (#160, #161). */
+/** Person cards for the household: adults with an optional target, children with lunch + dislikes (#160, #161), everyone with allergies (#180). */
 export function PeopleEditor({ people, onChange, ingredients, self }: Props) {
   const { t } = useTranslation()
   const update = (draft: PersonDraft) => onChange(people.map((p) => (p.id === draft.id ? draft : p)))
@@ -87,6 +88,8 @@ function PersonCard({
           <XIcon aria-hidden />
         </Button>
       </div>
+
+      <AllergyRow name={shownName} allergies={person.allergies} onChange={(allergies) => onChange({ ...person, allergies })} />
 
       {person.kind === 'adult' ? (
         <ProteinTargetField label={t('household.targetOptional')} value={person.target} onChange={(target) => onChange({ ...person, target })} />

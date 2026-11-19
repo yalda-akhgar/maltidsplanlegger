@@ -1,4 +1,6 @@
 import { HeartIcon, MinusIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { recipeAllergens, unlabelledIngredients } from '@/data/allergens'
+import { useAllergyText } from '@/features/household/allergy-text'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Badge } from '@/components/ui/badge'
@@ -58,11 +60,18 @@ export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onE
   )
 }
 
-/** Stats, portion stepper, scaled ingredients and steps. Also used in the week plan's meal sheet. */
+/**
+ * Stats, allergens, portion stepper, scaled ingredients and steps. Also used
+ * in the week plan's meal sheet, with the meal's safe alternatives already in
+ * `recipe` (#180).
+ */
 export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Recipe; data: RecipeData; initialPortions?: number }) {
   const { t } = useTranslation()
   const language = useLanguage()
   const nutrition = recipeNutrition(recipe, data.ingredientMap)
+  const allergyText = useAllergyText(data.ingredientMap, () => '')
+  const allergens = recipeAllergens(recipe, data.ingredientMap)
+  const unlabelled = unlabelledIngredients(recipe, data.ingredientMap)
   const household = householdPortions(data.household)
   const [portions, setPortions] = useState(initialPortions && initialPortions > 0 ? initialPortions : household > 0 ? household : recipe.servings)
   const factor = portions / (recipe.servings || 1)
@@ -96,6 +105,13 @@ export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Re
         ))}
       </dl>
       {nutrition.incomplete ? <p className="text-sm text-muted-foreground">{t('recipes.detail.nutritionMissing')}</p> : null}
+
+      <div className="space-y-1 text-sm">
+        <p className="font-medium">
+          {allergens.length > 0 ? t('allergens.contains', { list: allergyText.allergenList(allergens) }) : t('allergens.containsNone')}
+        </p>
+        {unlabelled.length > 0 ? <p className="text-warning-foreground">{allergyText.notStatedText(unlabelled)}</p> : null}
+      </div>
 
       <section aria-labelledby="recipe-ingredients">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
@@ -167,6 +183,8 @@ export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Re
           </ol>
         </section>
       ) : null}
+
+      <p className="text-xs text-muted-foreground">{t('allergens.disclaimer')}</p>
     </div>
   )
 }

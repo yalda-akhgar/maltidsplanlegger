@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { newId, repository } from '@/data/repository'
-import { LANGUAGES, type HouseholdSettings, type Ingredient, type Language, type Weekday } from '@/data/types'
+import { LANGUAGES, type Allergen, type HouseholdSettings, type Ingredient, type Language, type Weekday } from '@/data/types'
+import { AllergyRow } from '@/features/household/AllergiesSheet'
 import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
 import { fromDraft, parseTarget, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
@@ -22,6 +23,8 @@ type Draft = {
   selfId: string
   name: string
   target: string
+  /** My own allergies (#180). */
+  allergies: Allergen[]
   others: PersonDraft[]
   excludedTags: string[]
   excludedTerms: string[]
@@ -35,6 +38,7 @@ function toWizardDraft(household: HouseholdSettings): Draft {
     selfId: self?.id ?? newId(),
     name: self?.name ?? '',
     target: self?.proteinTargetG ? String(self.proteinTargetG) : '',
+    allergies: [...(self?.allergies ?? [])],
     others: household.people.filter((p) => p !== self).map(toDraft),
     excludedTags: [...household.excludedTags],
     excludedTerms: [...household.excludedTerms],
@@ -85,9 +89,9 @@ export function OnboardingScreen() {
       count = { ...count, [d.kind]: count[d.kind] + 1 }
       return fromDraft(d, `${t(d.kind === 'adult' ? 'household.adult' : 'household.child')} ${count[d.kind]}`)
     })
-    const hasSelf = draft.name.trim() !== '' || parseTarget(draft.target) !== undefined
+    const hasSelf = draft.name.trim() !== '' || parseTarget(draft.target) !== undefined || draft.allergies.length > 0
     const self = fromDraft(
-      { id: draft.selfId, kind: 'adult', name: draft.name, target: draft.target, dislikes: [], lunchAtHome: false },
+      { id: draft.selfId, kind: 'adult', name: draft.name, target: draft.target, dislikes: [], lunchAtHome: false, allergies: draft.allergies },
       t('onboarding.me'),
     )
     const household: HouseholdSettings = {
@@ -162,16 +166,20 @@ export function OnboardingScreen() {
           {step === 3 ? (
             <>
               <p className="text-muted-foreground">{t('onboarding.household.text')}</p>
+              <p className="rounded-xl bg-secondary p-3 text-sm text-secondary-foreground">{t('allergens.wizardNote')}</p>
               <PeopleEditor
                 people={draft.others}
                 onChange={(others) => set({ others })}
                 ingredients={loaded.ingredients}
                 self={
-                  <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-3">
-                    <span className="font-semibold">{draft.name.trim() || t('onboarding.me')}</span>
-                    <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
-                      {parseTarget(draft.target) ? t('onboarding.household.youWithTarget', { target: parseTarget(draft.target) }) : t('onboarding.household.you')}
-                    </span>
+                  <div className="space-y-1 rounded-2xl border bg-card p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="font-semibold">{draft.name.trim() || t('onboarding.me')}</span>
+                      <span className="rounded-full bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
+                        {parseTarget(draft.target) ? t('onboarding.household.youWithTarget', { target: parseTarget(draft.target) }) : t('onboarding.household.you')}
+                      </span>
+                    </div>
+                    <AllergyRow name={draft.name.trim() || t('onboarding.me')} allergies={draft.allergies} onChange={(allergies) => set({ allergies })} />
                   </div>
                 }
               />

@@ -1,4 +1,6 @@
 import { CircleMinusIcon, ListIcon, MinusIcon, PlusIcon, SparklesIcon } from 'lucide-react'
+import { withSubstitutions } from '@/data/allergens'
+import { AllergyNotes } from './AllergyNotes'
 import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
@@ -26,6 +28,8 @@ type MealSheetProps = {
   onRefill: () => void
   onEatingOut: (eatingOut: boolean) => void
   onGuests: (guests: number) => void
+  /** Allergy labels for the meal (#180): "With …", red conflicts, "allergens not stated". */
+  allergyNotes?: { withText?: string; conflicts: string[]; unknown?: string }
 }
 
 /**
@@ -33,7 +37,7 @@ type MealSheetProps = {
  * "Pick another dish", "Remove meal", "Eating out" and guests. A skipped meal
  * offers "Fill in again" and "Pick a dish" instead (#168).
  */
-export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickAnother, onSkip, onRefill, onEatingOut, onGuests }: MealSheetProps) {
+export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickAnother, onSkip, onRefill, onEatingOut, onGuests, allergyNotes }: MealSheetProps) {
   const { t } = useTranslation()
   const language = useLanguage()
   const recipe = meal?.recipeId ? data.recipes.find((r) => r.id === meal.recipeId) : undefined
@@ -131,7 +135,13 @@ export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickA
             <p className="text-muted-foreground">{t('week.meal.leftoversHint', { day: weekdayName(meal.leftoversFrom, language) })}</p>
           ) : null}
 
-          {showRecipe ? <RecipeDetailBody key={recipe.id} recipe={recipe} data={data} initialPortions={portionsToCook} /> : null}
+          {showRecipe && allergyNotes && (allergyNotes.withText || allergyNotes.conflicts.length > 0 || allergyNotes.unknown) ? (
+            <AllergyNotes notes={allergyNotes} />
+          ) : null}
+
+          {showRecipe ? (
+            <RecipeDetailBody key={recipe.id} recipe={withSubstitutions(recipe, meal.substitutions)} data={data} initialPortions={portionsToCook} />
+          ) : null}
         </div>
       ) : null}
     </BottomSheet>

@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done – approved 2026-11-17 (milestones A–H). Now: publishing (#174, #176). Code is ready (`vercel.json`, "Try with an example family" on the wizard's first screen, plural units); waiting for the product owner to create the Vercel project with their private GitHub account. Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+**Phase 1 done (2026-11-17). Allergies built before phase 3 (#180, 2026-11-19) – waiting for the product owner's test. Publishing (#174, #176): code ready; waiting for the product owner to create the Vercel project and send the address (then put the link in the README). Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+
+Allergies delivered (#180): `src/data/allergens.ts` (EU-14 + lactose, `blockedAllergens`, `recipeSafety` with safe alternatives, `withSubstitutions`), `Person.allergies`, `Ingredient.allergens` / `alternativeFor`, `PlannedMeal.substitutions` (set in `Planner.withPortions`; leftovers use the dinner's eaters), hard filter `Planner.safe` at every pick site, `adaptToSettings` replaces newly unsafe dishes, seed version 2 (labels + 12 alternatives). UI: `AllergiesSheet`/`AllergyRow` on every person card, wizard note, recipe "Contains" + disclaimer, `AllergyNotes` labels on day cards and in the pick list, "Pick anyway" dialog, allergen choice in the new-ingredient form. Tests: `src/data/allergens.test.ts` (116 tests in total).
 
 Milestone H delivered: README for employers (screenshots in `docs/screenshots/`, English UI, "Live demo: coming soon", roadmap, product-owner section, all rights reserved), `docs/PRD.md` (draft – success metrics to be confirmed by the product owner), `docs/FEEDBACK_LOG.md` (template + F/G acceptance-test findings), `docs/README.md` (docs index; Norwegian brief files kept as originals), route-level code splitting in `src/app/router.tsx` (main bundle 755 → 381 kB, warning gone, #94), `npm run dev:phone` (`vite --host`).
 
@@ -91,6 +93,7 @@ See `docs/DECISIONS.md` for details and rationale. Highlights:
 - Dinners ≤ 30 min. No repeated dinner within a week, no same protein source two days in a row. Favourites twice as likely. Rather repeat a dinner than serve a child's disliked dish (#110).
 - Personal protein targets, split 25/30/30/15 % (breakfast/lunch/dinner/snack), portions scaled 0.75×–2× per person, then a "protein boost" suggestion. A child = 0.5 portion, no target. Guests = standard adult portion.
 - Evening snack every day; healthy except on chosen cheat days.
+- **Allergies are a hard rule (#180):** per person, EU-14 + lactose, never suggested for anyone eating the meal, never relaxed. Safe alternatives are used for everyone at the meal (one pot). Picking an unsafe dish by hand needs "Pick anyway".
 - A meal can be removed on purpose (status `skipped`, #168): not counted in the day target, no boost. Removing a dinner gives the next day a quick lunch; when the dinner comes back, so do the leftovers unless the user changed the lunch (#170).
 - Recipe categories are data and extensible (e.g. "Baking" later).
 

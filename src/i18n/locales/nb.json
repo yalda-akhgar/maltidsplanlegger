@@ -554,5 +554,70 @@
       "makePlan": "Lag min første ukeplan",
       "save": "Lagre"
     }
+  },
+  "allergens": {
+    "names": {
+      "gluten": "Gluten",
+      "milk": "Melk (allergi)",
+      "lactose": "Laktose (intoleranse)",
+      "egg": "Egg",
+      "fish": "Fisk",
+      "crustaceans": "Skalldyr",
+      "molluscs": "Bløtdyr",
+      "nuts": "Nøtter",
+      "peanuts": "Peanøtter",
+      "soy": "Soya",
+      "sesame": "Sesam",
+      "celery": "Selleri",
+      "mustard": "Sennep",
+      "lupin": "Lupin",
+      "sulphites": "Sulfitt"
+    },
+    "short": {
+      "gluten": "gluten",
+      "milk": "melk",
+      "lactose": "laktose",
+      "egg": "egg",
+      "fish": "fisk",
+      "crustaceans": "skalldyr",
+      "molluscs": "bløtdyr",
+      "nuts": "nøtter",
+      "peanuts": "peanøtter",
+      "soy": "soya",
+      "sesame": "sesam",
+      "celery": "selleri",
+      "mustard": "sennep",
+      "lupin": "lupin",
+      "sulphites": "sulfitt"
+    },
+    "label": "Allergier og intoleranser:",
+    "none": "ingen",
+    "change": "Endre",
+    "edit": "Endre allergier og intoleranser for {{name}}",
+    "title": "Allergier – {{name}}",
+    "description": "Retter med dette foreslås aldri til måltider {{name}} spiser.",
+    "done": "Ferdig",
+    "lactoseHint": "Laktosefri mat inneholder fortsatt melkeprotein. Velg «Melk (allergi)» ved melkeallergi, og «Laktose (intoleranse)» hvis laktosefri mat går fint.",
+    "disclaimer": "Appen er et hjelpemiddel. Sjekk alltid varedeklarasjonen – innholdet kan variere mellom merker.",
+    "wizardNote": "Allergier og intoleranser settes på hver person. Retter med allergener foreslås aldri. Appen er et hjelpemiddel – sjekk alltid varedeklarasjonen.",
+    "contains": "Inneholder: {{list}}",
+    "containsNone": "Inneholder ingen av de vanlige allergenene.",
+    "notStated": "Allergener ikke oppgitt for: {{list}}",
+    "with": "Med {{list}}",
+    "conflict": "Inneholder {{allergen}} – ikke for {{names}}",
+    "unknown": "Allergener ikke oppgitt – sjekk selv",
+    "noSafeDish": "Ingen rett passer for alle allergiene",
+    "and": "{{a}} og {{b}}",
+    "pickAnyway": {
+      "title": "Velge likevel?",
+      "description": "{{dish}} inneholder {{allergens}}. Det passer ikke for {{names}}.",
+      "confirm": "Velg likevel",
+      "cancel": "Avbryt"
+    },
+    "ingredient": {
+      "label": "Allergener",
+      "none": "Ingen allergener",
+      "hint": "Velg alle som finnes i varen, også skjulte (f.eks. soyasaus = gluten). Velger du ingenting, står det «allergener ikke oppgitt»."
+    }
   }
 }

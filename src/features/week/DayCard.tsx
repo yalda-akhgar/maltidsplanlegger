@@ -10,6 +10,7 @@ import { BOOST_ITEMS, BOOST_THRESHOLD_G } from '@/data/protein'
 import { MEAL_SLOTS, type DayPlan, type Id, type Ingredient, type MealExtra, type MealSlot, type Person, type Recipe } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
+import { AllergyNotes, type AllergyNoteTexts } from './AllergyNotes'
 import { formatDay, weekdayName } from './week-format'
 
 export type DayCardProps = {
@@ -22,7 +23,8 @@ export type DayCardProps = {
   notes: PlanNote[]
   recipes: ReadonlyMap<Id, Recipe>
   ingredients: ReadonlyMap<Id, Ingredient>
-  nutritionOf: (id: Id) => RecipeNutrition | undefined
+  /** Nutrition of one portion, as cooked with the meal's safe alternatives (#180). */
+  nutritionOf: (id: Id, substitutions?: Record<Id, Id>) => RecipeNutrition | undefined
   onOpenMeal: (slot: MealSlot) => void
   onPickMeal: (slot: MealSlot) => void
   onSwapMeal: (slot: MealSlot) => void
@@ -34,6 +36,10 @@ export type DayCardProps = {
   /** Text under a meal that changed along with the previous day's dinner (#150). */
   followsText: Partial<Record<MealSlot, string>>
   onUndoMeal: (slot: MealSlot) => void
+  /** Allergy labels per meal (#180). */
+  allergyNotes: Partial<Record<MealSlot, AllergyNoteTexts>>
+  /** Empty meals for which no dish fits the allergies (#180). */
+  noSafeDish: Partial<Record<MealSlot, boolean>>
 }
 
 /** One day of the week plan: date, protein per adult (#118) and the four meals (#117, #126, #127). */
@@ -116,6 +122,8 @@ function MealRow({
   undoLabels,
   followsText,
   onUndoMeal,
+  allergyNotes,
+  noSafeDish,
 }: DayCardProps & { slot: MealSlot; title: string; personName: (id: Id) => string }) {
   const { t } = useTranslation()
   const language = useLanguage()
@@ -129,7 +137,7 @@ function MealRow({
 
   let content: React.ReactNode
   if (hasDish) {
-    const protein = Math.round(nutritionOf(recipe.id)?.proteinG ?? 0)
+    const protein = Math.round(nutritionOf(recipe.id, meal.substitutions)?.proteinG ?? 0)
     content = (
       <button type="button" className={rowButton} aria-label={t('week.openMeal', { slot: slotName, name })} onClick={() => onOpenMeal(slot)}>
         {meal.status === 'leftovers' && meal.leftoversFrom ? (
@@ -189,6 +197,8 @@ function MealRow({
   const extras = meal.extras ?? []
   const undoLabel = undoLabels[slot]
   const follows = followsText[slot]
+  const allergy = hasDish ? allergyNotes[slot] : undefined
+  const showAllergy = allergy && (allergy.withText || allergy.conflicts.length > 0 || allergy.unknown)
 
   return (
     <li className="grid grid-cols-[4.5rem_1fr_auto] items-start gap-x-2 py-1.5 sm:grid-cols-[6rem_1fr_auto]">
@@ -196,6 +206,8 @@ function MealRow({
       <div className="min-w-0">
         <div className="flex">{content}</div>
         {follows ? <p className="px-1 pb-1 text-xs text-muted-foreground">{follows}</p> : null}
+        {showAllergy ? <AllergyNotes notes={allergy} className="px-1 pb-1" /> : null}
+        {noSafeDish[slot] && meal.status === 'none' ? <p className="px-1 pb-1 text-xs font-semibold text-destructive">{t('allergens.noSafeDish')}</p> : null}
         {notes.length > 0 || extras.length > 0 ? (
           <div className="flex flex-wrap gap-1 px-1 pb-1">
             {notes.map((note, i) => (
