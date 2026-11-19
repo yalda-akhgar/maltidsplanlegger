@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done (2026-11-17). Allergies built before phase 3 (#180, 2026-11-19) – waiting for the product owner's test. Publishing (#174, #176): code ready; waiting for the product owner to create the Vercel project and send the address (then put the link in the README). Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+**Phase 1 done (2026-11-17). Allergies (#180) and "Doesn't tolerate" (#181) built before phase 3 (2026-11-19) – waiting for the product owner's test. Publishing (#174, #176): code ready; waiting for the product owner to create the Vercel project and send the address (then put the link in the README). Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+
+"Doesn't tolerate" delivered (#181): three food levels per person (`FoodRows`: allergies → doesn't tolerate → doesn't like; dislikes now for adults too), `Person.notToleratedIngredientIds`, `Ingredient.contains` (spice blends/sauces), `RecipeIngredient.omittable` (left out of that person's portion: "Without black pepper for Yalda"), mild taco seasoning + mild salsa as alternatives, 4 single spices, 3 more allergy alternatives; `recipeSafety` returns `intolerances` + `omissions`, `blockedAt` replaces `blockedAllergens`; seed version 3; "Can be left out" switch in the recipe form. Tests: 130.
 
 Allergies delivered (#180): `src/data/allergens.ts` (EU-14 + lactose, `blockedAllergens`, `recipeSafety` with safe alternatives, `withSubstitutions`), `Person.allergies`, `Ingredient.allergens` / `alternativeFor`, `PlannedMeal.substitutions` (set in `Planner.withPortions`; leftovers use the dinner's eaters), hard filter `Planner.safe` at every pick site, `adaptToSettings` replaces newly unsafe dishes, seed version 2 (labels + 12 alternatives). UI: `AllergiesSheet`/`AllergyRow` on every person card, wizard note, recipe "Contains" + disclaimer, `AllergyNotes` labels on day cards and in the pick list, "Pick anyway" dialog, allergen choice in the new-ingredient form. Tests: `src/data/allergens.test.ts` (116 tests in total).
 
@@ -89,10 +91,11 @@ Full vision: `docs/PROMPT.md`. Phase 1 brief: `docs/FASE1_PROMPT.md` plus the pr
 ## Key product rules (phase 1)
 See `docs/DECISIONS.md` for details and rationale. Highlights:
 - Family-specific rules are settings, not hard-coded (#107): fixed "no dinner at home" days (default none; the product owner's household picks Friday). Lunch = leftovers from the previous day's dinner (Monday = previous week's Sunday); after any dinner not cooked at home → quick lunch (#108). Meals outside the app are not counted in the day's protein target (#109).
-- Excluded food (pork by default, plus custom exclusions) is never suggested. Children's dislikes are avoided where possible (soft rule).
+- Excluded food (pork by default, plus custom exclusions) is never suggested. Dislikes (adults and children, #181) are avoided where possible (soft rule).
 - Dinners ≤ 30 min. No repeated dinner within a week, no same protein source two days in a row. Favourites twice as likely. Rather repeat a dinner than serve a child's disliked dish (#110).
 - Personal protein targets, split 25/30/30/15 % (breakfast/lunch/dinner/snack), portions scaled 0.75×–2× per person, then a "protein boost" suggestion. A child = 0.5 portion, no target. Guests = standard adult portion.
 - Evening snack every day; healthy except on chosen cheat days.
+- **Three food levels per person (#181):** allergies (strict) → doesn't tolerate (strict, any ingredient incl. what blends contain; a recipe line marked "can be left out" is left out of that person's portion, otherwise a milder alternative is used for everyone) → doesn't like (soft, adults and children).
 - **Allergies are a hard rule (#180):** per person, EU-14 + lactose, never suggested for anyone eating the meal, never relaxed. Safe alternatives are used for everyone at the meal (one pot). Picking an unsafe dish by hand needs "Pick anyway".
 - A meal can be removed on purpose (status `skipped`, #168): not counted in the day target, no boost. Removing a dinner gives the next day a quick lunch; when the dinner comes back, so do the leftovers unless the user changed the lunch (#170).
 - Recipe categories are data and extensible (e.g. "Baking" later).

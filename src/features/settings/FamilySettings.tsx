@@ -2,7 +2,7 @@
  * Settings pages for the family (#163): My profile, Household, Food and week,
  * Protein split. Each has a Save button; saving updates planned weeks (#162).
  */
-import { AllergyRow } from '@/features/household/AllergiesSheet'
+import { FoodRows } from '@/features/household/FoodRows'
 import { MinusIcon, PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -47,19 +47,25 @@ function SaveButton({ disabled, onClick }: { disabled?: boolean; onClick: () => 
 
 export function ProfileSettings() {
   const data = useHouseholdData()
-  return data ? <ProfileForm household={data.household} /> : null
+  return data ? <ProfileForm household={data.household} ingredients={data.ingredients} /> : null
 }
 
-function ProfileForm({ household }: { household: HouseholdSettings }) {
+function ProfileForm({ household, ingredients }: { household: HouseholdSettings; ingredients: Ingredient[] }) {
   const { t } = useTranslation()
   const self = selfOf(household)
-  const initial = { name: self?.name ?? '', target: self?.proteinTargetG ? String(self.proteinTargetG) : '', allergies: [...(self?.allergies ?? [])] }
+  const initial = {
+    name: self?.name ?? '',
+    target: self?.proteinTargetG ? String(self.proteinTargetG) : '',
+    allergies: [...(self?.allergies ?? [])],
+    notTolerated: [...(self?.notToleratedIngredientIds ?? [])],
+    dislikes: [...(self?.dislikedIngredientIds ?? [])],
+  }
   const [form, setForm] = useState(initial)
   const dirty = JSON.stringify(form) !== JSON.stringify(initial)
   const { dialog, busy, save } = useSave(household, dirty)
 
   const submit = () => {
-    const person = fromDraft({ ...(self ? toDraft(self) : { id: newId(), kind: 'adult' as const, dislikes: [], lunchAtHome: false, allergies: [] }), ...form }, t('onboarding.me'))
+    const person = fromDraft({ ...(self ? toDraft(self) : { id: newId(), kind: 'adult' as const, dislikes: [], notTolerated: [], lunchAtHome: false, allergies: [] }), ...form }, t('onboarding.me'))
     const people = self ? household.people.map((p) => (p.id === self.id ? person : p)) : [person, ...household.people]
     void save({ ...household, people })
   }
@@ -74,7 +80,7 @@ function ProfileForm({ household }: { household: HouseholdSettings }) {
         <Input id="profile-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="given-name" />
       </div>
       <ProteinTargetField label={t('settings.profile.target')} value={form.target} onChange={(target) => setForm({ ...form, target })} withCalculator />
-      <AllergyRow name={form.name.trim() || t('onboarding.me')} allergies={form.allergies} onChange={(allergies) => setForm({ ...form, allergies })} />
+      <FoodRows name={form.name.trim() || t('onboarding.me')} value={form} ingredients={ingredients} onChange={(food) => setForm({ ...form, ...food })} />
       {dialog}
     </SettingsPage>
   )

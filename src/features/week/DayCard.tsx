@@ -10,6 +10,7 @@ import { BOOST_ITEMS, BOOST_THRESHOLD_G } from '@/data/protein'
 import { MEAL_SLOTS, type DayPlan, type Id, type Ingredient, type MealExtra, type MealSlot, type Person, type Recipe } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
+import { hasAllergyNotes } from '@/features/household/allergy-text'
 import { AllergyNotes, type AllergyNoteTexts } from './AllergyNotes'
 import { formatDay, weekdayName } from './week-format'
 
@@ -198,7 +199,7 @@ function MealRow({
   const undoLabel = undoLabels[slot]
   const follows = followsText[slot]
   const allergy = hasDish ? allergyNotes[slot] : undefined
-  const showAllergy = allergy && (allergy.withText || allergy.conflicts.length > 0 || allergy.unknown)
+  const showAllergy = hasAllergyNotes(allergy)
 
   return (
     <li className="grid grid-cols-[4.5rem_1fr_auto] items-start gap-x-2 py-1.5 sm:grid-cols-[6rem_1fr_auto]">

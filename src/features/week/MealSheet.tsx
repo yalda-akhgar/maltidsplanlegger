@@ -1,6 +1,7 @@
 import { CircleMinusIcon, ListIcon, MinusIcon, PlusIcon, SparklesIcon } from 'lucide-react'
 import { withSubstitutions } from '@/data/allergens'
-import { AllergyNotes } from './AllergyNotes'
+import { hasAllergyNotes } from '@/features/household/allergy-text'
+import { AllergyNotes, type AllergyNoteTexts } from './AllergyNotes'
 import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
@@ -28,8 +29,8 @@ type MealSheetProps = {
   onRefill: () => void
   onEatingOut: (eatingOut: boolean) => void
   onGuests: (guests: number) => void
-  /** Allergy labels for the meal (#180): "With …", red conflicts, "allergens not stated". */
-  allergyNotes?: { withText?: string; conflicts: string[]; unknown?: string }
+  /** Allergy labels for the meal (#180, #181): "With …", "Without …", red conflicts, "allergens not stated". */
+  allergyNotes?: AllergyNoteTexts
 }
 
 /**
@@ -135,8 +136,11 @@ export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickA
             <p className="text-muted-foreground">{t('week.meal.leftoversHint', { day: weekdayName(meal.leftoversFrom, language) })}</p>
           ) : null}
 
-          {showRecipe && allergyNotes && (allergyNotes.withText || allergyNotes.conflicts.length > 0 || allergyNotes.unknown) ? (
-            <AllergyNotes notes={allergyNotes} />
+          {showRecipe && hasAllergyNotes(allergyNotes) ? (
+            <div className="space-y-1.5">
+              <AllergyNotes notes={allergyNotes} />
+              {(allergyNotes.omitted?.length ?? 0) > 0 ? <p className="text-sm text-muted-foreground">{t('household.notTolerated.omitHint')}</p> : null}
+            </div>
           ) : null}
 
           {showRecipe ? (

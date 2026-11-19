@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { newId, repository } from '@/data/repository'
-import { LANGUAGES, type Allergen, type HouseholdSettings, type Ingredient, type Language, type Weekday } from '@/data/types'
-import { AllergyRow } from '@/features/household/AllergiesSheet'
+import { LANGUAGES, type Allergen, type HouseholdSettings, type Id, type Ingredient, type Language, type Weekday } from '@/data/types'
+import { FoodRows } from '@/features/household/FoodRows'
 import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
 import { fromDraft, parseTarget, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
@@ -23,8 +23,10 @@ type Draft = {
   selfId: string
   name: string
   target: string
-  /** My own allergies (#180). */
+  /** My own allergies (#180), food I don't tolerate and dislikes (#181). */
   allergies: Allergen[]
+  notTolerated: Id[]
+  dislikes: Id[]
   others: PersonDraft[]
   excludedTags: string[]
   excludedTerms: string[]
@@ -39,6 +41,8 @@ function toWizardDraft(household: HouseholdSettings): Draft {
     name: self?.name ?? '',
     target: self?.proteinTargetG ? String(self.proteinTargetG) : '',
     allergies: [...(self?.allergies ?? [])],
+    notTolerated: [...(self?.notToleratedIngredientIds ?? [])],
+    dislikes: [...(self?.dislikedIngredientIds ?? [])],
     others: household.people.filter((p) => p !== self).map(toDraft),
     excludedTags: [...household.excludedTags],
     excludedTerms: [...household.excludedTerms],
@@ -89,9 +93,19 @@ export function OnboardingScreen() {
       count = { ...count, [d.kind]: count[d.kind] + 1 }
       return fromDraft(d, `${t(d.kind === 'adult' ? 'household.adult' : 'household.child')} ${count[d.kind]}`)
     })
-    const hasSelf = draft.name.trim() !== '' || parseTarget(draft.target) !== undefined || draft.allergies.length > 0
+    const hasSelf =
+      draft.name.trim() !== '' || parseTarget(draft.target) !== undefined || draft.allergies.length > 0 || draft.notTolerated.length > 0 || draft.dislikes.length > 0
     const self = fromDraft(
-      { id: draft.selfId, kind: 'adult', name: draft.name, target: draft.target, dislikes: [], lunchAtHome: false, allergies: draft.allergies },
+      {
+        id: draft.selfId,
+        kind: 'adult',
+        name: draft.name,
+        target: draft.target,
+        dislikes: draft.dislikes,
+        notTolerated: draft.notTolerated,
+        lunchAtHome: false,
+        allergies: draft.allergies,
+      },
       t('onboarding.me'),
     )
     const household: HouseholdSettings = {
@@ -179,7 +193,7 @@ export function OnboardingScreen() {
                         {parseTarget(draft.target) ? t('onboarding.household.youWithTarget', { target: parseTarget(draft.target) }) : t('onboarding.household.you')}
                       </span>
                     </div>
-                    <AllergyRow name={draft.name.trim() || t('onboarding.me')} allergies={draft.allergies} onChange={(allergies) => set({ allergies })} />
+                    <FoodRows name={draft.name.trim() || t('onboarding.me')} value={draft} ingredients={loaded.ingredients} onChange={set} />
                   </div>
                 }
               />

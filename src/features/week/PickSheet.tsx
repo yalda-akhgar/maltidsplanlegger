@@ -9,7 +9,7 @@ import { localize } from '@/data/localize'
 import { isRecipeAllowed, pickImpacts, type PlannerContext } from '@/data/planner'
 import type { Id, IsoDate, MealSlot, Person, WeekPlan } from '@/data/types'
 import type { RecipeSafety } from '@/data/allergens'
-import type { useAllergyText } from '@/features/household/allergy-text'
+import { hasAllergyNotes, type useAllergyText } from '@/features/household/allergy-text'
 import { useLanguage } from '@/i18n/useLanguage'
 import { AllergyNotes } from './AllergyNotes'
 import { cn } from '@/lib/utils'
@@ -141,9 +141,7 @@ function PickList({ target, ctx, plan, people, onPick, safety, allergyText }: Om
               return { id: p.personId, kind, text: t(`week.pick.${kind}`, { name: name(p.personId), diff: Math.abs(diff) }) }
             })
             const s = safety?.get(recipe.id)
-            const allergy = s
-              ? { withText: allergyText.withText(s.substitutions), conflicts: allergyText.conflictTexts(s), unknown: s.status === 'unknown' ? t('allergens.unknown') : undefined }
-              : undefined
+            const allergy = s ? allergyText.notes(s) : undefined
             return (
               <li key={recipe.id}>
                 <button
@@ -178,7 +176,7 @@ function PickList({ target, ctx, plan, people, onPick, safety, allergyText }: Om
                       ))}
                     </span>
                   ) : null}
-                  {allergy && (allergy.withText || allergy.conflicts.length > 0 || allergy.unknown) ? <AllergyNotes notes={allergy} /> : null}
+                  {hasAllergyNotes(allergy) ? <AllergyNotes notes={allergy} /> : null}
                 </button>
               </li>
             )

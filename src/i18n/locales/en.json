@@ -245,7 +245,10 @@
         "description": "You have changes that are not saved. They will be lost if you leave.",
         "keepEditing": "Keep editing",
         "discard": "Discard changes"
-      }
+      },
+      "omittable": "Can be left out",
+      "omittableHint": "For anyone who doesn't tolerate it, e.g. pepper or cinnamon",
+      "omittableFor": "{{name}} can be left out"
     },
     "picker": {
       "title": "Choose ingredient",
@@ -445,6 +448,17 @@
       "search": "Search for an ingredient",
       "done": "Done"
     },
+    "notTolerated": {
+      "label": "Doesn't tolerate:",
+      "none": "nothing chosen",
+      "change": "Change",
+      "edit": "Change what {{name}} doesn't tolerate",
+      "title": "What doesn't {{name}} tolerate?",
+      "description": "Dishes with these are never suggested for meals {{name}} eats – unless they can be left out or swapped for something milder.",
+      "hint": "Spice blends and sauces count too: chili also covers taco seasoning and tikka paste.",
+      "omit": "Without {{ingredient}} for {{names}}",
+      "omitHint": "Take out their portion before adding it, or serve it on the side."
+    },
     "food": {
       "pork": "Pork",
       "remove": "Remove {{name}}",
@@ -569,14 +583,14 @@
     "done": "Done",
     "lactoseHint": "Lactose-free food still contains milk protein. Choose “Milk (allergy)” for a milk allergy, and “Lactose (intolerance)” if lactose-free food is fine.",
     "disclaimer": "The app is an aid. Always check the label – contents can vary between brands.",
-    "wizardNote": "Allergies and intolerances are set for each person. Dishes with allergens are never suggested. The app is an aid – always check the label.",
+    "wizardNote": "Allergies, food someone doesn't tolerate and dislikes are set for each person. Dishes with allergens or food someone doesn't tolerate are never suggested. The app is an aid – always check the label.",
     "contains": "Contains: {{list}}",
     "containsNone": "Contains none of the common allergens.",
     "notStated": "Allergens not stated for: {{list}}",
     "with": "With {{list}}",
     "conflict": "Contains {{allergen}} – not for {{names}}",
     "unknown": "Allergens not stated – check yourself",
-    "noSafeDish": "No dish fits all the allergies",
+    "noSafeDish": "No dish fits all the allergies and food someone doesn't tolerate",
     "and": "{{a}} and {{b}}",
     "pickAnyway": {
       "title": "Pick anyway?",

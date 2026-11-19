@@ -244,7 +244,10 @@
         "description": "Du hast Änderungen, die nicht gespeichert sind. Sie gehen verloren, wenn du die Seite verlässt.",
         "keepEditing": "Weiter bearbeiten",
         "discard": "Änderungen verwerfen"
-      }
+      },
+      "omittable": "Kann weggelassen werden",
+      "omittableHint": "Für alle, die es nicht vertragen, z. B. Pfeffer oder Zimt",
+      "omittableFor": "{{name}} kann weggelassen werden"
     },
     "picker": {
       "title": "Zutat wählen",
@@ -444,6 +447,17 @@
       "search": "Zutat suchen",
       "done": "Fertig"
     },
+    "notTolerated": {
+      "label": "Verträgt nicht:",
+      "none": "nichts ausgewählt",
+      "change": "Ändern",
+      "edit": "Ändern, was {{name}} nicht verträgt",
+      "title": "Was verträgt {{name}} nicht?",
+      "description": "Gerichte damit werden für Mahlzeiten, die {{name}} isst, nie vorgeschlagen – außer es lässt sich weglassen oder durch etwas Milderes ersetzen.",
+      "hint": "Gewürzmischungen und Soßen zählen mit: Chili gilt auch für Taco-Gewürz und Tikka-Paste.",
+      "omit": "Ohne {{ingredient}} für {{names}}",
+      "omitHint": "Nimm die Portion heraus, bevor du es dazugibst, oder serviere es extra."
+    },
     "food": {
       "pork": "Schweinefleisch",
       "remove": "{{name}} entfernen",
@@ -568,14 +582,14 @@
     "done": "Fertig",
     "lactoseHint": "Laktosefreie Lebensmittel enthalten trotzdem Milcheiweiß. Wähle „Milch (Allergie)“ bei Milchallergie und „Laktose (Intoleranz)“, wenn laktosefreie Lebensmittel vertragen werden.",
     "disclaimer": "Die App ist ein Hilfsmittel. Prüfe immer die Zutatenliste – der Inhalt kann je nach Marke variieren.",
-    "wizardNote": "Allergien und Unverträglichkeiten werden pro Person eingestellt. Gerichte mit Allergenen werden nie vorgeschlagen. Die App ist ein Hilfsmittel – prüfe immer die Zutatenliste.",
+    "wizardNote": "Allergien, was man nicht verträgt und was man nicht mag, werden pro Person eingestellt. Gerichte mit Allergenen oder etwas, das jemand nicht verträgt, werden nie vorgeschlagen. Die App ist ein Hilfsmittel – prüfe immer die Zutatenliste.",
     "contains": "Enthält: {{list}}",
     "containsNone": "Enthält keines der üblichen Allergene.",
     "notStated": "Allergene nicht angegeben für: {{list}}",
     "with": "Mit {{list}}",
     "conflict": "Enthält {{allergen}} – nicht für {{names}}",
     "unknown": "Allergene nicht angegeben – selbst prüfen",
-    "noSafeDish": "Kein Gericht passt zu allen Allergien",
+    "noSafeDish": "Kein Gericht passt zu allen Allergien und dem, was jemand nicht verträgt",
     "and": "{{a}} und {{b}}",
     "pickAnyway": {
       "title": "Trotzdem wählen?",

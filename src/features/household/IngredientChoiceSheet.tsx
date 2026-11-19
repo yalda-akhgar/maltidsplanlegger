@@ -9,7 +9,11 @@ import type { Id, Ingredient } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
 
+/** dislikes: soft rule (#70) · notTolerated: strict, like allergies (#181). The text keys live under `household.<kind>`. */
+export type IngredientChoiceKind = 'dislikes' | 'notTolerated'
+
 type Props = {
+  kind: IngredientChoiceKind
   open: boolean
   name: string
   ingredients: Ingredient[]
@@ -18,8 +22,8 @@ type Props = {
   onClose: () => void
 }
 
-/** Choose what a child doesn't like from the ingredient catalogue (#70, #161). Several can be chosen. */
-export function DislikesSheet({ open, name, ingredients, selected, onChange, onClose }: Props) {
+/** Choose what a person doesn't like or doesn't tolerate from the ingredient catalogue (#70, #161, #181). Several can be chosen. */
+export function IngredientChoiceSheet({ kind, open, name, ingredients, selected, onChange, onClose }: Props) {
   const { t } = useTranslation()
   const language = useLanguage()
   const [query, setQuery] = useState('')
@@ -38,8 +42,8 @@ export function DislikesSheet({ open, name, ingredients, selected, onChange, onC
     <BottomSheet
       open={open}
       onOpenChange={(o) => (o ? undefined : onClose())}
-      title={t('household.dislikes.title', { name })}
-      description={t('household.dislikes.description')}
+      title={t(`household.${kind}.title`, { name })}
+      description={t(`household.${kind}.description`, { name })}
       footer={<Button onClick={onClose}>{t('household.dislikes.done')}</Button>}
     >
       <div className="space-y-3">
@@ -54,6 +58,7 @@ export function DislikesSheet({ open, name, ingredients, selected, onChange, onC
             className="pl-11"
           />
         </div>
+        {kind === 'notTolerated' ? <p className="text-sm text-muted-foreground">{t('household.notTolerated.hint')}</p> : null}
         {list.length === 0 ? (
           <p className="py-4 text-center text-muted-foreground">{t('recipes.picker.noResults')}</p>
         ) : (

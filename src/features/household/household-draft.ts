@@ -11,8 +11,10 @@ export interface PersonDraft {
   name: string
   /** Adults: daily protein target in grams, as typed (#160). */
   target: string
-  /** Children: ingredients they don't like (#70, #161). */
+  /** Everyone: ingredients they don't like – a soft rule (#70, #161, #181). */
   dislikes: Id[]
+  /** Everyone: ingredients they don't tolerate – strict (#181). */
+  notTolerated: Id[]
   /** Children: eats lunch at home on weekdays (#102). */
   lunchAtHome: boolean
   /** Everyone: allergies and intolerances (#180). */
@@ -37,26 +39,27 @@ export function toDraft(person: Person): PersonDraft {
     name: person.name,
     target: person.proteinTargetG ? String(person.proteinTargetG) : '',
     dislikes: [...person.dislikedIngredientIds],
+    notTolerated: [...(person.notToleratedIngredientIds ?? [])],
     lunchAtHome: person.eatsWeekdayLunchAtHome === true,
     allergies: [...(person.allergies ?? [])],
   }
 }
 
 export function newDraft(kind: 'adult' | 'child'): PersonDraft {
-  return { id: newId(), kind, name: '', target: '', dislikes: [], lunchAtHome: false, allergies: [] }
+  return { id: newId(), kind, name: '', target: '', dislikes: [], notTolerated: [], lunchAtHome: false, allergies: [] }
 }
 
 /** Turns a draft back into a person. An empty name gets `fallbackName`. */
 export function fromDraft(draft: PersonDraft, fallbackName: string): Person {
-  const person: Person = { id: draft.id, name: draft.name.trim() || fallbackName, kind: draft.kind, dislikedIngredientIds: [] }
+  const person: Person = { id: draft.id, name: draft.name.trim() || fallbackName, kind: draft.kind, dislikedIngredientIds: [...draft.dislikes] }
   if (draft.kind === 'adult') {
     const target = parseTarget(draft.target)
     if (target) person.proteinTargetG = target
-  } else {
-    person.dislikedIngredientIds = [...draft.dislikes]
-    if (draft.lunchAtHome) person.eatsWeekdayLunchAtHome = true
+  } else if (draft.lunchAtHome) {
+    person.eatsWeekdayLunchAtHome = true
   }
   if (draft.allergies.length > 0) person.allergies = [...draft.allergies]
+  if (draft.notTolerated.length > 0) person.notToleratedIngredientIds = [...draft.notTolerated]
   return person
 }
 

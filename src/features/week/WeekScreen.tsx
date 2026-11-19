@@ -456,18 +456,14 @@ export function WeekScreen() {
 
   const pickMeal = pickTarget ? plan.days.find((d) => d.date === pickTarget.date)?.meals[pickTarget.slot] : undefined
 
-  /** Allergy labels for each meal of a day (#180). */
+  /** Allergy labels for each meal of a day (#180, #181). */
   function allergyInfo(day: DayPlan) {
     const allergyNotes: Partial<Record<MealSlot, AllergyNoteTexts>> = {}
     const noSafe: Partial<Record<MealSlot, boolean>> = {}
     for (const slot of MEAL_SLOTS) {
       const safety = mealSafety(ctx!, day, slot)
       if (safety) {
-        allergyNotes[slot] = {
-          withText: allergyText.withText(day.meals[slot].substitutions),
-          conflicts: allergyText.conflictTexts(safety),
-          unknown: safety.status === 'unknown' ? t('allergens.unknown') : undefined,
-        }
+        allergyNotes[slot] = allergyText.notes(safety, day.meals[slot].substitutions)
       } else if (day.date >= today && isEmpty(day.date, slot, day.meals[slot].status)) {
         noSafe[slot] = noSafeDish(ctx!, day.date, slot)
       }

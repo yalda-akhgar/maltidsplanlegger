@@ -1,12 +1,12 @@
-import { HelpCircleIcon, ShieldCheckIcon, TriangleAlertIcon } from 'lucide-react'
+import { CircleMinusIcon, HelpCircleIcon, ShieldCheckIcon, TriangleAlertIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type AllergyNoteTexts = { withText?: string; conflicts: string[]; unknown?: string }
+export type AllergyNoteTexts = { withText?: string; conflicts: string[]; omitted?: string[]; unknown?: string }
 
 /**
- * Allergy labels on a dish (#180), always text + icon, never colour alone:
+ * Allergy labels on a dish (#180, #181), always text + icon, never colour alone:
  * red "Contains gluten – not for Noah", yellow "Allergens not stated",
- * neutral "With gluten-free pasta".
+ * neutral "With gluten-free pasta" and "Without black pepper for Yalda".
  */
 export function AllergyNotes({ notes, className }: { notes: AllergyNoteTexts; className?: string }) {
   const label = 'inline-flex items-start gap-1 rounded-md px-1.5 py-0.5 text-xs font-semibold [&_svg]:mt-px [&_svg]:size-3.5 [&_svg]:shrink-0'
@@ -30,6 +30,12 @@ export function AllergyNotes({ notes, className }: { notes: AllergyNoteTexts; cl
           {notes.withText}
         </span>
       ) : null}
+      {notes.omitted?.map((text) => (
+        <span key={text} className={cn(label, 'bg-secondary text-secondary-foreground')}>
+          <CircleMinusIcon aria-hidden />
+          {text}
+        </span>
+      ))}
     </div>
   )
 }

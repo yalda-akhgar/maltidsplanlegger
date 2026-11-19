@@ -275,7 +275,10 @@
         "description": "Du har endringer som ikke er lagret. De forsvinner hvis du går ut.",
         "keepEditing": "Fortsett å redigere",
         "discard": "Forkast endringer"
-      }
+      },
+      "omittable": "Kan utelates",
+      "omittableHint": "For den som ikke tåler det, f.eks. pepper eller kanel",
+      "omittableFor": "{{name}} kan utelates"
     },
     "picker": {
       "title": "Velg ingrediens",
@@ -475,6 +478,17 @@
       "search": "Søk etter ingrediens",
       "done": "Ferdig"
     },
+    "notTolerated": {
+      "label": "Tåler ikke:",
+      "none": "ingenting valgt",
+      "change": "Endre",
+      "edit": "Endre hva {{name}} ikke tåler",
+      "title": "Hva tåler ikke {{name}}?",
+      "description": "Retter med dette foreslås aldri til måltider {{name}} spiser – med mindre det kan utelates eller byttes med noe mildere.",
+      "hint": "Krydderblandinger og sauser teller med: velger du chili, gjelder det også tacokrydder og tikka-paste.",
+      "omit": "Uten {{ingredient}} for {{names}}",
+      "omitHint": "Ta ut porsjonen før du tilsetter det, eller server det ved siden av."
+    },
     "food": {
       "pork": "Svinekjøtt",
       "remove": "Fjern {{name}}",
@@ -599,14 +613,14 @@
     "done": "Ferdig",
     "lactoseHint": "Laktosefri mat inneholder fortsatt melkeprotein. Velg «Melk (allergi)» ved melkeallergi, og «Laktose (intoleranse)» hvis laktosefri mat går fint.",
     "disclaimer": "Appen er et hjelpemiddel. Sjekk alltid varedeklarasjonen – innholdet kan variere mellom merker.",
-    "wizardNote": "Allergier og intoleranser settes på hver person. Retter med allergener foreslås aldri. Appen er et hjelpemiddel – sjekk alltid varedeklarasjonen.",
+    "wizardNote": "Allergier, det man ikke tåler og det man ikke liker settes på hver person. Retter med allergener eller noe man ikke tåler foreslås aldri. Appen er et hjelpemiddel – sjekk alltid varedeklarasjonen.",
     "contains": "Inneholder: {{list}}",
     "containsNone": "Inneholder ingen av de vanlige allergenene.",
     "notStated": "Allergener ikke oppgitt for: {{list}}",
     "with": "Med {{list}}",
     "conflict": "Inneholder {{allergen}} – ikke for {{names}}",
     "unknown": "Allergener ikke oppgitt – sjekk selv",
-    "noSafeDish": "Ingen rett passer for alle allergiene",
+    "noSafeDish": "Ingen rett passer for alle allergiene og det noen ikke tåler",
     "and": "{{a}} og {{b}}",
     "pickAnyway": {
       "title": "Velge likevel?",

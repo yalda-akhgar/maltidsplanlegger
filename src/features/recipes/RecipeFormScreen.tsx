@@ -19,7 +19,7 @@ import { useLanguage } from '@/i18n/useLanguage'
 import { IngredientPicker } from './IngredientPicker'
 import { useRecipeData, type RecipeData } from './useRecipeData'
 
-type LineState = { key: string; ingredientId: string; amount: string; unit: Unit; note?: LocalizedText }
+type LineState = { key: string; ingredientId: string; amount: string; unit: Unit; note?: LocalizedText; omittable?: boolean }
 type StepState = { key: string; text: string; original?: LocalizedText }
 
 type FormState = {
@@ -61,6 +61,7 @@ function initialState(recipe: Recipe | undefined, language: Language): FormState
       amount: String(line.amount).replace('.', language === 'en' ? '.' : ','),
       unit: line.unit,
       note: line.note,
+      ...(line.omittable ? { omittable: true } : {}),
     })),
     steps: (recipe?.steps ?? []).map((step) => ({ key: newId(), text: localize(step, language), original: step })),
   }
@@ -172,6 +173,7 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
       amount: parsePositive(l.amount) ?? 0,
       unit: l.unit,
       ...(l.note ? { note: l.note } : {}),
+      ...(l.omittable ? { omittable: true } : {}),
     }))
     const saved: Recipe = {
       ...(recipe ?? { id: newId(), tags: [], favorite: false, source: 'user' as const, createdAt: now, updatedAt: now }),
@@ -368,6 +370,18 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
                         </option>
                       ))}
                     </NativeSelect>
+                  </div>
+                  <div className="mt-2 flex min-h-11 items-center justify-between gap-3">
+                    <label htmlFor={`${uid}-${line.key}-omit`} className="min-w-0 text-sm">
+                      {t('recipes.form.omittable')}
+                      <span className="block text-xs text-muted-foreground">{t('recipes.form.omittableHint')}</span>
+                    </label>
+                    <Switch
+                      id={`${uid}-${line.key}-omit`}
+                      aria-label={t('recipes.form.omittableFor', { name })}
+                      checked={line.omittable === true}
+                      onCheckedChange={(v) => updateLine(line.key, { omittable: v })}
+                    />
                   </div>
                 </li>
               )
