@@ -25,6 +25,23 @@ type Options = {
   alternativeFor?: string
 }
 
+/**
+ * What spice blends and sauces contain (#181), as seed ingredient keys.
+ * Strictest reading where brands vary.
+ */
+const SEED_CONTAINS: Record<string, string[]> = {
+  'taco-seasoning': ['chili', 'cumin', 'paprika-powder', 'garlic', 'onion', 'pepper'],
+  'tikka-paste': ['chili', 'ginger', 'garlic', 'cumin', 'paprika-powder'],
+  'curry-powder': ['chili', 'cumin', 'ginger', 'pepper'],
+  salsa: ['chili', 'onion', 'garlic'],
+  'vegetable-stock': ['onion'],
+  // Alternatives
+  'mild-taco-seasoning': ['cumin', 'paprika-powder', 'garlic', 'onion'],
+  'gluten-free-taco-seasoning': ['chili', 'cumin', 'paprika-powder', 'garlic', 'onion', 'pepper'],
+  'mild-salsa': ['onion', 'garlic'],
+  'gluten-free-vegetable-stock': ['onion'],
+}
+
 /** Allergens per seed ingredient key (#180). Keys not listed have no allergens. */
 const SEED_ALLERGENS: Record<string, Allergen[]> = {
   egg: ['egg'],
@@ -60,6 +77,10 @@ const SEED_ALLERGENS: Record<string, Allergen[]> = {
   'lactose-free-quark': ['milk'],
   'oat-drink': ['gluten'],
   'gluten-free-soy-sauce': ['soy'],
+  'mild-taco-seasoning': ['gluten', 'celery'],
+  'gluten-free-taco-seasoning': ['celery'],
+  'gluten-free-vegetable-stock': ['celery'],
+  'lactose-free-grated-cheese': ['milk'],
 }
 
 /** [protein g, kcal, fibre g, fruit/veg portions] per 100 g. */
@@ -82,6 +103,7 @@ function ingredient(
     tags: options.tags ?? [],
     allergens: SEED_ALLERGENS[key] ?? [],
     ...(options.alternativeFor ? { alternativeFor: `seed-ingredient-${options.alternativeFor}` } : {}),
+    ...(SEED_CONTAINS[key] ? { contains: SEED_CONTAINS[key].map((k) => `seed-ingredient-${k}`) } : {}),
     storeSection,
     isStaple: options.staple ?? false,
     source: 'seed',
@@ -167,6 +189,11 @@ export const SEED_INGREDIENTS: Ingredient[] = [
   ingredient('cinnamon', ['Kanel', 'Zimt', 'Cinnamon'], [4, 250, 53, 0], 'dryGoods', staple({ tsp: 2.5 })),
   ingredient('salt', ['Salt', 'Salz', 'Salt'], [0, 0, 0, 0], 'dryGoods', staple({ tsp: 6 })),
   ingredient('pepper', ['Pepper', 'Pfeffer', 'Black pepper'], [0, 0, 0, 0], 'dryGoods', staple({ pinch: 0.3 })),
+  // Single spices, mainly so people can say what they don't tolerate (#181)
+  ingredient('chili', ['Chili', 'Chili', 'Chili'], [12, 280, 35, 0], 'dryGoods', staple({ tsp: 2.5, pinch: 0.3 })),
+  ingredient('cumin', ['Spisskummen', 'Kreuzkümmel', 'Cumin'], [18, 375, 10, 0], 'dryGoods', staple({ tsp: 2.5 })),
+  ingredient('paprika-powder', ['Paprikapulver', 'Paprikapulver', 'Paprika powder'], [14, 280, 35, 0], 'dryGoods', staple({ tsp: 2.5 })),
+  ingredient('ginger', ['Ingefær', 'Ingwer', 'Ginger'], [9, 335, 14, 0], 'dryGoods', staple({ tsp: 2.5 })),
 
   // Safe alternatives for allergies (#180), used for everyone at the meal
   ingredient('gluten-free-pasta', ['Glutenfri pasta', 'Glutenfreie Nudeln', 'Gluten-free pasta'], [6, 355, 3, 0], 'dryGoods', { alternativeFor: 'wholewheat-pasta' }),
@@ -180,5 +207,11 @@ export const SEED_INGREDIENTS: Ingredient[] = [
   ingredient('lactose-free-greek-yoghurt', ['Laktosefri gresk yoghurt', 'Laktosefreier griechischer Joghurt', 'Lactose-free Greek yoghurt'], [9, 95, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'greek-yoghurt' }),
   ingredient('lactose-free-skyr', ['Laktosefri skyr', 'Laktosefreies Skyr', 'Lactose-free skyr'], [11, 63, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'skyr' }),
   ingredient('lactose-free-cottage-cheese', ['Laktosefri cottage cheese', 'Laktosefreier Hüttenkäse', 'Lactose-free cottage cheese'], [13, 90, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'cottage-cheese' }),
+  ingredient('lactose-free-grated-cheese', ['Laktosefri revet ost', 'Laktosefreier geriebener Käse', 'Lactose-free grated cheese'], [27, 350, 0, 0], 'dairy', { ...dairy, units: { dl: 40 }, alternativeFor: 'grated-cheese' }),
+  ingredient('gluten-free-vegetable-stock', ['Glutenfri grønnsaksbuljong (terning)', 'Glutenfreie Gemüsebrühe (Würfel)', 'Gluten-free vegetable stock cube'], [10, 250, 0, 0], 'dryGoods', { ...staple({ pcs: 10 }), alternativeFor: 'vegetable-stock' }),
+  ingredient('gluten-free-taco-seasoning', ['Glutenfritt tacokrydder', 'Glutenfreie Taco-Gewürzmischung', 'Gluten-free taco seasoning'], [7, 300, 10, 0], 'dryGoods', { units: { pack: 28 }, alternativeFor: 'taco-seasoning' }),
+  // Milder alternatives for people who don't tolerate chili (#181)
+  ingredient('mild-taco-seasoning', ['Mildt tacokrydder', 'Milde Taco-Gewürzmischung', 'Mild taco seasoning'], [7, 300, 10, 0], 'dryGoods', { units: { pack: 28 }, alternativeFor: 'taco-seasoning' }),
+  ingredient('mild-salsa', ['Mild tacosaus', 'Milde Salsa', 'Mild salsa'], [1.5, 35, 1.5, 0], 'dryGoods', { units: { pcs: 230 }, alternativeFor: 'salsa' }),
   ingredient('lactose-free-quark', ['Laktosefri kesam', 'Laktosefreier Magerquark', 'Lactose-free quark'], [11, 70, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'quark' }),
 ]

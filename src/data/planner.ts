@@ -10,16 +10,18 @@
  * - Excluded food is never suggested (#18, #68). Dinners take ≤ 30 min (#97).
  * - No repeated dinner within a week, no same protein source two days in a
  *   row, favourites twice as likely (#14, #96). Other meals never repeat on
- *   consecutive days (#95). Children's dislikes are avoided where possible (#28).
+ *   consecutive days (#95). Dislikes are avoided where possible (#28, #181).
  * - Evening snack every day; cheat snack only on cheat days (#21, #98).
  * - If rules cannot all be met they are relaxed in a fixed order (#100, #110).
  * - Portions are scaled per person to the protein target (#19, #27, #101).
  * - Allergies are a hard rule (#180): a dish with an allergen for anyone
  *   eating the meal is never suggested; safe alternatives (e.g. gluten-free
  *   pasta) are used for everyone at the meal. Never relaxed.
+ * - Food someone doesn't tolerate is just as strict (#181), unless it can be
+ *   left out of their portion or swapped for a milder alternative.
  */
 import { addDays, getISODay, parseISO } from 'date-fns'
-import { blockedAllergens, recipeSafety, substitutionKey, withSubstitutions, type BlockedAllergens, type RecipeSafety } from './allergens'
+import { blockedAt, blocksAnything, ingredientParts, recipeSafety, substitutionKey, withSubstitutions, type Blocked, type RecipeSafety } from './allergens'
 import { allTranslations } from './localize'
 import { recipeNutrition, recipeTags, type RecipeNutrition } from './nutrition'
 import {
@@ -96,12 +98,18 @@ export function mainProteinSource(recipe: Recipe, ingredients: ReadonlyMap<Id, I
   return best ? (SOURCE_GROUPS[best.source] ?? best.source) : undefined
 }
 
-/** Ids of the household's children who dislike something in the recipe (#28). */
-function dislikedBy(recipe: Recipe, household: HouseholdSettings, eaters: (person: HouseholdSettings['people'][number]) => boolean): Id[] {
-  const ids = new Set(recipe.ingredients.map((l) => l.ingredientId))
-  return household.people
-    .filter((p) => p.kind === 'child' && eaters(p) && p.dislikedIngredientIds.some((id) => ids.has(id)))
-    .map((p) => p.id)
+/** Every ingredient in a recipe, including what its blends and sauces contain (#181). */
+export function recipeIngredientIds(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingredient>): Set<Id> {
+  return new Set(recipe.ingredients.flatMap((l) => {
+    const ingredient = ingredients.get(l.ingredientId)
+    return ingredient ? ingredientParts(ingredient) : [l.ingredientId]
+  }))
+}
+
+/** Ids of the people – adults and children (#181) – who dislike something in the recipe (#28). */
+function dislikedBy(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingredient>, household: HouseholdSettings, eaters: (person: HouseholdSettings['people'][number]) => boolean): Id[] {
+  const ids = recipeIngredientIds(recipe, ingredients)
+  return household.people.filter((p) => eaters(p) && p.dislikedIngredientIds.some((id) => ids.has(id))).map((p) => p.id)
 }
 
 const inCategory = (recipe: Recipe, slot: MealSlot) => recipe.categoryIds.includes(slot)
@@ -180,11 +188,11 @@ class Planner {
     return this.nutrition.get(key)
   }
 
-  private readonly blocked = new Map<string, BlockedAllergens>()
-  /** Allergens to avoid at a meal (#180). Dinner = everyone, so leftovers are covered. */
-  blockedAt(slot: MealSlot, dayIndex: number): BlockedAllergens {
+  private readonly blocked = new Map<string, Blocked>()
+  /** Allergens and not-tolerated food to avoid at a meal (#180, #181). Dinner = everyone, so leftovers are covered. */
+  blockedAt(slot: MealSlot, dayIndex: number): Blocked {
     const key = `${slot}|${dayIndex}`
-    if (!this.blocked.has(key)) this.blocked.set(key, blockedAllergens(this.household, slot, dayIndex))
+    if (!this.blocked.has(key)) this.blocked.set(key, blockedAt(this.household, slot, dayIndex))
     return this.blocked.get(key)!
   }
 
@@ -192,7 +200,7 @@ class Planner {
     return recipeSafety(recipe, this.ctx.ingredients, this.blockedAt(slot, dayIndex))
   }
 
-  /** Hard rule (#180): only dishes that are safe for everyone eating the meal. */
+  /** Hard rule (#180, #181): only dishes that are safe for everyone eating the meal. */
   safe(candidates: Recipe[], slot: MealSlot, dayIndex: number): Recipe[] {
     return candidates.filter((r) => this.safetyOf(r, slot, dayIndex).status === 'safe')
   }
@@ -217,9 +225,9 @@ class Planner {
     return cheat.length > 0 ? cheat : healthy // #98
   }
 
-  /** Rule: no child eating this meal dislikes the recipe. */
+  /** Rule: nobody eating this meal dislikes the recipe (#28, #181). */
   noDislikes(slot: MealSlot, dayIndex: number): Rule {
-    return (r) => dislikedBy(r, this.household, (p) => eatsMeal(p, slot, dayIndex)).length === 0
+    return (r) => dislikedBy(r, this.ctx.ingredients, this.household, (p) => eatsMeal(p, slot, dayIndex)).length === 0
   }
 
   /** Rule: not the same recipe as the neighbouring days' meal (#95). */
@@ -875,7 +883,7 @@ export function adaptToSettings(
     const recipe = meal.recipeId ? recipes.get(meal.recipeId) : undefined
     if (!recipe) return true
     if (!isRecipeAllowed(recipe, ctx.ingredients, household)) return false
-    // A new allergy (#180): replace dishes that became unsafe. A dish the user
+    // A new allergy (#180) or food someone doesn't tolerate (#181): replace dishes that became unsafe. A dish the user
     // already picked despite the warning stays until the allergies change.
     const eaters = meal.status === 'leftovers' ? 'dinner' : slot
     if (now_.safetyOf(recipe, eaters, dayIndex).status === 'unsafe' && before.safetyOf(recipe, eaters, dayIndex).status !== 'unsafe') return false
@@ -958,8 +966,8 @@ export type PlanNote =
   | { date: IsoDate; slot: MealSlot; kind: 'dislike'; personId: Id; ingredientIds: Id[] }
 
 /**
- * Notes to show on the plan: relaxed rules (#100) and children's dislikes
- * that could not be avoided (#28).
+ * Notes to show on the plan: relaxed rules (#100) and dislikes that could
+ * not be avoided (#28, #181).
  */
 export function planNotes(ctx: PlannerContext, plan: WeekPlan, previousWeek?: WeekPlan): PlanNote[] {
   const planner = new Planner(ctx)
@@ -979,9 +987,9 @@ export function planNotes(ctx: PlannerContext, plan: WeekPlan, previousWeek?: We
       const meal = day.meals[slot]
       const recipe = planner.recipe(meal.recipeId)
       if (!recipe || (meal.status !== 'planned' && meal.status !== 'leftovers')) continue
-      const ids = new Set(recipe.ingredients.map((l) => l.ingredientId))
+      const ids = recipeIngredientIds(recipe, ctx.ingredients)
       for (const person of ctx.household.people) {
-        if (person.kind !== 'child' || meal.portions[person.id] === undefined) continue
+        if (meal.portions[person.id] === undefined) continue
         const disliked = person.dislikedIngredientIds.filter((id) => ids.has(id))
         if (disliked.length > 0) notes.push({ date: day.date, slot, kind: 'dislike', personId: person.id, ingredientIds: disliked })
       }
@@ -1009,11 +1017,11 @@ export function pickSafety(ctx: PlannerContext, date: IsoDate, slot: MealSlot): 
   return new Map(ctx.recipes.map((r) => [r.id, planner.safetyOf(r, slot, dayIndex)]))
 }
 
-/** True if allergies leave no dish at all for this meal: "No dish fits all the allergies" (#180). */
+/** True if allergies or food someone doesn't tolerate leave no dish at all for this meal (#180, #181). */
 export function noSafeDish(ctx: PlannerContext, date: IsoDate, slot: MealSlot): boolean {
   const planner = new Planner(ctx)
   const dayIndex = weekdayOf(date)
-  if (planner.blockedAt(slot, dayIndex).size === 0) return false
+  if (!blocksAnything(planner.blockedAt(slot, dayIndex))) return false
   const pool =
     slot === 'dinner' ? planner.dinners() : slot === 'breakfast' ? planner.breakfasts() : slot === 'snack' ? planner.snacks(dayIndex) : planner.quickLunches()
   return planner.safe(pool, slot, dayIndex).length === 0

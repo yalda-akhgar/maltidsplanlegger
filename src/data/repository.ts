@@ -33,7 +33,7 @@ import {
 export const SCHEMA_VERSION = 5
 
 /** Bump when new seed recipes/ingredients should be added to existing installs. */
-export const SEED_VERSION = 2 // v2: allergens on seed ingredients + safe alternatives (#180)
+export const SEED_VERSION = 3 // v2: allergens + safe alternatives (#180) · v3: blend contents, single spices, milder alternatives, "can be left out" (#181)
 
 const PREFIX = 'mp:'
 
@@ -172,12 +172,27 @@ export function createRepository(storage: KeyValueStorage) {
       write(key, [...existing, ...seeds.filter((s) => !ids.has(s.id))])
     }
     // v2 (#180): seed ingredients stored before allergens existed get their labels.
+    // v3 (#181): … and what blends contain.
     const seedById = new Map(SEED_INGREDIENTS.map((i) => [i.id, i]))
     write(
       KEYS.ingredients,
       read<Ingredient[]>(KEYS.ingredients, []).map((i) => {
         const seed = seedById.get(i.id)
-        return seed && i.allergens === undefined ? { ...i, allergens: seed.allergens, ...(seed.alternativeFor ? { alternativeFor: seed.alternativeFor } : {}) } : i
+        if (!seed) return i
+        let next = i
+        if (next.allergens === undefined) next = { ...next, allergens: seed.allergens, ...(seed.alternativeFor ? { alternativeFor: seed.alternativeFor } : {}) }
+        if (next.contains === undefined && seed.contains) next = { ...next, contains: seed.contains }
+        return next
+      }),
+    )
+    // v3 (#181): stored seed recipes get "can be left out" on the same lines as the seed.
+    const seedRecipes = new Map(SEED_RECIPES.map((r) => [r.id, r]))
+    write(
+      KEYS.recipes,
+      read<Recipe[]>(KEYS.recipes, []).map((r) => {
+        const omittable = new Set(seedRecipes.get(r.id)?.ingredients.filter((l) => l.omittable).map((l) => l.ingredientId))
+        if (omittable.size === 0) return r
+        return { ...r, ingredients: r.ingredients.map((l) => (l.omittable === undefined && omittable.has(l.ingredientId) ? { ...l, omittable: true } : l)) }
       }),
     )
     write(KEYS.seedVersion, SEED_VERSION)

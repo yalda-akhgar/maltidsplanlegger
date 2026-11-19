@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { blockedAllergens, recipeAllergens, recipeSafety, withSubstitutions } from './allergens'
+import { blockedAt, recipeAllergens, recipeSafety, withSubstitutions } from './allergens'
 import { defaultHousehold } from './defaults'
 import { recipeNutrition } from './nutrition'
 import {
@@ -77,13 +77,15 @@ describe('allergen labels (#180)', () => {
     expect(ingredients.get(ing('skyr'))!.allergens).toEqual(expect.arrayContaining(['milk', 'lactose']))
   })
 
-  it('every alternative replaces an existing ingredient and has fewer allergens', () => {
+  it('every alternative replaces an existing ingredient and has fewer allergens or is milder', () => {
     const alternatives = SEED_INGREDIENTS.filter((i) => i.alternativeFor)
-    expect(alternatives.length).toBe(12)
+    expect(alternatives.length).toBe(17)
     for (const alt of alternatives) {
       const original = ingredients.get(alt.alternativeFor!)
       expect(original, alt.id).toBeDefined()
-      expect(original!.allergens!.some((a) => !alt.allergens!.includes(a)), alt.id).toBe(true)
+      const fewerAllergens = original!.allergens!.some((a) => !alt.allergens!.includes(a))
+      const milder = (original!.contains ?? []).some((id) => !(alt.contains ?? []).includes(id))
+      expect(fewerAllergens || milder, alt.id).toBe(true)
     }
   })
 
@@ -94,7 +96,7 @@ describe('allergen labels (#180)', () => {
 })
 
 describe('recipe safety for the people at a meal (#180)', () => {
-  const safety = (r: Recipe, people: Person[]) => recipeSafety(r, ingredients, blockedAllergens(household(people), 'dinner', 0))
+  const safety = (r: Recipe, people: Person[]) => recipeSafety(r, ingredients, blockedAt(household(people), 'dinner', 0))
 
   it('nothing to avoid without allergies', () => {
     expect(safety(recipe('chicken-stir-fry-noodles'), [adult('a')]).status).toBe('safe')
@@ -126,15 +128,15 @@ describe('recipe safety for the people at a meal (#180)', () => {
     const own: Ingredient = { ...ingredients.get(ing('salt'))!, id: 'own', allergens: undefined, source: 'user' }
     const map = new Map([...ingredients, ['own', own]])
     const r: Recipe = { ...recipe('chicken-tikka-rice'), ingredients: [...recipe('chicken-tikka-rice').ingredients, { ingredientId: 'own', amount: 1, unit: 'g' }] }
-    expect(recipeSafety(r, map, blockedAllergens(household([adult('a', ['egg'])]), 'dinner', 0)).status).toBe('unknown')
-    expect(recipeSafety(r, map, blockedAllergens(household([adult('a')]), 'dinner', 0)).status).toBe('safe')
+    expect(recipeSafety(r, map, blockedAt(household([adult('a', ['egg'])]), 'dinner', 0)).status).toBe('unknown')
+    expect(recipeSafety(r, map, blockedAt(household([adult('a')]), 'dinner', 0)).status).toBe('safe')
   })
 
   it('a child at kindergarten on weekdays does not limit weekday lunch', () => {
     const h = household([adult('a'), child('c', ['gluten'])])
-    expect(blockedAllergens(h, 'lunch', 0).size).toBe(0)
-    expect(blockedAllergens(h, 'lunch', 5).has('gluten')).toBe(true)
-    expect(blockedAllergens(h, 'dinner', 0).has('gluten')).toBe(true)
+    expect(blockedAt(h, 'lunch', 0).allergens.size).toBe(0)
+    expect(blockedAt(h, 'lunch', 5).allergens.has('gluten')).toBe(true)
+    expect(blockedAt(h, 'dinner', 0).allergens.has('gluten')).toBe(true)
   })
 })
 
@@ -230,5 +232,143 @@ describe('alternatives change protein and portions (#180)', () => {
     const plain = setMeal(ctx(household([adult('a1'), child('c1')]), 6), { plan: generate(c), date: MONDAY, slot: 'dinner', recipeId: r.id }).plan
     expect(dinner.portions.a1).toBeGreaterThanOrEqual(plain.days[0].meals.dinner.portions.a1)
     expect(weekdayOf(MONDAY)).toBe(0)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Food someone doesn't tolerate (#181)
+// ---------------------------------------------------------------------------
+
+const intolerant = (person: Person, keys: string[]): Person => ({ ...person, notToleratedIngredientIds: keys.map(ing) })
+
+/** Every dish on the plan, as cooked, holds nothing an eater doesn't tolerate – except lines left out of their portion. */
+function expectTolerated(plan: WeekPlan, c: PlannerContext) {
+  plan.days.forEach((day, i) => {
+    for (const slot of MEAL_SLOTS) {
+      const meal = day.meals[slot]
+      if ((meal.status !== 'planned' && meal.status !== 'leftovers') || !meal.recipeId) continue
+      const cooked = withSubstitutions(c.recipes.find((r) => r.id === meal.recipeId)!, meal.substitutions)
+      const eaters = c.household.people.filter((p) => eatsMeal(p, meal.status === 'leftovers' ? 'dinner' : slot, i))
+      for (const person of eaters) {
+        for (const line of cooked.ingredients) {
+          if (line.omittable) continue
+          const ingredient = c.ingredients.get(line.ingredientId)!
+          const parts = [ingredient.id, ...(ingredient.contains ?? [])]
+          const hit = parts.filter((id) => (person.notToleratedIngredientIds ?? []).includes(id))
+          expect(hit, `${day.date} ${slot} ${meal.recipeId} for ${person.id}`).toEqual([])
+        }
+      }
+    }
+  })
+}
+
+describe('blends say what they contain (#181)', () => {
+  it('taco seasoning, tikka paste, curry powder and salsa contain chili; the mild ones do not', () => {
+    for (const key of ['taco-seasoning', 'tikka-paste', 'curry-powder', 'salsa', 'gluten-free-taco-seasoning']) {
+      expect(ingredients.get(ing(key))!.contains, key).toContain(ing('chili'))
+    }
+    for (const key of ['mild-taco-seasoning', 'mild-salsa']) expect(ingredients.get(ing(key))!.contains, key).not.toContain(ing('chili'))
+    for (const i of SEED_INGREDIENTS) for (const id of i.contains ?? []) expect(ingredients.has(id), `${i.id} → ${id}`).toBe(true)
+  })
+})
+
+describe('recipe safety with food someone does not tolerate (#181)', () => {
+  const safety = (r: Recipe, people: Person[]) => recipeSafety(r, ingredients, blockedAt(household(people), 'dinner', 0))
+
+  it('a line that can be left out is left out of that person only', () => {
+    const s = safety(recipe('omelette-spinach-feta'), [intolerant(adult('y'), ['pepper']), adult('a')])
+    expect(s.status).toBe('safe')
+    expect(s.omissions).toEqual([{ ingredientId: ing('pepper'), personIds: ['y'] }])
+    expect(s.substitutions).toEqual({})
+  })
+
+  it('a blend uses the milder alternative for everyone', () => {
+    const s = safety(recipe('beef-tacos'), [intolerant(adult('y'), ['chili']), adult('a')])
+    expect(s.status).toBe('safe')
+    expect(s.substitutions).toEqual({ [ing('taco-seasoning')]: ing('mild-taco-seasoning'), [ing('salsa')]: ing('mild-salsa') })
+  })
+
+  it('a blend without an alternative makes the dish unsafe, naming the chosen ingredient', () => {
+    const s = safety(recipe('chicken-tikka-rice'), [intolerant(adult('y'), ['chili'])])
+    expect(s.status).toBe('unsafe')
+    expect(s.intolerances).toEqual([{ ingredientId: ing('chili'), personIds: ['y'] }])
+  })
+
+  it('a line that is not marked "can be left out" stays strict', () => {
+    // Garlic can be left out of the tuna pasta, but not of the tikka.
+    expect(safety(recipe('tuna-pasta-peas'), [intolerant(adult('y'), ['garlic'])]).status).toBe('safe')
+    expect(safety(recipe('chicken-tikka-rice'), [intolerant(adult('y'), ['garlic'])]).status).toBe('unsafe')
+  })
+
+  it('an alternative must fit both allergies and intolerances', () => {
+    // Gluten allergy + chili: mild taco seasoning has gluten, gluten-free has chili.
+    const s = safety(recipe('beef-tacos'), [intolerant(adult('y'), ['chili']), child('c', ['gluten'])])
+    expect(s.status).toBe('unsafe')
+    // Gluten allergy alone: gluten-free taco seasoning.
+    expect(safety(recipe('beef-tacos'), [child('c', ['gluten'])]).substitutions[ing('taco-seasoning')]).toBe(ing('gluten-free-taco-seasoning'))
+  })
+
+  it('"can be left out" never applies to allergens', () => {
+    const own: Ingredient = { ...ingredients.get(ing('honey'))!, allergens: ['nuts'] }
+    const map = new Map([...ingredients, [own.id, own]])
+    const s = recipeSafety(recipe('greek-yoghurt-walnuts'), map, blockedAt(household([adult('a', ['nuts'])]), 'breakfast', 0))
+    expect(s.status).toBe('unsafe')
+    expect(s.omissions).toEqual([])
+  })
+
+  it('only matters for meals the person eats', () => {
+    const h = household([adult('a'), intolerant(child('c'), ['chili'])])
+    expect(blockedAt(h, 'lunch', 0).ingredients.size).toBe(0)
+    expect(blockedAt(h, 'dinner', 0).ingredients.has(ing('chili'))).toBe(true)
+  })
+})
+
+describe('no dish with food someone does not tolerate ends up in the plan (#181)', () => {
+  const households: Array<[string, Person[]]> = [
+    ['adult who does not tolerate chili', [intolerant(adult('y'), ['chili']), adult('a2'), child('c1')]],
+    ['onion and garlic', [intolerant(adult('y'), ['onion', 'garlic']), adult('a2')]],
+    ['pepper and cinnamon for a child, chili + gluten allergy', [adult('a1'), intolerant(adult('y'), ['chili']), intolerant(child('c1', ['gluten']), ['pepper', 'cinnamon'])]],
+  ]
+
+  for (const [name, people] of households) {
+    it(`over 200 weeks: ${name}`, () => {
+      for (let seed = 1; seed <= 200; seed++) {
+        const c = ctx(household(people), seed)
+        const plan = generate(c)
+        expectTolerated(plan, c)
+        expectSafe(plan, c)
+      }
+    })
+  }
+
+  it('also after swapping and in settings changes', () => {
+    for (let seed = 1; seed <= 30; seed++) {
+      const before = household([adult('y'), adult('a')])
+      const c = ctx(before, seed)
+      let plan = generate(c)
+      const after = household([intolerant(adult('y'), ['chili', 'garlic']), adult('a')])
+      const c2 = { ...c, household: after }
+      plan = adaptToSettings(c2, before, [plan], MONDAY).plans[0]
+      expectTolerated(plan, c2)
+      for (let i = 0; i < 7; i++) for (const slot of MEAL_SLOTS) plan = swapMeal(c2, { plan, date: plan.days[i].date, slot }).plan
+      expectTolerated(plan, c2)
+    }
+  })
+
+  it('tacos are still suggested, with mild taco seasoning', () => {
+    const c = ctx(household([intolerant(adult('y'), ['chili'])]), 7)
+    const plan = setMeal(c, { plan: generate(c), date: MONDAY, slot: 'dinner', recipeId: recipe('beef-tacos').id }).plan
+    expect(plan.days[0].meals.dinner.substitutions).toEqual({ [ing('taco-seasoning')]: ing('mild-taco-seasoning'), [ing('salsa')]: ing('mild-salsa') })
+  })
+})
+
+describe('dislikes are a soft rule for adults too (#181)', () => {
+  it('an adult who dislikes salmon rarely gets it', () => {
+    let salmon = 0
+    for (let seed = 1; seed <= 50; seed++) {
+      const c = ctx(household([{ ...adult('a1'), dislikedIngredientIds: [ing('salmon')] }]), seed)
+      salmon += generate(c).days.filter((d) => d.meals.dinner.recipeId === recipe('salmon-sweet-potato-broccoli').id).length
+    }
+    expect(salmon).toBe(0)
   })
 })

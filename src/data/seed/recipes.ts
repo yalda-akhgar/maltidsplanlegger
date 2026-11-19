@@ -21,6 +21,8 @@ type RecipeInput = {
   ingredients: Line[]
   steps: Text3[]
   snackKind?: 'healthy' | 'cheat'
+  /** Ingredient keys that can be left out of the portion of someone who doesn't tolerate them (#181). */
+  omittable?: string[]
 }
 
 const text = ([nb, de, en]: Text3) => ({ nb, de, en })
@@ -32,7 +34,12 @@ function recipe(input: RecipeInput): Recipe {
     categoryIds: input.categoryIds,
     timeMinutes: input.timeMinutes,
     servings: input.servings,
-    ingredients: input.ingredients.map(([key, amount, unit]) => ({ ingredientId: `seed-ingredient-${key}`, amount, unit })),
+    ingredients: input.ingredients.map(([key, amount, unit]) => ({
+      ingredientId: `seed-ingredient-${key}`,
+      amount,
+      unit,
+      ...(input.omittable?.includes(key) ? { omittable: true } : {}),
+    })),
     steps: input.steps.map(text),
     tags: [],
     kidFriendly: input.kidFriendly,
@@ -51,6 +58,7 @@ export const SEED_RECIPES: Recipe[] = [
   // --- Breakfast -------------------------------------------------------------
   recipe({
     key: 'greek-yoghurt-berries-nuts',
+    omittable: ['honey'],
     name: ['Gresk yoghurt med bær og nøtter', 'Griechischer Joghurt mit Beeren und Nüssen', 'Greek yoghurt with berries and nuts'],
     categoryIds: ['breakfast'],
     timeMinutes: 5,
@@ -65,6 +73,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'scrambled-eggs-cottage-cheese',
+    omittable: ['pepper'],
     name: ['Eggerøre med cottage cheese', 'Rührei mit Hüttenkäse', 'Scrambled eggs with cottage cheese'],
     categoryIds: ['breakfast'],
     timeMinutes: 10,
@@ -80,6 +89,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'protein-pancakes-banana',
+    omittable: ['cinnamon'],
     name: ['Proteinpannekaker med banan', 'Proteinpfannkuchen mit Banane', 'Protein pancakes with banana'],
     categoryIds: ['breakfast'],
     timeMinutes: 15,
@@ -108,6 +118,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'omelette-spinach-feta',
+    omittable: ['pepper'],
     name: ['Omelett med spinat og feta', 'Omelett mit Spinat und Feta', 'Spinach and feta omelette'],
     categoryIds: ['breakfast'],
     timeMinutes: 10,
@@ -144,6 +155,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'salmon-sweet-potato-broccoli',
+    omittable: ['lemon', 'pepper'],
     name: ['Laks med søtpotet og brokkoli', 'Lachs mit Süßkartoffel und Brokkoli', 'Salmon with sweet potato and broccoli'],
     categoryIds: ['dinner'],
     timeMinutes: 30,
@@ -180,6 +192,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'chicken-stir-fry-noodles',
+    omittable: ['garlic'],
     name: ['Kylling-wok med nudler', 'Hähnchen-Wok mit Nudeln', 'Chicken stir-fry with noodles'],
     categoryIds: ['dinner'],
     timeMinutes: 20,
@@ -218,6 +231,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'turkey-burger-salad',
+    omittable: ['pepper'],
     name: ['Kalkunburger med salat', 'Putenburger mit Salat', 'Turkey burger with salad'],
     categoryIds: ['dinner'],
     timeMinutes: 25,
@@ -236,6 +250,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   recipe({
     key: 'tuna-pasta-peas',
+    omittable: ['garlic'],
     name: ['Tunfiskpasta med erter', 'Thunfischpasta mit Erbsen', 'Tuna pasta with peas'],
     categoryIds: ['dinner'],
     timeMinutes: 20,
@@ -317,6 +332,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   snack({
     key: 'greek-yoghurt-walnuts',
+    omittable: ['honey'],
     name: ['Gresk yoghurt med valnøtter', 'Griechischer Joghurt mit Walnüssen', 'Greek yoghurt with walnuts'],
     snackKind: 'healthy',
     timeMinutes: 2,
@@ -357,6 +373,7 @@ export const SEED_RECIPES: Recipe[] = [
   }),
   snack({
     key: 'quark-apple-cinnamon',
+    omittable: ['cinnamon'],
     name: ['Kesam med eple og kanel', 'Quark mit Apfel und Zimt', 'Quark with apple and cinnamon'],
     snackKind: 'healthy',
     timeMinutes: 3,

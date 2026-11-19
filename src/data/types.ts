@@ -112,6 +112,12 @@ export interface Ingredient {
    * pasta for wholewheat pasta (#180). Used for everyone at the meal.
    */
   alternativeFor?: Id
+  /**
+   * Ingredients a spice blend or sauce contains, e.g. taco seasoning → chili,
+   * cumin … (#181). Strictest labelling where brands vary. Someone who doesn't
+   * tolerate chili doesn't tolerate taco seasoning either.
+   */
+  contains?: Id[]
   storeSection: StoreSection
   /** Basic item (oil, salt, spices …): only on the shopping list when marked empty. */
   isStaple: boolean
@@ -151,6 +157,12 @@ export interface RecipeIngredient {
   unit: Unit
   /** Optional note, e.g. "finely chopped". */
   note?: LocalizedText
+  /**
+   * Can be left out of the portion of someone who doesn't tolerate it, e.g.
+   * black pepper on an omelette (#181). Set per recipe: chili in a chili stew
+   * can't be left out.
+   */
+  omittable?: boolean
 }
 
 export interface Recipe {
@@ -189,8 +201,14 @@ export interface Person {
   kind: 'adult' | 'child'
   /** Daily protein target in grams – adults only (#19). */
   proteinTargetG?: number
-  /** Ingredients this person doesn't like – used for children (#28, #70). */
+  /** Ingredients this person doesn't like: avoided where possible – a soft rule, for adults and children (#28, #70, #181). */
   dislikedIngredientIds: Id[]
+  /**
+   * Ingredients this person doesn't tolerate, chosen freely from the catalogue
+   * (#181). Strict like allergies: never suggested, unless the ingredient can
+   * be left out of their portion or swapped for a milder alternative.
+   */
+  notToleratedIngredientIds?: Id[]
   /** Allergies and intolerances (#180). Dishes with these are never suggested for meals this person eats. */
   allergies?: Allergen[]
   /** Children only: eats lunch at home Monday–Friday (default no). Always yes on weekends (#102). */
