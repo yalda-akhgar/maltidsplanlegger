@@ -1,9 +1,13 @@
-import type { Ingredient, StoreSection, Unit } from '../types'
+import type { Allergen, Ingredient, StoreSection, Unit } from '../types'
 
 /**
  * Seed ingredient catalogue (#62, #65). Nutrition values are per 100 g,
  * approximate and rounded, based on common food composition tables
  * (e.g. the Norwegian Matvaretabellen). Not medical advice.
+ *
+ * Allergens (#180) include hidden ones and follow the strictest common
+ * labelling where brands vary (stock cubes, curry powder, taco seasoning).
+ * Every seed ingredient states its allergens; an empty list means none.
  *
  * Seed ids are fixed ("seed-…") so recipes can reference them and later
  * seed updates can recognise them.
@@ -17,6 +21,45 @@ type Options = {
   proteinSource?: string
   staple?: boolean
   wholeUnitsOnly?: boolean
+  /** A safe alternative for another seed ingredient (key), e.g. gluten-free pasta (#180). */
+  alternativeFor?: string
+}
+
+/** Allergens per seed ingredient key (#180). Keys not listed have no allergens. */
+const SEED_ALLERGENS: Record<string, Allergen[]> = {
+  egg: ['egg'],
+  'greek-yoghurt': ['milk', 'lactose'],
+  skyr: ['milk', 'lactose'],
+  'cottage-cheese': ['milk', 'lactose'],
+  quark: ['milk', 'lactose'],
+  feta: ['milk', 'lactose'],
+  'grated-cheese': ['milk', 'lactose'],
+  milk: ['milk', 'lactose'],
+  'ice-cream': ['milk', 'lactose', 'egg'],
+  salmon: ['fish'],
+  tuna: ['fish'],
+  hummus: ['sesame'],
+  edamame: ['soy'],
+  'mixed-nuts': ['nuts', 'peanuts'],
+  walnuts: ['nuts'],
+  oats: ['gluten'],
+  'wholewheat-pasta': ['gluten'],
+  'egg-noodles': ['gluten', 'egg'],
+  tortilla: ['gluten'],
+  'burger-bun': ['gluten', 'sesame'],
+  'soy-sauce': ['soy', 'gluten'],
+  'taco-seasoning': ['gluten', 'celery'],
+  'vegetable-stock': ['gluten', 'celery'],
+  'curry-powder': ['celery', 'mustard'],
+  'tikka-paste': ['mustard'],
+  // Alternatives
+  'lactose-free-milk': ['milk'],
+  'lactose-free-greek-yoghurt': ['milk'],
+  'lactose-free-skyr': ['milk'],
+  'lactose-free-cottage-cheese': ['milk'],
+  'lactose-free-quark': ['milk'],
+  'oat-drink': ['gluten'],
+  'gluten-free-soy-sauce': ['soy'],
 }
 
 /** [protein g, kcal, fibre g, fruit/veg portions] per 100 g. */
@@ -37,6 +80,8 @@ function ingredient(
     ...(options.wholeUnitsOnly ? { wholeUnitsOnly: true } : {}),
     ...(options.proteinSource ? { proteinSource: options.proteinSource } : {}),
     tags: options.tags ?? [],
+    allergens: SEED_ALLERGENS[key] ?? [],
+    ...(options.alternativeFor ? { alternativeFor: `seed-ingredient-${options.alternativeFor}` } : {}),
     storeSection,
     isStaple: options.staple ?? false,
     source: 'seed',
@@ -122,4 +167,18 @@ export const SEED_INGREDIENTS: Ingredient[] = [
   ingredient('cinnamon', ['Kanel', 'Zimt', 'Cinnamon'], [4, 250, 53, 0], 'dryGoods', staple({ tsp: 2.5 })),
   ingredient('salt', ['Salt', 'Salz', 'Salt'], [0, 0, 0, 0], 'dryGoods', staple({ tsp: 6 })),
   ingredient('pepper', ['Pepper', 'Pfeffer', 'Black pepper'], [0, 0, 0, 0], 'dryGoods', staple({ pinch: 0.3 })),
+
+  // Safe alternatives for allergies (#180), used for everyone at the meal
+  ingredient('gluten-free-pasta', ['Glutenfri pasta', 'Glutenfreie Nudeln', 'Gluten-free pasta'], [6, 355, 3, 0], 'dryGoods', { alternativeFor: 'wholewheat-pasta' }),
+  ingredient('gluten-free-tortilla', ['Glutenfri tortilla', 'Glutenfreie Tortilla', 'Gluten-free tortilla'], [5, 310, 3, 0], 'bread', { units: { pcs: 60, pack: 480 }, alternativeFor: 'tortilla' }),
+  ingredient('gluten-free-burger-bun', ['Glutenfritt hamburgerbrød', 'Glutenfreies Burgerbrötchen', 'Gluten-free burger bun'], [5, 270, 5, 0], 'bread', { units: { pcs: 75 }, alternativeFor: 'burger-bun' }),
+  ingredient('gluten-free-oats', ['Glutenfri havregryn', 'Glutenfreie Haferflocken', 'Gluten-free oats'], [13, 370, 10, 0], 'dryGoods', { units: { dl: 35 }, alternativeFor: 'oats' }),
+  ingredient('rice-noodles', ['Risnudler', 'Reisnudeln', 'Rice noodles'], [6, 360, 1, 0], 'dryGoods', { alternativeFor: 'egg-noodles' }),
+  ingredient('gluten-free-soy-sauce', ['Glutenfri soyasaus (tamari)', 'Glutenfreie Sojasoße (Tamari)', 'Gluten-free soy sauce (tamari)'], [10, 70, 0, 0], 'dryGoods', { ...staple({ tbsp: 16 }), alternativeFor: 'soy-sauce' }),
+  ingredient('lactose-free-milk', ['Laktosefri lettmelk', 'Laktosefreie fettarme Milch', 'Lactose-free semi-skimmed milk'], [3.4, 46, 0, 0], 'dairy', { ...dairy, units: { ml: 1.03, dl: 103, l: 1030 }, alternativeFor: 'milk' }),
+  ingredient('oat-drink', ['Havredrikk', 'Haferdrink', 'Oat drink'], [1, 45, 0.8, 0], 'dairy', { units: { ml: 1.03, dl: 103, l: 1030 }, alternativeFor: 'milk' }),
+  ingredient('lactose-free-greek-yoghurt', ['Laktosefri gresk yoghurt', 'Laktosefreier griechischer Joghurt', 'Lactose-free Greek yoghurt'], [9, 95, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'greek-yoghurt' }),
+  ingredient('lactose-free-skyr', ['Laktosefri skyr', 'Laktosefreies Skyr', 'Lactose-free skyr'], [11, 63, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'skyr' }),
+  ingredient('lactose-free-cottage-cheese', ['Laktosefri cottage cheese', 'Laktosefreier Hüttenkäse', 'Lactose-free cottage cheese'], [13, 90, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'cottage-cheese' }),
+  ingredient('lactose-free-quark', ['Laktosefri kesam', 'Laktosefreier Magerquark', 'Lactose-free quark'], [11, 70, 0, 0], 'dairy', { ...dairy, units: { dl: 100 }, alternativeFor: 'quark' }),
 ]

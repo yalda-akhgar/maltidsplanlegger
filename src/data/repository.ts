@@ -33,7 +33,7 @@ import {
 export const SCHEMA_VERSION = 5
 
 /** Bump when new seed recipes/ingredients should be added to existing installs. */
-export const SEED_VERSION = 1
+export const SEED_VERSION = 2 // v2: allergens on seed ingredients + safe alternatives (#180)
 
 const PREFIX = 'mp:'
 
@@ -171,6 +171,15 @@ export function createRepository(storage: KeyValueStorage) {
       const ids = new Set(existing.map((r) => r.id))
       write(key, [...existing, ...seeds.filter((s) => !ids.has(s.id))])
     }
+    // v2 (#180): seed ingredients stored before allergens existed get their labels.
+    const seedById = new Map(SEED_INGREDIENTS.map((i) => [i.id, i]))
+    write(
+      KEYS.ingredients,
+      read<Ingredient[]>(KEYS.ingredients, []).map((i) => {
+        const seed = seedById.get(i.id)
+        return seed && i.allergens === undefined ? { ...i, allergens: seed.allergens, ...(seed.alternativeFor ? { alternativeFor: seed.alternativeFor } : {}) } : i
+      }),
+    )
     write(KEYS.seedVersion, SEED_VERSION)
   }
   ensureSeeded()

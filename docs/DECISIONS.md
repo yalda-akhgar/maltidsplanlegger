@@ -1320,3 +1320,22 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Login required from the start of phase 5.
 - **Rationale:** Lazy registration – value first, account only when it adds value; less personal data stored (GDPR).
 - **Consequences:** Added to phase 5 in `docs/PROMPT.md`. The repository must keep working without a server after phase 5, and needs a one-time move of local data to the account.
+
+## 180. Safety before features: allergies per person, EU-14 list, never suggested
+- **Date:** 2026-11-19
+- **Decision:** Allergies and intolerances are set **per person** (adults and children) in the wizard, under "Household" and under "My profile", from a fixed list – not free text. A dish containing an allergen for anyone eating the meal is **never suggested**. Built before phase 3. Details:
+  1. Ingredients get their own `allergens` field. On the user's own ingredients a missing field means "allergens not stated".
+  2. The list is the EU's 14 allergens plus lactose: "Milk (allergy)" and "Lactose (intolerance)" are separate, because lactose-free food still contains milk protein. Lactose-free alternatives are only offered for lactose intolerance.
+  3. Allergies and intolerances follow the same strict rule: never suggested.
+  4. Where brands vary (stock cubes, curry powder, taco seasoning), the strictest labelling is used.
+  5. Alternatives (e.g. gluten-free pasta) are used for **everyone** at the meal – one pot, no mix-ups, one shopping list. The dish keeps its name and gets a label like "With gluten-free pasta"; protein and amounts use the alternative.
+  6. Alternatives added now: gluten-free pasta, tortilla, burger buns and oats; rice noodles (no gluten, no egg); gluten-free soy sauce; lactose-free semi-skimmed milk, Greek yoghurt, skyr, cottage cheese and quark; oat drink (for milk allergy).
+  7. If no dish fits everyone's allergies, the meal stays empty with the note "No dish fits all the allergies". The rule is never relaxed.
+  8. A dish with an ingredient whose allergens are not stated is not suggested automatically while anyone in the household has an allergy; it can still be picked by hand with a yellow warning. The new-ingredient form gets an allergen choice, including "No allergens".
+  9. Picking a dish with an allergen by hand: it is listed last with a red warning ("Contains gluten – Noah has an allergy"), needs a confirmation ("Pick anyway"), and keeps a red label on the week plan.
+  10. Disclaimer – "The app is an aid. Always check the label – contents can vary between brands." – in the allergy choice, at the bottom of every recipe and once in the wizard.
+  11. Every recipe shows "Contains: gluten, milk" for everyone, also without allergies in the household.
+  12. Guests have no allergies in the app for now (backlog #11, high priority).
+- **Alternatives:** (1) Reusing exclusion tags. (2) One "milk/lactose" item. (3) Intolerances as a soft rule. (4) Typical rather than strictest labelling. (5) Alternatives only for the person with the allergy. (6) Only gluten and lactose alternatives. (7) Suggesting the "least bad" dish. (8) Suggesting such dishes with a warning. (9) Warning without confirmation, or hiding the dish. (10) Disclaimer only in the allergy choice. (11) Only when someone has an allergy. (12) Allergies per meal with guests.
+- **Rationale:** Product owner's choice ("a" on all 12). Safety before features: an allergy can be dangerous, a dislike is not.
+- **Consequences:** `Person.allergies`, `Ingredient.allergens`, `Ingredient.alternativeFor` and `PlannedMeal.substitutions` (optional fields, no schema migration). Seed version 2 adds the allergen labels to existing seed ingredients and adds the alternatives. Settings changes replace dishes that are no longer safe (#162). Tests check that no dish with an allergen ends up in the plan for anyone eating it.

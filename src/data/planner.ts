@@ -14,8 +14,12 @@
  * - Evening snack every day; cheat snack only on cheat days (#21, #98).
  * - If rules cannot all be met they are relaxed in a fixed order (#100, #110).
  * - Portions are scaled per person to the protein target (#19, #27, #101).
+ * - Allergies are a hard rule (#180): a dish with an allergen for anyone
+ *   eating the meal is never suggested; safe alternatives (e.g. gluten-free
+ *   pasta) are used for everyone at the meal. Never relaxed.
  */
 import { addDays, getISODay, parseISO } from 'date-fns'
+import { blockedAllergens, recipeSafety, substitutionKey, withSubstitutions, type BlockedAllergens, type RecipeSafety } from './allergens'
 import { allTranslations } from './localize'
 import { recipeNutrition, recipeTags, type RecipeNutrition } from './nutrition'
 import {
@@ -166,12 +170,31 @@ class Planner {
     return id ? this.ctx.recipes.find((r) => r.id === id) : undefined
   }
 
-  nutritionOf(id: Id): RecipeNutrition | undefined {
-    if (!this.nutrition.has(id)) {
+  /** Nutrition of one standard portion, as cooked with the meal's alternatives (#180). */
+  nutritionOf(id: Id, substitutions?: Record<Id, Id>): RecipeNutrition | undefined {
+    const key = `${id}|${substitutionKey(substitutions)}`
+    if (!this.nutrition.has(key)) {
       const recipe = this.recipe(id)
-      if (recipe) this.nutrition.set(id, recipeNutrition(recipe, this.ctx.ingredients))
+      if (recipe) this.nutrition.set(key, recipeNutrition(withSubstitutions(recipe, substitutions), this.ctx.ingredients))
     }
-    return this.nutrition.get(id)
+    return this.nutrition.get(key)
+  }
+
+  private readonly blocked = new Map<string, BlockedAllergens>()
+  /** Allergens to avoid at a meal (#180). Dinner = everyone, so leftovers are covered. */
+  blockedAt(slot: MealSlot, dayIndex: number): BlockedAllergens {
+    const key = `${slot}|${dayIndex}`
+    if (!this.blocked.has(key)) this.blocked.set(key, blockedAllergens(this.household, slot, dayIndex))
+    return this.blocked.get(key)!
+  }
+
+  safetyOf(recipe: Recipe, slot: MealSlot, dayIndex: number): RecipeSafety {
+    return recipeSafety(recipe, this.ctx.ingredients, this.blockedAt(slot, dayIndex))
+  }
+
+  /** Hard rule (#180): only dishes that are safe for everyone eating the meal. */
+  safe(candidates: Recipe[], slot: MealSlot, dayIndex: number): Recipe[] {
+    return candidates.filter((r) => this.safetyOf(r, slot, dayIndex).status === 'safe')
   }
 
   sourceOf(id: Id | undefined): string | undefined {
@@ -213,14 +236,23 @@ class Planner {
     }
   }
 
-  /** Fills in portions for every person eating a meal (#19, #27). */
+  /**
+   * Fills in portions for every person eating a meal (#19, #27), and the safe
+   * alternatives the meal needs (#180). Leftovers use the dinner's eaters, so
+   * they get the same alternatives as the dinner they come from.
+   */
   withPortions(day: DayPlan, dayIndex: number): DayPlan {
     const meals = { ...day.meals }
     for (const slot of Object.keys(meals) as MealSlot[]) {
-      const meal = meals[slot]
-      const active = (meal.status === 'planned' || meal.status === 'leftovers') && meal.recipeId
-      const protein = active ? (this.nutritionOf(meal.recipeId!)?.proteinG ?? 0) : 0
-      meals[slot] = { ...meal, portions: active ? mealPortions(this.household, slot, dayIndex, protein, day.targetsG) : {} }
+      const meal: PlannedMeal = { ...meals[slot] }
+      delete meal.substitutions
+      const recipe = (meal.status === 'planned' || meal.status === 'leftovers') && meal.recipeId ? this.recipe(meal.recipeId) : undefined
+      if (recipe) {
+        const substitutions = this.safetyOf(recipe, meal.status === 'leftovers' ? 'dinner' : slot, dayIndex).substitutions
+        if (Object.keys(substitutions).length > 0) meal.substitutions = substitutions
+      }
+      const protein = recipe ? (this.nutritionOf(recipe.id, meal.substitutions)?.proteinG ?? 0) : 0
+      meals[slot] = { ...meal, portions: recipe ? mealPortions(this.household, slot, dayIndex, protein, day.targetsG) : {} }
     }
     return { ...day, meals }
   }
@@ -237,7 +269,10 @@ function lunchFor(
   if (dinner?.status === 'planned' && dinner.recipeId) {
     return { status: 'leftovers', recipeId: dinner.recipeId, leftoversFrom: yesterday.date, portions: {}, guests }
   }
-  const recipe = planner.choose(planner.quickLunches(), [planner.notSameAs(yesterday.lunchId), planner.noDislikes('lunch', dayIndex)])
+  const recipe = planner.choose(planner.safe(planner.quickLunches(), 'lunch', dayIndex), [
+    planner.notSameAs(yesterday.lunchId),
+    planner.noDislikes('lunch', dayIndex),
+  ])
   return recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests } : emptyMeal('none', guests)
 }
 
@@ -291,7 +326,7 @@ function planDinners(
         planner.differentSource(i === 0 ? previousWeekSunday : ids[i - 1]),
         planner.noDislikes('dinner', i),
       ]
-      const candidates = planner.dinners()
+      const candidates = planner.safe(planner.dinners(), 'dinner', i)
       const recipe = strict
         ? (() => {
             const ok = candidates.filter((r) => rules.every((rule) => rule(r)))
@@ -387,7 +422,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
     const simple = (slot: 'breakfast' | 'snack', candidates: Recipe[]): PlannedMeal => {
       const fixed = fixedMeal(date, slot)
       if (fixed) return fixed
-      const recipe = planner.choose(candidates, [planner.notSameAs(yesterday?.meals[slot].recipeId), planner.noDislikes(slot, i)])
+      const recipe = planner.choose(planner.safe(candidates, slot, i), [planner.notSameAs(yesterday?.meals[slot].recipeId), planner.noDislikes(slot, i)])
       return withCarried(recipe ? { status: 'planned', recipeId: recipe.id, portions: {}, guests: 0 } : emptyMeal(), date, slot)
     }
 
@@ -445,7 +480,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
   if (options.slot === 'dinner') {
     const others = new Set(days.filter((_, j) => j !== i).map((d) => d.meals.dinner.recipeId))
     recipe = pick(
-      planner.dinners().filter((r) => r.id !== meal.recipeId),
+      planner.safe(planner.dinners(), 'dinner', i).filter((r) => r.id !== meal.recipeId),
       [(r) => !others.has(r.id), planner.differentSource(...neighbours('dinner')), planner.noDislikes('dinner', i)],
       planner.random,
     )
@@ -457,7 +492,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
           ? planner.snacks(i)
           : planner.quickLunches()
     recipe = pick(
-      candidates.filter((r) => meal.status === 'leftovers' || r.id !== meal.recipeId),
+      planner.safe(candidates, options.slot, i).filter((r) => meal.status === 'leftovers' || r.id !== meal.recipeId),
       [planner.notSameAs(...neighbours(options.slot)), planner.noDislikes(options.slot, i)],
       planner.random,
     )
@@ -734,7 +769,7 @@ function dayProteinWith(planner: Planner, day: DayPlan): PersonDayProtein[] {
     .filter((p) => p.kind === 'adult' && day.targetsG[p.id])
     .map((p) => ({
       personId: p.id,
-      proteinG: personDayNutrition(day, p.id, (id) => planner.nutritionOf(id), planner.ctx.ingredients).proteinG,
+      proteinG: personDayNutrition(day, p.id, (id, substitutions) => planner.nutritionOf(id, substitutions), planner.ctx.ingredients).proteinG,
       targetG: plannedTargetG(day, p.id, planner.household.proteinSplit, fixedDayOut),
     }))
 }
@@ -812,8 +847,9 @@ export function refreshPortions(ctx: PlannerContext, plan: WeekPlan, fromDate: I
 
 /**
  * Updates planned weeks after a settings change (#162). From today on:
- * - dishes that no longer fit are replaced – excluded food, a cheat snack on a
- *   day that is no longer a cheat day – or emptied if nothing else fits;
+ * - dishes that no longer fit are replaced – excluded food, a new allergy
+ *   (#180), a cheat snack on a day that is no longer a cheat day – or emptied
+ *   if nothing else fits;
  * - dinner on a day that just became a fixed day without dinner at home is
  *   removed (the next day's leftovers become a quick lunch, #108);
  * - everything else stays, including dishes the user picked;
@@ -833,10 +869,16 @@ export function adaptToSettings(
   const active = (p: WeekPlan) => p.days[6].date >= today
   let replaced = 0
 
+  const now_ = new Planner(ctx)
+  const before = new Planner({ ...ctx, household: oldHousehold })
   const fits = (meal: PlannedMeal, slot: MealSlot, dayIndex: number) => {
     const recipe = meal.recipeId ? recipes.get(meal.recipeId) : undefined
     if (!recipe) return true
     if (!isRecipeAllowed(recipe, ctx.ingredients, household)) return false
+    // A new allergy (#180): replace dishes that became unsafe. A dish the user
+    // already picked despite the warning stays until the allergies change.
+    const eaters = meal.status === 'leftovers' ? 'dinner' : slot
+    if (now_.safetyOf(recipe, eaters, dayIndex).status === 'unsafe' && before.safetyOf(recipe, eaters, dayIndex).status !== 'unsafe') return false
     const day = dayIndex as Weekday
     const noLongerCheat = oldHousehold.cheatDays.includes(day) && !household.cheatDays.includes(day)
     return !(slot === 'snack' && recipe.snackKind === 'cheat' && noLongerCheat)
@@ -905,7 +947,7 @@ export function dinnerPortionsToCook(ctx: PlannerContext, plan: WeekPlan, date: 
     if (lunch.status === 'leftovers' && lunch.leftoversFrom === date) total += totalPortions(lunch.portions, lunch.guests)
   } else if (i === 6) {
     const planner = new Planner(ctx)
-    const protein = planner.nutritionOf(dinner.recipeId)?.proteinG ?? 0
+    const protein = planner.nutritionOf(dinner.recipeId, dinner.substitutions)?.proteinG ?? 0
     total += totalPortions(mealPortions(ctx.household, 'lunch', 0, protein, currentTargets(ctx.household)), 0)
   }
   return total
@@ -946,4 +988,33 @@ export function planNotes(ctx: PlannerContext, plan: WeekPlan, previousWeek?: We
     }
   })
   return notes
+}
+
+// ---------------------------------------------------------------------------
+// Allergies on the plan (#180)
+// ---------------------------------------------------------------------------
+
+/** Safety of the dish on a meal for the people eating it (leftovers: the dinner's eaters). */
+export function mealSafety(ctx: PlannerContext, day: DayPlan, slot: MealSlot): RecipeSafety | undefined {
+  const meal = day.meals[slot]
+  const planner = new Planner(ctx)
+  const recipe = (meal.status === 'planned' || meal.status === 'leftovers') && meal.recipeId ? planner.recipe(meal.recipeId) : undefined
+  return recipe ? planner.safetyOf(recipe, meal.status === 'leftovers' ? 'dinner' : slot, weekdayOf(day.date)) : undefined
+}
+
+/** Safety of every recipe for a meal, for the pick list (#180). */
+export function pickSafety(ctx: PlannerContext, date: IsoDate, slot: MealSlot): Map<Id, RecipeSafety> {
+  const planner = new Planner(ctx)
+  const dayIndex = weekdayOf(date)
+  return new Map(ctx.recipes.map((r) => [r.id, planner.safetyOf(r, slot, dayIndex)]))
+}
+
+/** True if allergies leave no dish at all for this meal: "No dish fits all the allergies" (#180). */
+export function noSafeDish(ctx: PlannerContext, date: IsoDate, slot: MealSlot): boolean {
+  const planner = new Planner(ctx)
+  const dayIndex = weekdayOf(date)
+  if (planner.blockedAt(slot, dayIndex).size === 0) return false
+  const pool =
+    slot === 'dinner' ? planner.dinners() : slot === 'breakfast' ? planner.breakfasts() : slot === 'snack' ? planner.snacks(dayIndex) : planner.quickLunches()
+  return planner.safe(pool, slot, dayIndex).length === 0
 }

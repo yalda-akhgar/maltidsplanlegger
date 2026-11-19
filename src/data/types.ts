@@ -43,6 +43,30 @@ export const UNITS = ['g', 'kg', 'ml', 'dl', 'l', 'tbsp', 'tsp', 'pcs', 'pinch',
 export type Unit = (typeof UNITS)[number]
 
 /** Store sections for grouping the shopping list (phase 3), as in the prototype. */
+/**
+ * Allergens a person can have (#180): the EU's 14 allergens, with "milk"
+ * (allergy to milk protein) and "lactose" (intolerance) kept apart, because
+ * lactose-free food still contains milk protein. Order = order in the UI.
+ */
+export const ALLERGENS = [
+  'gluten',
+  'milk',
+  'lactose',
+  'egg',
+  'fish',
+  'crustaceans',
+  'molluscs',
+  'nuts',
+  'peanuts',
+  'soy',
+  'sesame',
+  'celery',
+  'mustard',
+  'lupin',
+  'sulphites',
+] as const
+export type Allergen = (typeof ALLERGENS)[number]
+
 export const STORE_SECTIONS = ['produce', 'meatFish', 'dairy', 'bread', 'dryGoods', 'frozen'] as const
 export type StoreSection = (typeof STORE_SECTIONS)[number]
 
@@ -77,6 +101,17 @@ export interface Ingredient {
   proteinSource?: string
   /** Tags used for exclusions, e.g. ["pork"], ["fish"], ["nuts"] (#68). */
   tags: string[]
+  /**
+   * Allergens in the ingredient, including hidden ones (soy sauce → gluten,
+   * soy) (#180). Missing = "allergens not stated" (the user's own ingredients);
+   * an empty list = no allergens.
+   */
+  allergens?: Allergen[]
+  /**
+   * This ingredient is a safe alternative for another one, e.g. gluten-free
+   * pasta for wholewheat pasta (#180). Used for everyone at the meal.
+   */
+  alternativeFor?: Id
   storeSection: StoreSection
   /** Basic item (oil, salt, spices …): only on the shopping list when marked empty. */
   isStaple: boolean
@@ -156,6 +191,8 @@ export interface Person {
   proteinTargetG?: number
   /** Ingredients this person doesn't like – used for children (#28, #70). */
   dislikedIngredientIds: Id[]
+  /** Allergies and intolerances (#180). Dishes with these are never suggested for meals this person eats. */
+  allergies?: Allergen[]
   /** Children only: eats lunch at home Monday–Friday (default no). Always yes on weekends (#102). */
   eatsWeekdayLunchAtHome?: boolean
 }
@@ -215,6 +252,12 @@ export interface PlannedMeal {
   status: MealStatus
   /** The recipe for planned meals and leftovers. */
   recipeId?: Id
+  /**
+   * Safe alternatives used for everyone at this meal because of allergies,
+   * as original ingredient id → alternative ingredient id (#180). Leftovers
+   * use the same as the dinner they come from.
+   */
+  substitutions?: Record<Id, Id>
   /** For leftovers: the date of the dinner they come from. */
   leftoversFrom?: IsoDate
   /**

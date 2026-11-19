@@ -80,7 +80,7 @@ export interface DayNutrition extends Nutrition {
 export function personDayNutrition(
   day: DayPlan,
   personId: Id,
-  nutritionOf: (recipeId: Id) => (Nutrition & { incomplete: boolean }) | undefined,
+  nutritionOf: (recipeId: Id, substitutions?: Record<Id, Id>) => (Nutrition & { incomplete: boolean }) | undefined,
   ingredients?: ReadonlyMap<Id, Ingredient>,
 ): DayNutrition {
   const total: DayNutrition = { proteinG: 0, kcal: 0, fiberG: 0, fruitVegPortions: 0, incomplete: false }
@@ -95,7 +95,7 @@ export function personDayNutrition(
     }
     const portion = meal.portions[personId]
     if (!portion || !meal.recipeId || (meal.status !== 'planned' && meal.status !== 'leftovers')) continue
-    const n = nutritionOf(meal.recipeId)
+    const n = nutritionOf(meal.recipeId, meal.substitutions)
     if (!n) {
       total.incomplete = true
       continue

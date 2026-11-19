@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { localize } from './localize'
-import { createRepository, deviceLanguage, newId, SCHEMA_VERSION, type KeyValueStorage } from './repository'
+import { createRepository, deviceLanguage, newId, SCHEMA_VERSION, type KeyValueStorage, SEED_VERSION } from './repository'
 import type { Recipe } from './types'
 import { datesOfWeek, shiftWeek, weekIdOf } from './week'
 
@@ -86,7 +86,7 @@ describe('repository', () => {
 
   it('survives corrupt stored data', async () => {
     const repo = createRepository(
-      memoryStorage({ 'mp:schemaVersion': String(SCHEMA_VERSION), 'mp:seedVersion': '1', 'mp:recipes': '{not json' }),
+      memoryStorage({ 'mp:schemaVersion': String(SCHEMA_VERSION), 'mp:seedVersion': String(SEED_VERSION), 'mp:recipes': '{not json' }),
     )
     expect(await repo.listRecipes()).toEqual([])
   })

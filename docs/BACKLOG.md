@@ -14,6 +14,7 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 8 | Redo (↷) | Redo (↷) like in Word – add if testers miss it. Option: undo/redo pair in the top bar for all plan changes. | Maybe | Undo per meal (↶) is enough to start with (#146). | 2026-11-17 |
 | 9 | Skip a meal for one person | Skip a meal for one person only (e.g. low appetite) – only that person's portion and protein change. **High priority for phase 5.** | Planned (phase 5) | "Remove meal" works for the whole household for now (#168); per person needs changes to the data model. | 2026-11-17 |
 | 10 | Pantry step and reminder | If testers use the pantry toggle a lot: consider a pantry step in onboarding and a weekly reminder. | Maybe | The "use what we have at home first" toggle is an unvalidated idea, shipped small and off by default first (#177). | 2026-11-17 |
+| 11 | Guests with allergies | Guests with allergies: set allergies for the guests at a meal, so the dish is checked for them too. **High priority.** | Planned | Allergies are per household member for now (#180, point 12). | 2026-11-19 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.
