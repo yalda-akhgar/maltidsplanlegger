@@ -169,6 +169,7 @@ function FoodWeekForm({ household }: { household: HouseholdSettings }) {
         noDinnerAtHomeDays={form.noDinnerAtHomeDays}
         cheatDays={form.cheatDays}
         snackOn={mealOn(household.proteinSplit, 'snack')}
+        lunchOn={mealOn(household.proteinSplit, 'lunch')}
         onChange={(v) => setForm({ ...form, ...v })}
       />
       {dialog}

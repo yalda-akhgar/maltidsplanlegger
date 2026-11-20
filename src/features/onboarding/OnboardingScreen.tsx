@@ -219,6 +219,7 @@ export function OnboardingScreen() {
                 noDinnerAtHomeDays={draft.noDinnerAtHomeDays}
                 cheatDays={draft.cheatDays}
                 snackOn={mealOn(draft.proteinSplit, 'snack')}
+                lunchOn={mealOn(draft.proteinSplit, 'lunch')}
                 onChange={set}
               />
             </div>

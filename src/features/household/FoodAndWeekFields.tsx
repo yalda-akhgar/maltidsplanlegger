@@ -121,12 +121,15 @@ export function WeekRhythmFields({
   noDinnerAtHomeDays,
   cheatDays,
   snackOn = true,
+  lunchOn = true,
   onChange,
 }: {
   noDinnerAtHomeDays: Weekday[]
   cheatDays: Weekday[]
   /** Cheat days are hidden while the household doesn't eat an evening snack (#183). */
   snackOn?: boolean
+  /** "The next day gets a quick lunch" is hidden while the household doesn't eat lunch (#183). */
+  lunchOn?: boolean
   onChange: (value: { noDinnerAtHomeDays: Weekday[]; cheatDays: Weekday[] }) => void
 }) {
   const { t } = useTranslation()
@@ -135,7 +138,7 @@ export function WeekRhythmFields({
       <div className="space-y-2">
         <p className="font-semibold">{t('household.week.outTitle')}</p>
         <WeekdayPicker label={t('household.week.outTitle')} value={noDinnerAtHomeDays} onChange={(days) => onChange({ cheatDays, noDinnerAtHomeDays: days })} />
-        <p className="text-sm text-muted-foreground">{t('household.week.outHint')}</p>
+        {lunchOn ? <p className="text-sm text-muted-foreground">{t('household.week.outHint')}</p> : null}
       </div>
       {snackOn ? (
       <div className="space-y-2">

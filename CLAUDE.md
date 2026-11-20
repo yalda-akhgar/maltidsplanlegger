@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done (2026-11-17). Allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182) built before phase 3 (2026-11-19/20) – waiting for the product owner's test. Published on Vercel: https://maltidsplanlegger.vercel.app (README links it; deploys automatically from `main`). "Which meals do you eat?" built (#183, external tester 1) – waiting for the product owner's test. Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+## 📍 Status (updated 2026-11-20 – resume here)
+**Phase 1 done (2026-11-17) and published on Vercel: https://maltidsplanlegger.vercel.app (README links it; deploys automatically from `main`). Pre-phase-3 work done and approved (2026-11-20): allergies (#180), "Doesn't tolerate" (#181), "not stated" for own ingredients (#182), "Which meals do you eat?" (#183, first external tester). NEXT: phase 3 – Home + shopping list (core flow #173, plus #177/#178); start by showing the product owner a draft with choices. Then phase 2. Phase 5 login is optional (#179).**
 
 Meals the household eats (#183): 0 % in `proteinSplit` = meal off (`src/data/meals.ts`); off meals not planned, not shown, not counted; lunch off → no leftovers portions; settings page "Meals and protein" with switches; wizard step 5 starts with "Which meals do you eat?" (`MealsOnFields`). Tests: 143.
 
@@ -136,7 +136,7 @@ Conventions:
 - Theme (system/light/dark) is stored by `next-themes` under `mp:theme`; everything else via the repository.
 
 ## Current phase
-**Phase 1 – Foundation – done.** Milestones **A–H** done. Next: publish → phase 3 → phase 2 (#144, #174).
+**Phase 1 – Foundation – done and published.** Milestones **A–H** done, plus pre-phase-3 work #180–#183. **Next: phase 3** (Home + shopping list), then phase 2 (#144, #174).
 
 **Phase order (decisions #144, #174):** phase 1 → publish (live demo) → phase 3 (Home + shopping list) → phase 2 → 4 → 5 → 6 → 7. Phase numbers are unchanged.
 
