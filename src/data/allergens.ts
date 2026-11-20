@@ -16,6 +16,9 @@
  *   "can be left out" is left out of that person's portion only; otherwise a
  *   milder alternative is used for everyone. "Can be left out" never applies
  *   to allergens.
+ * - The user's own ingredients must say whether they contain what someone at
+ *   the meal doesn't tolerate (#182). If not, the dish is "unknown", just like
+ *   unlabelled allergens: not suggested automatically.
  */
 import { ALLERGENS, type Allergen, type HouseholdSettings, type Id, type Ingredient, type MealSlot, type Recipe } from './types'
 import { eatsMeal } from './protein'
@@ -63,9 +66,14 @@ export interface RecipeSafety {
   omissions: IngredientPeople[]
   /** Ingredients whose allergens are not stated (only listed when someone has allergies). */
   unknownIngredientIds: Id[]
+  /** The user's own ingredients that don't say whether they contain what someone at the meal doesn't tolerate (#182). */
+  unstatedContents: UnstatedContents[]
 }
 
-const SAFE: RecipeSafety = { status: 'safe', substitutions: {}, conflicts: [], intolerances: [], omissions: [], unknownIngredientIds: [] }
+/** An own ingredient and the not-tolerated ingredients it doesn't say whether it contains (#182). */
+export type UnstatedContents = { ingredientId: Id; missing: Id[] }
+
+const SAFE: RecipeSafety = { status: 'safe', substitutions: {}, conflicts: [], intolerances: [], omissions: [], unknownIngredientIds: [], unstatedContents: [] }
 
 /** Alternatives per original ingredient id, in catalogue order. Cached per ingredient map. */
 const alternativesCache = new WeakMap<ReadonlyMap<Id, Ingredient>, Map<Id, Ingredient[]>>()
@@ -86,6 +94,19 @@ function alternativesOf(ingredients: ReadonlyMap<Id, Ingredient>, id: Id): Ingre
 export const ingredientParts = (ingredient: Ingredient): Id[] => [ingredient.id, ...(ingredient.contains ?? [])]
 
 /**
+ * Whether an ingredient says whether it contains `id` (#182). Seed data is
+ * fully labelled; the user's own ingredients only for what they were asked about.
+ */
+export const statesContent = (ingredient: Ingredient, id: Id) =>
+  ingredient.source !== 'user' || ingredientParts(ingredient).includes(id) || (ingredient.containsCheckedFor ?? []).includes(id)
+
+/** Of `ids` (what someone doesn't tolerate), the ones the ingredient doesn't say whether it contains (#182). */
+export const unstatedContentsOf = (ingredient: Ingredient, ids: Iterable<Id>): Id[] => [...ids].filter((id) => !statesContent(ingredient, id))
+
+/** Everything anyone in the household doesn't tolerate, in person order (#182). */
+export const householdNotTolerated = (household: HouseholdSettings): Id[] => [...new Set(household.people.flatMap((p) => p.notToleratedIngredientIds ?? []))]
+
+/**
  * Whether a recipe is safe for the people at a meal, and which alternatives
  * or left-out lines make it safe (#180, #181).
  */
@@ -96,6 +117,7 @@ export function recipeSafety(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingred
   const intolerances = new Map<Id, Id[]>()
   const omissions: IngredientPeople[] = []
   const unknown: Id[] = []
+  const unstated: UnstatedContents[] = []
   const allergenHits = (i: Ingredient) => (i.allergens ?? []).filter((a) => blocked.allergens.has(a))
   const intoleranceHits = (i: Ingredient) => ingredientParts(i).filter((id) => blocked.ingredients.has(id))
   const people = (ids: Id[]) => [...new Set(ids.flatMap((id) => blocked.ingredients.get(id) ?? []))]
@@ -104,6 +126,8 @@ export function recipeSafety(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingred
     const ingredient = ingredients.get(line.ingredientId)
     if (blocked.allergens.size > 0 && ingredient?.allergens === undefined) unknown.push(line.ingredientId)
     if (!ingredient) continue
+    const missing = unstatedContentsOf(ingredient, blocked.ingredients.keys())
+    if (missing.length > 0 && !unstated.some((u) => u.ingredientId === ingredient.id)) unstated.push({ ingredientId: ingredient.id, missing })
     const allergens = allergenHits(ingredient)
     const notTolerated = intoleranceHits(ingredient)
     if (allergens.length === 0 && notTolerated.length === 0) continue
@@ -124,7 +148,7 @@ export function recipeSafety(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingred
   }
 
   const conflicts = ALLERGENS.filter((a) => conflicting.has(a)).map((allergen) => ({ allergen, personIds: blocked.allergens.get(allergen)! }))
-  const status = conflicts.length > 0 || intolerances.size > 0 ? 'unsafe' : unknown.length > 0 ? 'unknown' : 'safe'
+  const status = conflicts.length > 0 || intolerances.size > 0 ? 'unsafe' : unknown.length > 0 || unstated.length > 0 ? 'unknown' : 'safe'
   return {
     status,
     substitutions,
@@ -132,6 +156,7 @@ export function recipeSafety(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingred
     intolerances: [...intolerances].map(([ingredientId, personIds]) => ({ ingredientId, personIds })),
     omissions,
     unknownIngredientIds: unknown,
+    unstatedContents: unstated,
   }
 }
 
@@ -149,6 +174,19 @@ export function recipeAllergens(recipe: Recipe, ingredients: ReadonlyMap<Id, Ing
   const found = new Set<Allergen>()
   for (const line of recipe.ingredients) for (const a of ingredients.get(line.ingredientId)?.allergens ?? []) found.add(a)
   return ALLERGENS.filter((a) => found.has(a))
+}
+
+/** Own ingredients in a recipe that don't say whether they contain what someone in the household doesn't tolerate (#182). */
+export function unstatedInRecipe(recipe: Recipe, ingredients: ReadonlyMap<Id, Ingredient>, household: HouseholdSettings): UnstatedContents[] {
+  const ids = householdNotTolerated(household)
+  const result: UnstatedContents[] = []
+  for (const line of recipe.ingredients) {
+    const ingredient = ingredients.get(line.ingredientId)
+    if (!ingredient || result.some((u) => u.ingredientId === ingredient.id)) continue
+    const missing = unstatedContentsOf(ingredient, ids)
+    if (missing.length > 0) result.push({ ingredientId: ingredient.id, missing })
+  }
+  return result
 }
 
 /** Ingredients in a recipe whose allergens are not stated. */

@@ -8,14 +8,17 @@ import { Input } from '@/components/ui/input'
 import { NativeSelect } from '@/components/ui/native-select'
 import { allTranslations, localize } from '@/data/localize'
 import { newId, repository } from '@/data/repository'
-import { ALLERGENS, STORE_SECTIONS, type Allergen, type Ingredient, type StoreSection } from '@/data/types'
-import { Chip } from '@/components/ui/chip'
+import { STORE_SECTIONS, type Id, type Ingredient, type StoreSection } from '@/data/types'
+import { IngredientFactsFields } from './IngredientFacts'
+import { withFacts, type IngredientFacts } from './ingredient-facts'
 import { useLanguage } from '@/i18n/useLanguage'
 
 type IngredientPickerProps = {
   open: boolean
   onOpenChange: (open: boolean) => void
   ingredients: Ingredient[]
+  /** What someone in the household doesn't tolerate – asked about for new ingredients (#182). */
+  notToleratedIds: Id[]
   onPick: (ingredient: Ingredient) => void
 }
 
@@ -28,7 +31,7 @@ const parseNumber = (value: string) => {
  * Sheet for choosing an ingredient from the catalogue, or adding a new one
  * (name + store section; nutrition optional, #89).
  */
-export function IngredientPicker({ open, onOpenChange, ingredients, onPick }: IngredientPickerProps) {
+export function IngredientPicker({ open, onOpenChange, ingredients, notToleratedIds, onPick }: IngredientPickerProps) {
   const { t } = useTranslation()
   const [mode, setMode] = useState<'search' | 'create'>('search')
   const [query, setQuery] = useState('')
@@ -54,7 +57,7 @@ export function IngredientPicker({ open, onOpenChange, ingredients, onPick }: In
       {mode === 'search' ? (
         <SearchList ingredients={ingredients} query={query} setQuery={setQuery} onPick={pick} onCreate={() => setMode('create')} />
       ) : (
-        <CreateForm initialName={query.trim()} onCreated={pick} onCancel={() => setMode('search')} />
+        <CreateForm initialName={query.trim()} ingredients={ingredients} notToleratedIds={notToleratedIds} onCreated={pick} onCancel={() => setMode('search')} />
       )}
     </BottomSheet>
   )
@@ -128,10 +131,14 @@ function SearchList({
 
 function CreateForm({
   initialName,
+  ingredients,
+  notToleratedIds,
   onCreated,
   onCancel,
 }: {
   initialName: string
+  ingredients: Ingredient[]
+  notToleratedIds: Id[]
   onCreated: (ingredient: Ingredient) => void
   onCancel: () => void
 }) {
@@ -142,13 +149,10 @@ function CreateForm({
   const [section, setSection] = useState<StoreSection>('produce')
   const [protein, setProtein] = useState('')
   const [kcal, setKcal] = useState('')
-  /** undefined = "allergens not stated", [] = "No allergens" (#180). */
-  const [allergens, setAllergens] = useState<Allergen[] | undefined>(undefined)
+  /** Allergens (#180) and what it contains of what the household doesn't tolerate (#182); nothing chosen = not stated. */
+  const [facts, setFacts] = useState<IngredientFacts>({ allergens: undefined, contains: { selected: [], none: false } })
+  const ingredientMap = useMemo(() => new Map(ingredients.map((i) => [i.id, i])), [ingredients])
   const [showError, setShowError] = useState(false)
-  const toggleAllergen = (a: Allergen) => {
-    const current = allergens ?? []
-    setAllergens(current.includes(a) ? current.filter((x) => x !== a) : ALLERGENS.filter((x) => x === a || current.includes(x)))
-  }
 
   const save = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -159,7 +163,7 @@ function CreateForm({
     const proteinG = parseNumber(protein)
     const kcalValue = parseNumber(kcal)
     const now = new Date().toISOString()
-    const ingredient: Ingredient = {
+    const ingredient: Ingredient = withFacts({
       id: newId(),
       name: { [language]: name.trim() },
       // Only with both values; otherwise the recipe shows "nutrition missing" (#89).
@@ -168,13 +172,12 @@ function CreateForm({
         : {}),
       gramsPerUnit: {},
       tags: [],
-      ...(allergens !== undefined ? { allergens } : {}),
       storeSection: section,
       isStaple: false,
       source: 'user',
       createdAt: now,
       updatedAt: now,
-    }
+    }, notToleratedIds, facts)
     onCreated(await repository.saveIngredient(ingredient))
   }
 
@@ -225,20 +228,7 @@ function CreateForm({
         </div>
       </div>
       <p className="text-sm text-muted-foreground">{t('recipes.newIngredient.hint')}</p>
-      <fieldset className="space-y-2">
-        <legend className="text-sm font-medium">{t('allergens.ingredient.label')}</legend>
-        <p className="text-sm text-muted-foreground">{t('allergens.ingredient.hint')}</p>
-        <div className="flex flex-wrap gap-2">
-          <Chip selected={allergens !== undefined && allergens.length === 0} onClick={() => setAllergens(allergens?.length === 0 ? undefined : [])}>
-            {t('allergens.ingredient.none')}
-          </Chip>
-          {ALLERGENS.map((a) => (
-            <Chip key={a} selected={allergens?.includes(a) ?? false} onClick={() => toggleAllergen(a)}>
-              {t(`allergens.names.${a}`)}
-            </Chip>
-          ))}
-        </div>
-      </fieldset>
+      <IngredientFactsFields facts={facts} onChange={setFacts} options={notToleratedIds} ingredients={ingredientMap} />
       <div className="flex flex-wrap gap-2">
         <Button type="submit">{t('recipes.newIngredient.save')}</Button>
         <Button type="button" variant="outline" onClick={onCancel}>

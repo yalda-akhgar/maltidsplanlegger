@@ -17,7 +17,8 @@
     "comingSoon": "Demnächst",
     "back": "Zurück",
     "cancel": "Abbrechen",
-    "undo": "Rückgängig"
+    "undo": "Rückgängig",
+    "save": "Speichern"
   },
   "screens": {
     "week": {
@@ -456,7 +457,13 @@
       "description": "Gerichte damit werden für Mahlzeiten, die {{name}} isst, nie vorgeschlagen – außer es lässt sich weglassen oder durch etwas Milderes ersetzen.",
       "hint": "Gewürzmischungen und Soßen zählen mit: Chili gilt auch für Taco-Gewürz und Tikka-Paste.",
       "omit": "Ohne {{ingredient}} für {{names}}",
-      "omitHint": "Nimm die Portion heraus, bevor du es dazugibst, oder serviere es extra."
+      "omitHint": "Nimm die Portion heraus, bevor du es dazugibst, oder serviere es extra.",
+      "unknown": "Nicht angegeben, ob {{ingredient}} {{list}} enthält",
+      "ingredientLabel": "Enthält es etwas, das jemand im Haushalt nicht verträgt?",
+      "ingredientHint": "Kreuze an, was es enthält, oder wähle „Nichts davon“. Ohne Antwort werden Gerichte mit dieser Zutat nicht vorgeschlagen.",
+      "ingredientNone": "Nichts davon",
+      "fillIn": "Ausfüllen: {{name}}",
+      "fillInTitle": "Was enthält {{name}}?"
     },
     "food": {
       "pork": "Schweinefleisch",
@@ -601,6 +608,7 @@
       "label": "Allergene",
       "none": "Keine Allergene",
       "hint": "Wähle alle, die enthalten sind, auch versteckte (z. B. Sojasoße = Gluten). Ohne Auswahl steht dort „Allergene nicht angegeben“."
-    }
+    },
+    "or": "{{a}} oder {{b}}"
   }
 }

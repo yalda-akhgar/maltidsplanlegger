@@ -17,7 +17,8 @@
     "comingSoon": "Coming soon",
     "back": "Back",
     "cancel": "Cancel",
-    "undo": "Undo"
+    "undo": "Undo",
+    "save": "Save"
   },
   "screens": {
     "week": {
@@ -457,7 +458,13 @@
       "description": "Dishes with these are never suggested for meals {{name}} eats – unless they can be left out or swapped for something milder.",
       "hint": "Spice blends and sauces count too: chili also covers taco seasoning and tikka paste.",
       "omit": "Without {{ingredient}} for {{names}}",
-      "omitHint": "Take out their portion before adding it, or serve it on the side."
+      "omitHint": "Take out their portion before adding it, or serve it on the side.",
+      "unknown": "Not stated whether {{ingredient}} contains {{list}}",
+      "ingredientLabel": "Does it contain anything the household doesn't tolerate?",
+      "ingredientHint": "Tick what it contains, or choose \"None of these\". Without an answer, dishes with this ingredient are not suggested.",
+      "ingredientNone": "None of these",
+      "fillIn": "Fill in: {{name}}",
+      "fillInTitle": "What does {{name}} contain?"
     },
     "food": {
       "pork": "Pork",
@@ -602,6 +609,7 @@
       "label": "Allergens",
       "none": "No allergens",
       "hint": "Choose all that are in the item, hidden ones too (e.g. soy sauce = gluten). If you choose nothing, it says “allergens not stated”."
-    }
+    },
+    "or": "{{a}} or {{b}}"
   }
 }

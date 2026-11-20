@@ -31,6 +31,8 @@ type MealSheetProps = {
   onGuests: (guests: number) => void
   /** Allergy labels for the meal (#180, #181): "With …", "Without …", red conflicts, "allergens not stated". */
   allergyNotes?: AllergyNoteTexts
+  /** An own ingredient was filled in via "Fill in" (#182): load again. */
+  onIngredientSaved: () => void
 }
 
 /**
@@ -38,7 +40,7 @@ type MealSheetProps = {
  * "Pick another dish", "Remove meal", "Eating out" and guests. A skipped meal
  * offers "Fill in again" and "Pick a dish" instead (#168).
  */
-export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickAnother, onSkip, onRefill, onEatingOut, onGuests, allergyNotes }: MealSheetProps) {
+export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickAnother, onSkip, onRefill, onEatingOut, onGuests, allergyNotes, onIngredientSaved }: MealSheetProps) {
   const { t } = useTranslation()
   const language = useLanguage()
   const recipe = meal?.recipeId ? data.recipes.find((r) => r.id === meal.recipeId) : undefined
@@ -144,7 +146,13 @@ export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickA
           ) : null}
 
           {showRecipe ? (
-            <RecipeDetailBody key={recipe.id} recipe={withSubstitutions(recipe, meal.substitutions)} data={data} initialPortions={portionsToCook} />
+            <RecipeDetailBody
+              key={recipe.id}
+              recipe={withSubstitutions(recipe, meal.substitutions)}
+              data={data}
+              initialPortions={portionsToCook}
+              onIngredientSaved={onIngredientSaved}
+            />
           ) : null}
         </div>
       ) : null}

@@ -372,3 +372,64 @@ describe('dislikes are a soft rule for adults too (#181)', () => {
     expect(salmon).toBe(0)
   })
 })
+
+describe('own ingredients must say what they contain (#182)', () => {
+  const chiliOil = (extra: Partial<Ingredient> = {}): Ingredient => ({
+    ...ingredients.get(ing('salt'))!,
+    id: 'chili-oil',
+    allergens: [],
+    contains: undefined,
+    source: 'user',
+    ...extra,
+  })
+  const withOwn = (own: Ingredient, omittable = false) => {
+    const map = new Map([...ingredients, [own.id, own]])
+    const base = recipe('omelette-spinach-feta')
+    const r: Recipe = { ...base, ingredients: [...base.ingredients, { ingredientId: own.id, amount: 1, unit: 'g', ...(omittable ? { omittable: true } : {}) }] }
+    return { map, r }
+  }
+  const safety = (own: Ingredient, people: Person[], omittable = false) => {
+    const { map, r } = withOwn(own, omittable)
+    return recipeSafety(r, map, blockedAt(household(people), 'dinner', 0))
+  }
+
+  it('not stated makes the dish "unknown" when someone does not tolerate something', () => {
+    const s = safety(chiliOil(), [intolerant(adult('y'), ['chili', 'pepper']), adult('a')])
+    expect(s.status).toBe('unknown')
+    expect(s.unstatedContents.map((u) => u.ingredientId)).toEqual(['chili-oil'])
+    expect([...s.unstatedContents[0].missing].sort()).toEqual([ing('chili'), ing('pepper')].sort())
+  })
+
+  it('is fine when nobody has "doesn\'t tolerate", or the ingredient was checked', () => {
+    expect(safety(chiliOil(), [adult('a')]).status).toBe('safe')
+    expect(safety(chiliOil({ containsCheckedFor: [ing('chili')] }), [intolerant(adult('y'), ['chili'])]).status).toBe('safe')
+  })
+
+  it('a ticked ingredient works like a blend: strict, or left out if the line can be left out', () => {
+    const own = chiliOil({ contains: [ing('chili')], containsCheckedFor: [ing('chili')] })
+    const strict = safety(own, [intolerant(adult('y'), ['chili'])])
+    expect(strict.status).toBe('unsafe')
+    expect(strict.intolerances).toEqual([{ ingredientId: ing('chili'), personIds: ['y'] }])
+    const left = safety(own, [intolerant(adult('y'), ['chili'])], true)
+    expect(left.status).toBe('safe')
+    expect(left.omissions).toEqual([{ ingredientId: 'chili-oil', personIds: ['y'] }])
+  })
+
+  it('something new nobody was asked about is "not stated" again', () => {
+    const own = chiliOil({ containsCheckedFor: [ing('chili')] })
+    const s = safety(own, [intolerant(adult('y'), ['chili', 'ginger'])])
+    expect(s.status).toBe('unknown')
+    expect(s.unstatedContents).toEqual([{ ingredientId: 'chili-oil', missing: [ing('ginger')] }])
+  })
+
+  it('the planner never suggests dishes with unstated own ingredients', () => {
+    const own = chiliOil()
+    const map = new Map([...ingredients, [own.id, own]])
+    const recipes = SEED_RECIPES.map((r) => (r.categoryIds.includes('dinner') ? { ...r, ingredients: [...r.ingredients, { ingredientId: own.id, amount: 1, unit: 'g' as const }] } : r))
+    const c = ctx(household([intolerant(adult('y'), ['chili'])]), 3, { recipes, ingredients: map })
+    for (const day of generate(c).days) expect(day.meals.dinner.recipeId).toBeUndefined()
+    const checked = new Map([...map, [own.id, { ...own, containsCheckedFor: [ing('chili')] }]])
+    const plan = generate(ctx(household([intolerant(adult('y'), ['chili'])]), 3, { recipes, ingredients: checked }))
+    expect(plan.days.some((d) => d.meals.dinner.recipeId)).toBe(true)
+  })
+})

@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done (2026-11-17). Allergies (#180) and "Doesn't tolerate" (#181) built before phase 3 (2026-11-19) – waiting for the product owner's test. Publishing (#174, #176): code ready; waiting for the product owner to create the Vercel project and send the address (then put the link in the README). Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+**Phase 1 done (2026-11-17). Allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182) built before phase 3 (2026-11-19/20) – waiting for the product owner's test. Publishing (#174, #176): code ready; waiting for the product owner to create the Vercel project and send the address (then put the link in the README). Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+
+Own ingredients (#182): the new-ingredient form asks what the household doesn't tolerate (`Ingredient.containsCheckedFor`); unstated → yellow "Not stated whether X contains chili", dish not suggested; "Fill in" button in the recipe view (`IngredientFacts.tsx`). Tests: 135.
 
 "Doesn't tolerate" delivered (#181): three food levels per person (`FoodRows`: allergies → doesn't tolerate → doesn't like; dislikes now for adults too), `Person.notToleratedIngredientIds`, `Ingredient.contains` (spice blends/sauces), `RecipeIngredient.omittable` (left out of that person's portion: "Without black pepper for Yalda"), mild taco seasoning + mild salsa as alternatives, 4 single spices, 3 more allergy alternatives; `recipeSafety` returns `intolerances` + `omissions`, `blockedAt` replaces `blockedAllergens`; seed version 3; "Can be left out" switch in the recipe form. Tests: 130.
 
@@ -95,7 +97,7 @@ See `docs/DECISIONS.md` for details and rationale. Highlights:
 - Dinners ≤ 30 min. No repeated dinner within a week, no same protein source two days in a row. Favourites twice as likely. Rather repeat a dinner than serve a child's disliked dish (#110).
 - Personal protein targets, split 25/30/30/15 % (breakfast/lunch/dinner/snack), portions scaled 0.75×–2× per person, then a "protein boost" suggestion. A child = 0.5 portion, no target. Guests = standard adult portion.
 - Evening snack every day; healthy except on chosen cheat days.
-- **Three food levels per person (#181):** allergies (strict) → doesn't tolerate (strict, any ingredient incl. what blends contain; a recipe line marked "can be left out" is left out of that person's portion, otherwise a milder alternative is used for everyone) → doesn't like (soft, adults and children).
+- **Three food levels per person (#181):** allergies (strict) → doesn't tolerate (strict, any ingredient incl. what blends contain; a recipe line marked "can be left out" is left out of that person's portion, otherwise a milder alternative is used for everyone) → doesn't like (soft, adults and children). The user's own ingredients must state whether they contain what someone doesn't tolerate; if not, the dish is "not stated" and not suggested (#182).
 - **Allergies are a hard rule (#180):** per person, EU-14 + lactose, never suggested for anyone eating the meal, never relaxed. Safe alternatives are used for everyone at the meal (one pot). Picking an unsafe dish by hand needs "Pick anyway".
 - A meal can be removed on purpose (status `skipped`, #168): not counted in the day target, no boost. Removing a dinner gives the next day a quick lunch; when the dinner comes back, so do the leftovers unless the user changed the lunch (#170).
 - Recipe categories are data and extensible (e.g. "Baking" later).

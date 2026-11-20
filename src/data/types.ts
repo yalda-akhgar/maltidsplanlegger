@@ -118,6 +118,13 @@ export interface Ingredient {
    * tolerate chili doesn't tolerate taco seasoning either.
    */
   contains?: Id[]
+  /**
+   * The user's own ingredients (#182): the not-tolerated ingredients the user
+   * was asked about when filling in `contains`. Anything someone doesn't
+   * tolerate that is not listed here (or in `contains`) counts as "not stated".
+   * Seed ingredients are always fully stated.
+   */
+  containsCheckedFor?: Id[]
   storeSection: StoreSection
   /** Basic item (oil, salt, spices …): only on the shopping list when marked empty. */
   isStaple: boolean

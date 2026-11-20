@@ -17,7 +17,8 @@
     "comingSoon": "Kommer snart",
     "back": "Tilbake",
     "cancel": "Avbryt",
-    "undo": "Angre"
+    "undo": "Angre",
+    "save": "Lagre"
   },
   "screens": {
     "week": {
@@ -487,7 +488,13 @@
       "description": "Retter med dette foreslås aldri til måltider {{name}} spiser – med mindre det kan utelates eller byttes med noe mildere.",
       "hint": "Krydderblandinger og sauser teller med: velger du chili, gjelder det også tacokrydder og tikka-paste.",
       "omit": "Uten {{ingredient}} for {{names}}",
-      "omitHint": "Ta ut porsjonen før du tilsetter det, eller server det ved siden av."
+      "omitHint": "Ta ut porsjonen før du tilsetter det, eller server det ved siden av.",
+      "unknown": "Ikke oppgitt om {{ingredient}} inneholder {{list}}",
+      "ingredientLabel": "Inneholder den noe husstanden ikke tåler?",
+      "ingredientHint": "Kryss av for det den inneholder, eller velg «Ingenting av dette». Uten svar foreslås ikke retter med ingrediensen.",
+      "ingredientNone": "Ingenting av dette",
+      "fillIn": "Fyll inn: {{name}}",
+      "fillInTitle": "Hva inneholder {{name}}?"
     },
     "food": {
       "pork": "Svinekjøtt",
@@ -632,6 +639,7 @@
       "label": "Allergener",
       "none": "Ingen allergener",
       "hint": "Velg alle som finnes i varen, også skjulte (f.eks. soyasaus = gluten). Velger du ingenting, står det «allergener ikke oppgitt»."
-    }
+    },
+    "or": "{{a}} eller {{b}}"
   }
 }

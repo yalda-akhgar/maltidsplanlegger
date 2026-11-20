@@ -16,6 +16,7 @@ import { localize } from '@/data/localize'
 import { newId, repository } from '@/data/repository'
 import { UNITS, type Ingredient, type Language, type LocalizedText, type Recipe, type RecipeIngredient, type Unit } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
+import { householdNotTolerated } from '@/data/allergens'
 import { IngredientPicker } from './IngredientPicker'
 import { useRecipeData, type RecipeData } from './useRecipeData'
 
@@ -452,6 +453,7 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
       />
 
       <IngredientPicker
+        notToleratedIds={householdNotTolerated(data.household)}
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         ingredients={ingredients}

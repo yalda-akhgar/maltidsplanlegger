@@ -1,7 +1,7 @@
 import { CircleMinusIcon, HelpCircleIcon, ShieldCheckIcon, TriangleAlertIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type AllergyNoteTexts = { withText?: string; conflicts: string[]; omitted?: string[]; unknown?: string }
+export type AllergyNoteTexts = { withText?: string; conflicts: string[]; omitted?: string[]; unknown?: string[] }
 
 /**
  * Allergy labels on a dish (#180, #181), always text + icon, never colour alone:
@@ -18,12 +18,12 @@ export function AllergyNotes({ notes, className }: { notes: AllergyNoteTexts; cl
           {text}
         </span>
       ))}
-      {notes.unknown ? (
-        <span className={cn(label, 'bg-warning text-warning-foreground')}>
+      {notes.unknown?.map((text) => (
+        <span key={text} className={cn(label, 'bg-warning text-warning-foreground')}>
           <HelpCircleIcon aria-hidden />
-          {notes.unknown}
+          {text}
         </span>
-      ) : null}
+      ))}
       {notes.withText ? (
         <span className={cn(label, 'bg-secondary text-secondary-foreground')}>
           <ShieldCheckIcon aria-hidden />

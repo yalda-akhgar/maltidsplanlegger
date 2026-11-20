@@ -587,6 +587,7 @@ export function WeekScreen() {
         meal={meal}
         data={data}
         portionsToCook={portionsToCook}
+        onIngredientSaved={() => void reload()}
         onClose={() => setMealTarget(null)}
         onPickAnother={() => {
           const target = mealTarget

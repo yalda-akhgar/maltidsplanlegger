@@ -1,5 +1,5 @@
 import { HeartIcon, MinusIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
-import { recipeAllergens, unlabelledIngredients } from '@/data/allergens'
+import { householdNotTolerated, recipeAllergens, unlabelledIngredients, unstatedInRecipe } from '@/data/allergens'
 import { useAllergyText } from '@/features/household/allergy-text'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -9,9 +9,10 @@ import { Button } from '@/components/ui/button'
 import { formatAmount, formatPortions, householdPortions, roundAmount, unitCount } from '@/data/amounts'
 import { localize } from '@/data/localize'
 import { recipeNutrition } from '@/data/nutrition'
-import type { Recipe } from '@/data/types'
+import type { Ingredient, Recipe } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
+import { IngredientFactsSheet } from './IngredientFacts'
 import { categoryNames, recipeBadges } from './recipe-format'
 import type { RecipeData } from './useRecipeData'
 
@@ -22,10 +23,12 @@ type RecipeDetailSheetProps = {
   onToggleFavorite: (recipe: Recipe) => void
   onEdit: (recipe: Recipe) => void
   onDelete: (recipe: Recipe) => void
+  /** An own ingredient was filled in via "Fill in" (#182): load again. */
+  onIngredientSaved: () => void
 }
 
 /** Recipe detail in a bottom sheet: stats, portion stepper, scaled ingredients and steps (#83). */
-export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onEdit, onDelete }: RecipeDetailSheetProps) {
+export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onEdit, onDelete, onIngredientSaved }: RecipeDetailSheetProps) {
   const { t } = useTranslation()
   const language = useLanguage()
 
@@ -55,7 +58,7 @@ export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onE
       }
     >
       {/* Keyed so the portion stepper resets when another recipe is opened. */}
-      {recipe ? <RecipeDetailBody key={recipe.id} recipe={recipe} data={data} /> : null}
+      {recipe ? <RecipeDetailBody key={recipe.id} recipe={recipe} data={data} onIngredientSaved={onIngredientSaved} /> : null}
     </BottomSheet>
   )
 }
@@ -65,13 +68,31 @@ export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onE
  * in the week plan's meal sheet, with the meal's safe alternatives already in
  * `recipe` (#180).
  */
-export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Recipe; data: RecipeData; initialPortions?: number }) {
+export function RecipeDetailBody({
+  recipe,
+  data,
+  initialPortions,
+  onIngredientSaved,
+}: {
+  recipe: Recipe
+  data: RecipeData
+  initialPortions?: number
+  /** An own ingredient was filled in via "Fill in" (#182). */
+  onIngredientSaved: () => void
+}) {
   const { t } = useTranslation()
   const language = useLanguage()
   const nutrition = recipeNutrition(recipe, data.ingredientMap)
   const allergyText = useAllergyText(data.ingredientMap, () => '')
   const allergens = recipeAllergens(recipe, data.ingredientMap)
   const unlabelled = unlabelledIngredients(recipe, data.ingredientMap)
+  const notTolerated = householdNotTolerated(data.household)
+  const unstated = unstatedInRecipe(recipe, data.ingredientMap, data.household)
+  // Own ingredients with something not stated get a "Fill in" button (#182).
+  const toFillIn = [...new Set([...unlabelled, ...unstated.map((u) => u.ingredientId)])]
+    .map((id) => data.ingredientMap.get(id))
+    .filter((i): i is Ingredient => i?.source === 'user')
+  const [fillIn, setFillIn] = useState<Ingredient | null>(null)
   const household = householdPortions(data.household)
   const [portions, setPortions] = useState(initialPortions && initialPortions > 0 ? initialPortions : household > 0 ? household : recipe.servings)
   const factor = portions / (recipe.servings || 1)
@@ -111,7 +132,28 @@ export function RecipeDetailBody({ recipe, data, initialPortions }: { recipe: Re
           {allergens.length > 0 ? t('allergens.contains', { list: allergyText.allergenList(allergens) }) : t('allergens.containsNone')}
         </p>
         {unlabelled.length > 0 ? <p className="text-warning-foreground">{allergyText.notStatedText(unlabelled)}</p> : null}
+        {unstated.map((u) => (
+          <p key={u.ingredientId} className="text-warning-foreground">
+            {allergyText.unstatedText(u)}
+          </p>
+        ))}
+        {toFillIn.length > 0 ? (
+          <div className="flex flex-wrap gap-2 pt-1">
+            {toFillIn.map((ingredient) => (
+              <Button key={ingredient.id} variant="outline" size="sm" className="min-h-11" onClick={() => setFillIn(ingredient)}>
+                {t('household.notTolerated.fillIn', { name: localize(ingredient.name, language) })}
+              </Button>
+            ))}
+          </div>
+        ) : null}
       </div>
+      <IngredientFactsSheet
+        ingredient={fillIn}
+        options={notTolerated}
+        ingredients={data.ingredientMap}
+        onClose={() => setFillIn(null)}
+        onSaved={onIngredientSaved}
+      />
 
       <section aria-labelledby="recipe-ingredients">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">

@@ -161,6 +161,7 @@ export function RecipesScreen() {
         // Replace the sheet's history entry, so Back from the form returns to the list.
         onEdit={(recipe) => navigate(`/recipes/${recipe.id}/edit`, { replace: true })}
         onDelete={(recipe) => void deleteRecipe(recipe)}
+        onIngredientSaved={() => void reload()}
       />
     </>
   )
