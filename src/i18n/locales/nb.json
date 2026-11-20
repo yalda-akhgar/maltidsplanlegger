@@ -98,8 +98,8 @@
       "offHint": "Når den er slått på, lager appen neste ukes plan for deg."
     },
     "split": {
-      "title": "Fordeling av protein",
-      "text": "Hvor stor del av dagens proteinmål hvert måltid skal dekke.",
+      "title": "Måltider og protein",
+      "text": "Slå av måltider dere ikke spiser – proteinet fordeles da på resten. Prosenten er hvor stor del av dagens proteinmål hvert måltid skal dekke.",
       "less": "Mindre til {{name}}",
       "more": "Mer til {{name}}",
       "sum": "Sum",
@@ -528,6 +528,12 @@
         "5": "Lø",
         "6": "Sø"
       }
+    },
+    "meals": {
+      "title": "Hvilke måltider spiser dere?",
+      "hint": "Måltider dere ikke spiser, blir ikke planlagt og teller ikke i proteinmålet. Proteinet fordeles på resten.",
+      "minOne": "Minst ett av frokost, lunsj og middag må være på.",
+      "off": "Spiser ikke"
     }
   },
   "onboarding": {
@@ -567,6 +573,7 @@
       "adults": "Voksne",
       "children": "Barn",
       "excluded": "Utelukket",
+      "meals": "Måltider",
       "out": "Middag ute",
       "cheat": "Cheat days",
       "none": "Ingen",

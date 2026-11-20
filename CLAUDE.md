@@ -1,7 +1,9 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done (2026-11-17). Allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182) built before phase 3 (2026-11-19/20) – waiting for the product owner's test. Published on Vercel: https://maltidsplanlegger.vercel.app (README links it; deploys automatically from `main`). Next before phase 3: "Which meals do you eat?" (external tester 1, FEEDBACK_LOG) – draft shown, waiting for the product owner's choices. Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+**Phase 1 done (2026-11-17). Allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182) built before phase 3 (2026-11-19/20) – waiting for the product owner's test. Published on Vercel: https://maltidsplanlegger.vercel.app (README links it; deploys automatically from `main`). "Which meals do you eat?" built (#183, external tester 1) – waiting for the product owner's test. Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+
+Meals the household eats (#183): 0 % in `proteinSplit` = meal off (`src/data/meals.ts`); off meals not planned, not shown, not counted; lunch off → no leftovers portions; settings page "Meals and protein" with switches; wizard step 5 starts with "Which meals do you eat?" (`MealsOnFields`). Tests: 143.
 
 Own ingredients (#182): the new-ingredient form asks what the household doesn't tolerate (`Ingredient.containsCheckedFor`); unstated → yellow "Not stated whether X contains chili", dish not suggested; "Fill in" button in the recipe view (`IngredientFacts.tsx`). Tests: 135.
 
@@ -96,7 +98,8 @@ See `docs/DECISIONS.md` for details and rationale. Highlights:
 - Excluded food (pork by default, plus custom exclusions) is never suggested. Dislikes (adults and children, #181) are avoided where possible (soft rule).
 - Dinners ≤ 30 min. No repeated dinner within a week, no same protein source two days in a row. Favourites twice as likely. Rather repeat a dinner than serve a child's disliked dish (#110).
 - Personal protein targets, split 25/30/30/15 % (breakfast/lunch/dinner/snack), portions scaled 0.75×–2× per person, then a "protein boost" suggestion. A child = 0.5 portion, no target. Guests = standard adult portion.
-- Evening snack every day; healthy except on chosen cheat days.
+- The household chooses which meals it eats (#183): a meal at 0 % is off – not planned, not shown, not counted; at least one main meal stays on. Per person in phase 5.
+- Evening snack every day (unless turned off, #183); healthy except on chosen cheat days.
 - **Three food levels per person (#181):** allergies (strict) → doesn't tolerate (strict, any ingredient incl. what blends contain; a recipe line marked "can be left out" is left out of that person's portion, otherwise a milder alternative is used for everyone) → doesn't like (soft, adults and children). The user's own ingredients must state whether they contain what someone doesn't tolerate; if not, the dish is "not stated" and not suggested (#182).
 - **Allergies are a hard rule (#180):** per person, EU-14 + lactose, never suggested for anyone eating the meal, never relaxed. Safe alternatives are used for everyone at the meal (one pot). Picking an unsafe dish by hand needs "Pick anyway".
 - A meal can be removed on purpose (status `skipped`, #168): not counted in the day target, no boost. Removing a dinner gives the next day a quick lunch; when the dinner comes back, so do the leftovers unless the user changed the lunch (#170).

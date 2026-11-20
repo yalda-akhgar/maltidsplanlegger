@@ -7,9 +7,11 @@ import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { newId, repository } from '@/data/repository'
-import { LANGUAGES, type Allergen, type HouseholdSettings, type Id, type Ingredient, type Language, type Weekday } from '@/data/types'
+import { LANGUAGES, type Allergen, type HouseholdSettings, type Id, type Ingredient, type Language, type ProteinSplit, type Weekday } from '@/data/types'
 import { FoodRows } from '@/features/household/FoodRows'
 import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
+import { MealsOnFields } from '@/features/household/MealsOnFields'
+import { mealOn, mealsOn } from '@/data/meals'
 import { fromDraft, parseTarget, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
 import { ProteinTargetField } from '@/features/household/ProteinTargetField'
@@ -32,6 +34,8 @@ type Draft = {
   excludedTerms: string[]
   noDinnerAtHomeDays: Weekday[]
   cheatDays: Weekday[]
+  /** Which meals the household eats: 0 % = off (#183). */
+  proteinSplit: ProteinSplit
 }
 
 function toWizardDraft(household: HouseholdSettings): Draft {
@@ -48,6 +52,7 @@ function toWizardDraft(household: HouseholdSettings): Draft {
     excludedTerms: [...household.excludedTerms],
     noDinnerAtHomeDays: [...household.noDinnerAtHomeDays],
     cheatDays: [...household.cheatDays],
+    proteinSplit: { ...household.proteinSplit },
   }
 }
 
@@ -115,6 +120,7 @@ export function OnboardingScreen() {
       excludedTerms: draft.excludedTerms,
       noDinnerAtHomeDays: draft.noDinnerAtHomeDays,
       cheatDays: draft.cheatDays,
+      proteinSplit: draft.proteinSplit,
       onboardingDone: true,
     }
     const result = await saveSettings(loaded.household, household)
@@ -185,6 +191,7 @@ export function OnboardingScreen() {
                 people={draft.others}
                 onChange={(others) => set({ others })}
                 ingredients={loaded.ingredients}
+                lunchOn={mealOn(draft.proteinSplit, 'lunch')}
                 self={
                   <div className="space-y-1 rounded-2xl border bg-card p-3">
                     <div className="flex items-center justify-between gap-3">
@@ -205,7 +212,17 @@ export function OnboardingScreen() {
               <ExcludedFoodFields excludedTags={draft.excludedTags} excludedTerms={draft.excludedTerms} onChange={set} />
             </>
           ) : null}
-          {step === 5 ? <WeekRhythmFields noDinnerAtHomeDays={draft.noDinnerAtHomeDays} cheatDays={draft.cheatDays} onChange={set} /> : null}
+          {step === 5 ? (
+            <div className="space-y-5">
+              <MealsOnFields split={draft.proteinSplit} onChange={(proteinSplit) => set({ proteinSplit })} />
+              <WeekRhythmFields
+                noDinnerAtHomeDays={draft.noDinnerAtHomeDays}
+                cheatDays={draft.cheatDays}
+                snackOn={mealOn(draft.proteinSplit, 'snack')}
+                onChange={set}
+              />
+            </div>
+          ) : null}
           {step === 6 ? <Summary draft={draft} again={again} /> : null}
         </main>
 
@@ -288,8 +305,9 @@ function Summary({ draft, again }: { draft: Draft; again: boolean }) {
     [t('onboarding.done.adults'), adults.join(', ')],
     [t('onboarding.done.children'), children.length > 0 ? children.join(', ') : t('onboarding.done.none')],
     [t('onboarding.done.excluded'), excluded.length > 0 ? excluded.join(', ') : t('onboarding.done.none')],
+    [t('onboarding.done.meals'), mealsOn(draft.proteinSplit).map((s) => t(`week.slots.${s}`)).join(', ')],
     [t('onboarding.done.out'), days(draft.noDinnerAtHomeDays)],
-    [t('onboarding.done.cheat'), days(draft.cheatDays)],
+    ...(mealOn(draft.proteinSplit, 'snack') ? [[t('onboarding.done.cheat'), days(draft.cheatDays)] as [string, string]] : []),
   ]
   return (
     <>

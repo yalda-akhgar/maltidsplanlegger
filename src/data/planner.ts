@@ -23,6 +23,7 @@
 import { addDays, getISODay, parseISO } from 'date-fns'
 import { blockedAt, blocksAnything, ingredientParts, recipeSafety, substitutionKey, withSubstitutions, type Blocked, type RecipeSafety } from './allergens'
 import { allTranslations } from './localize'
+import { mealOn, onlyMealsOn } from './meals'
 import { recipeNutrition, recipeTags, type RecipeNutrition } from './nutrition'
 import {
   currentTargets,
@@ -189,6 +190,11 @@ class Planner {
   }
 
   private readonly blocked = new Map<string, Blocked>()
+  /** Whether the household eats this meal (#183). */
+  on(slot: MealSlot): boolean {
+    return mealOn(this.household.proteinSplit, slot)
+  }
+
   /** Allergens and not-tolerated food to avoid at a meal (#180, #181). Dinner = everyone, so leftovers are covered. */
   blockedAt(slot: MealSlot, dayIndex: number): Blocked {
     const key = `${slot}|${dayIndex}`
@@ -392,7 +398,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
     dates.map((date, i) => {
       const fixed = isKept(date) ? existingDay(date)!.meals.dinner : fixedMeal(date, 'dinner')
       if (fixed) return { kept: fixed.status === 'planned' ? fixed.recipeId : undefined }
-      return { cook: !noDinnerAtHome(i) }
+      return { cook: planner.on('dinner') && !noDinnerAtHome(i) }
     }),
     previousDinnerId(options.previousWeek?.days[6]),
   )
@@ -405,16 +411,20 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
     }
     const yesterday = i === 0 ? options.previousWeek?.days[6] : days[i - 1]
 
+    // Meals the household doesn't eat stay empty (#183).
+    const off = (slot: MealSlot) => !planner.on(slot)
+
     // Dinner
-    let dinner = fixedMeal(date, 'dinner')
+    let dinner = off('dinner') ? emptyMeal() : fixedMeal(date, 'dinner')
     if (!dinner) {
       const recipeId = noDinnerAtHome(i) ? undefined : dinnerIds[i]
       dinner = withCarried(recipeId ? { status: 'planned', recipeId, portions: {}, guests: 0 } : emptyMeal(), date, 'dinner')
     }
 
     // Lunch
-    const lunch =
-      fixedMeal(date, 'lunch') ??
+    const lunch = off('lunch')
+      ? emptyMeal()
+      : fixedMeal(date, 'lunch') ??
       withCarried(
         lunchFor(
           planner,
@@ -428,6 +438,7 @@ export function generateWeekPlan(ctx: PlannerContext, options: GenerateOptions):
 
     // Breakfast and snack
     const simple = (slot: 'breakfast' | 'snack', candidates: Recipe[]): PlannedMeal => {
+      if (off(slot)) return emptyMeal()
       const fixed = fixedMeal(date, slot)
       if (fixed) return fixed
       const recipe = planner.choose(planner.safe(candidates, slot, i), [planner.notSameAs(yesterday?.meals[slot].recipeId), planner.noDislikes(slot, i)])
@@ -477,7 +488,9 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
   if (i < 0) return { plan: options.plan, nextWeek: options.nextWeek }
   const day = days[i]
   const meal = day.meals[options.slot]
-  if (meal.status === 'none' || meal.status === 'eatingOut' || meal.status === 'skipped') return { plan: options.plan, nextWeek: options.nextWeek }
+  if (meal.status === 'none' || meal.status === 'eatingOut' || meal.status === 'skipped' || !planner.on(options.slot)) {
+    return { plan: options.plan, nextWeek: options.nextWeek }
+  }
 
   const prevDay = i === 0 ? options.previousWeek?.days[6] : days[i - 1]
   const nextDay = i === 6 ? options.nextWeek?.days[0] : days[i + 1]
@@ -538,7 +551,7 @@ function applyMeal(
   const follows =
     lunch &&
     ((lunch.status === 'leftovers' && lunch.leftoversFrom === day.date) || lunch.status === 'none' || lunch.replacedLeftoversFrom === day.date)
-  if (options.slot === 'dinner' && nextDay && lunch && follows) {
+  if (options.slot === 'dinner' && nextDay && lunch && follows && planner.on('lunch')) {
     const updated = {
       ...nextDay,
       meals: { ...nextDay.meals, lunch: leftoversOf(lunch, recipeId, day.date) },
@@ -676,7 +689,7 @@ export function followSundayDinner(
   nextWeek: WeekPlan | undefined,
   now = new Date().toISOString(),
 ): WeekPlan | undefined {
-  if (!nextWeek) return nextWeek
+  if (!nextWeek || !mealOn(ctx.household.proteinSplit, 'lunch')) return nextWeek
   const sunday = plan.days[6]
   const monday = nextWeek.days[0]
   const dinner = sunday.meals.dinner
@@ -751,7 +764,7 @@ export function emptyWeekPlan(weekId: WeekId, household: HouseholdSettings, now 
 export function emptyMeals(household: HouseholdSettings, day: DayPlan): MealSlot[] {
   const fixedDayOut = household.noDinnerAtHomeDays.includes(weekdayOf(day.date))
   return (Object.keys(day.meals) as MealSlot[]).filter(
-    (slot) => day.meals[slot].status === 'none' && !(slot === 'dinner' && fixedDayOut),
+    (slot) => day.meals[slot].status === 'none' && mealOn(household.proteinSplit, slot) && !(slot === 'dinner' && fixedDayOut),
   )
 }
 
@@ -777,8 +790,8 @@ function dayProteinWith(planner: Planner, day: DayPlan): PersonDayProtein[] {
     .filter((p) => p.kind === 'adult' && day.targetsG[p.id])
     .map((p) => ({
       personId: p.id,
-      proteinG: personDayNutrition(day, p.id, (id, substitutions) => planner.nutritionOf(id, substitutions), planner.ctx.ingredients).proteinG,
-      targetG: plannedTargetG(day, p.id, planner.household.proteinSplit, fixedDayOut),
+      proteinG: personDayNutrition(onlyMealsOn(day, planner.household), p.id, (id, substitutions) => planner.nutritionOf(id, substitutions), planner.ctx.ingredients).proteinG,
+      targetG: plannedTargetG(onlyMealsOn(day, planner.household), p.id, planner.household.proteinSplit, fixedDayOut),
     }))
 }
 
@@ -860,6 +873,8 @@ export function refreshPortions(ctx: PlannerContext, plan: WeekPlan, fromDate: I
  *   if nothing else fits;
  * - dinner on a day that just became a fixed day without dinner at home is
  *   removed (the next day's leftovers become a quick lunch, #108);
+ * - meals the household no longer eats are emptied, and meals turned back on
+ *   are filled – lunch with leftovers where possible (#183);
  * - everything else stays, including dishes the user picked;
  * - portions are recalculated for everyone.
  * `plans` are all stored weeks; the result has the same weeks.
@@ -904,10 +919,23 @@ export function adaptToSettings(
       // Dinner first, so the next day's lunch can follow it.
       for (const slot of ['dinner', 'breakfast', 'lunch', 'snack'] as const) {
         const meal = plan.days[i].meals[slot]
-        if (meal.status !== 'planned' && meal.status !== 'leftovers') continue
         const options = { plan, date, slot, previousWeek, nextWeek, now }
+        const isOn = mealOn(household.proteinSplit, slot)
+        const wasOn = mealOn(oldHousehold.proteinSplit, slot)
         let result: { plan: WeekPlan; nextWeek?: WeekPlan }
-        if (slot === 'dinner' && newlyOut && meal.status === 'planned') {
+        if (!isOn) {
+          // Turned off (#183): empty it; a dinner's leftovers lunch becomes a quick lunch.
+          if (meal.status === 'none') continue
+          result = setEatingOut(ctx, { ...options, eatingOut: false })
+        } else if (!wasOn) {
+          // Turned back on (#183): fill it like "Fill in again".
+          if (meal.status !== 'none' || (slot === 'dinner' && household.noDinnerAtHomeDays.includes(i as Weekday))) continue
+          const placeholder = { ...plan, days: plan.days.map((d, j) => (j === i ? { ...d, meals: { ...d.meals, [slot]: { ...meal, status: 'skipped' as const } } } : d)) }
+          result = refillMeal(ctx, { ...options, plan: placeholder })
+          if (result.plan === placeholder) continue
+        } else if (meal.status !== 'planned' && meal.status !== 'leftovers') {
+          continue
+        } else if (slot === 'dinner' && newlyOut && meal.status === 'planned') {
           result = setEatingOut(ctx, { ...options, eatingOut: false })
         } else if (!fits(meal, slot, i)) {
           result = swapMeal(ctx, options)
@@ -950,6 +978,8 @@ export function dinnerPortionsToCook(ctx: PlannerContext, plan: WeekPlan, date: 
   let total = totalPortions(dinner.portions, dinner.guests)
 
   const next = i === 6 ? nextWeek?.days[0] : plan.days[i + 1]
+  // No leftovers when the household doesn't eat lunch (#183).
+  if (!mealOn(ctx.household.proteinSplit, 'lunch')) return total
   if (next) {
     const lunch = next.meals.lunch
     if (lunch.status === 'leftovers' && lunch.leftoversFrom === date) total += totalPortions(lunch.portions, lunch.guests)
@@ -984,6 +1014,7 @@ export function planNotes(ctx: PlannerContext, plan: WeekPlan, previousWeek?: We
       if (source && source === planner.sourceOf(prevId)) notes.push({ date: day.date, slot: 'dinner', kind: 'sameProteinSource' })
     }
     for (const slot of Object.keys(day.meals) as MealSlot[]) {
+      if (!planner.on(slot)) continue
       const meal = day.meals[slot]
       const recipe = planner.recipe(meal.recipeId)
       if (!recipe || (meal.status !== 'planned' && meal.status !== 'leftovers')) continue

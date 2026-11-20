@@ -8,7 +8,8 @@ import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { repository } from '@/data/repository'
-import { MEAL_SLOTS, type HouseholdSettings } from '@/data/types'
+import { mealsOn } from '@/data/meals'
+import type { HouseholdSettings } from '@/data/types'
 import { selfOf } from '@/features/household/household-draft'
 import { useHouseholdData } from './SettingsPage'
 
@@ -52,7 +53,7 @@ export function SettingsScreen() {
                     : t('settings.autoPlan.off')
                 }
               />
-              <Row to="/settings/split" title={t('settings.split.title')} hint={MEAL_SLOTS.map((s) => data.household.proteinSplit[s]).join(' / ') + ' %'} />
+              <Row to="/settings/split" title={t('settings.split.title')} hint={mealsOn(data.household.proteinSplit).map((s) => `${t(`week.slots.${s}`)} ${data.household.proteinSplit[s]} %`).join(' · ')} />
             </>
           ) : null}
         </Group>

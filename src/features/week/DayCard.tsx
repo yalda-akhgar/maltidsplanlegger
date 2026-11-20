@@ -7,7 +7,7 @@ import { localize } from '@/data/localize'
 import type { RecipeNutrition } from '@/data/nutrition'
 import type { PersonDayProtein, PlanNote } from '@/data/planner'
 import { BOOST_ITEMS, BOOST_THRESHOLD_G } from '@/data/protein'
-import { MEAL_SLOTS, type DayPlan, type Id, type Ingredient, type MealExtra, type MealSlot, type Person, type Recipe } from '@/data/types'
+import type { DayPlan, Id, Ingredient, MealExtra, MealSlot, Person, Recipe } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
 import { hasAllergyNotes } from '@/features/household/allergy-text'
@@ -41,6 +41,8 @@ export type DayCardProps = {
   allergyNotes: Partial<Record<MealSlot, AllergyNoteTexts>>
   /** Empty meals for which no dish fits the allergies (#180). */
   noSafeDish: Partial<Record<MealSlot, boolean>>
+  /** The meals the household eats; the others are not shown (#183). */
+  slots: readonly MealSlot[]
 }
 
 /** One day of the week plan: date, protein per adult (#118) and the four meals (#117, #126, #127). */
@@ -98,7 +100,7 @@ export const DayCard = forwardRef<HTMLElement, DayCardProps>(function DayCard(pr
       ) : null}
 
       <ul className="mt-2 divide-y">
-        {MEAL_SLOTS.map((slot) => (
+        {props.slots.map((slot) => (
           <MealRow key={slot} {...props} slot={slot} title={title} fixedDayOut={fixedDayOut} personName={personName} notes={notes.filter((n) => n.slot === slot)} />
         ))}
       </ul>

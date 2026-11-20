@@ -17,10 +17,12 @@ type Props = {
   ingredients: Ingredient[]
   /** Read-only card for "me" at the top. */
   self?: React.ReactNode
+  /** Whether the household eats lunch; otherwise children's "lunch at home" is hidden (#183). */
+  lunchOn?: boolean
 }
 
 /** Person cards for the household: adults with an optional target, children with lunch (#160, #161), everyone with allergies, food they don't tolerate and dislikes (#180, #181). */
-export function PeopleEditor({ people, onChange, ingredients, self }: Props) {
+export function PeopleEditor({ people, onChange, ingredients, self, lunchOn = true }: Props) {
   const { t } = useTranslation()
   const update = (draft: PersonDraft) => onChange(people.map((p) => (p.id === draft.id ? draft : p)))
 
@@ -32,6 +34,7 @@ export function PeopleEditor({ people, onChange, ingredients, self }: Props) {
           key={person.id}
           person={person}
           ingredients={ingredients}
+          lunchOn={lunchOn}
           onChange={update}
           onRemove={() => onChange(people.filter((p) => p.id !== person.id))}
         />
@@ -53,11 +56,13 @@ export function PeopleEditor({ people, onChange, ingredients, self }: Props) {
 function PersonCard({
   person,
   ingredients,
+  lunchOn,
   onChange,
   onRemove,
 }: {
   person: PersonDraft
   ingredients: Ingredient[]
+  lunchOn: boolean
   onChange: (person: PersonDraft) => void
   onRemove: () => void
 }) {
@@ -84,12 +89,12 @@ function PersonCard({
 
       {person.kind === 'adult' ? (
         <ProteinTargetField label={t('household.targetOptional')} value={person.target} onChange={(target) => onChange({ ...person, target })} />
-      ) : (
+      ) : lunchOn ? (
         <label className="flex min-h-11 items-center justify-between gap-3 text-sm">
           <span>{t('household.lunchAtHome')}</span>
           <Switch checked={person.lunchAtHome} onCheckedChange={(on) => onChange({ ...person, lunchAtHome: on })} />
         </label>
-      )}
+      ) : null}
     </section>
   )
 }

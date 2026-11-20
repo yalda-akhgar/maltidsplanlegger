@@ -8,6 +8,8 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { canTurnOff, mealOn, turnMealOff, turnMealOn } from '@/data/meals'
 import { DEFAULT_PROTEIN_SPLIT } from '@/data/defaults'
 import { newId } from '@/data/repository'
 import { MEAL_SLOTS, type HouseholdSettings, type Ingredient, type ProteinSplit } from '@/data/types'
@@ -117,6 +119,7 @@ function HouseholdForm({ household, ingredients }: { household: HouseholdSetting
         people={people}
         onChange={setPeople}
         ingredients={ingredients}
+        lunchOn={mealOn(household.proteinSplit, 'lunch')}
         self={
           self ? (
             <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-3">
@@ -162,13 +165,18 @@ function FoodWeekForm({ household }: { household: HouseholdSettings }) {
         <p className="text-sm text-muted-foreground">{t('onboarding.food.text')}</p>
         <ExcludedFoodFields excludedTags={form.excludedTags} excludedTerms={form.excludedTerms} onChange={(v) => setForm({ ...form, ...v })} />
       </section>
-      <WeekRhythmFields noDinnerAtHomeDays={form.noDinnerAtHomeDays} cheatDays={form.cheatDays} onChange={(v) => setForm({ ...form, ...v })} />
+      <WeekRhythmFields
+        noDinnerAtHomeDays={form.noDinnerAtHomeDays}
+        cheatDays={form.cheatDays}
+        snackOn={mealOn(household.proteinSplit, 'snack')}
+        onChange={(v) => setForm({ ...form, ...v })}
+      />
       {dialog}
     </SettingsPage>
   )
 }
 
-// --- Protein split (#165) --------------------------------------------------------
+// --- Meals and protein split (#165, #183) -----------------------------------------
 
 const SPLIT_STEP = 5
 
@@ -185,6 +193,9 @@ function SplitForm({ household }: { household: HouseholdSettings }) {
   const sum = MEAL_SLOTS.reduce((s, slot) => s + split[slot], 0)
   const isDefault = JSON.stringify(split) === JSON.stringify(DEFAULT_PROTEIN_SPLIT)
   const change = (slot: keyof ProteinSplit, delta: number) => setSplit({ ...split, [slot]: Math.min(100, Math.max(0, split[slot] + delta)) })
+  // 0 % = the household doesn't eat the meal (#183); the last main meal can't go to 0.
+  const canLower = (slot: keyof ProteinSplit) => split[slot] > SPLIT_STEP || (split[slot] > 0 && canTurnOff(split, slot))
+  const locked = MEAL_SLOTS.some((slot) => !canTurnOff(split, slot))
 
   return (
     <SettingsPage
@@ -195,13 +206,26 @@ function SplitForm({ household }: { household: HouseholdSettings }) {
       <ul className="divide-y rounded-2xl border bg-card">
         {MEAL_SLOTS.map((slot) => {
           const name = t(`week.slots.${slot}`)
+          const on = mealOn(split, slot)
           return (
-            <li key={slot} className="flex items-center justify-between gap-3 p-3">
-              <span id={`split-${slot}`} className="font-medium">
-                {name}
-              </span>
+            <li key={slot} className="flex flex-wrap items-center justify-between gap-3 p-3">
+              <div className="flex items-center gap-3">
+                <Switch
+                  aria-labelledby={`split-${slot}`}
+                  aria-describedby={locked ? 'split-min' : undefined}
+                  checked={on}
+                  disabled={!canTurnOff(split, slot)}
+                  onCheckedChange={(next) => setSplit(next ? turnMealOn(split, slot) : turnMealOff(split, slot))}
+                />
+                <span id={`split-${slot}`} className="font-medium">
+                  {name}
+                </span>
+              </div>
+              {!on ? (
+                <span className="min-h-11 content-center text-sm text-muted-foreground">{t('household.meals.off')}</span>
+              ) : (
               <div role="group" aria-labelledby={`split-${slot}`} className="flex items-center gap-1">
-                <Button variant="outline" size="icon" className="rounded-full" aria-label={t('settings.split.less', { name })} disabled={split[slot] <= 0} onClick={() => change(slot, -SPLIT_STEP)}>
+                <Button variant="outline" size="icon" className="rounded-full" aria-label={t('settings.split.less', { name })} disabled={!canLower(slot)} onClick={() => change(slot, -SPLIT_STEP)}>
                   <MinusIcon />
                 </Button>
                 <output aria-live="polite" className="min-w-14 text-center font-semibold tabular-nums">
@@ -211,6 +235,7 @@ function SplitForm({ household }: { household: HouseholdSettings }) {
                   <PlusIcon />
                 </Button>
               </div>
+              )}
             </li>
           )
         })}
@@ -221,6 +246,11 @@ function SplitForm({ household }: { household: HouseholdSettings }) {
           </span>
         </li>
       </ul>
+      {locked ? (
+        <p id="split-min" className="text-sm text-muted-foreground">
+          {t('household.meals.minOne')}
+        </p>
+      ) : null}
       {!isDefault ? (
         <Button variant="secondary" onClick={() => setSplit({ ...DEFAULT_PROTEIN_SPLIT })}>
           {t('settings.split.reset')}

@@ -98,8 +98,8 @@
       "offHint": "When turned on, the app makes next week's plan for you."
     },
     "split": {
-      "title": "Protein split",
-      "text": "How much of the day's protein target each meal should cover.",
+      "title": "Meals and protein",
+      "text": "Turn off meals you don't eat – the protein is then spread over the others. The percentage is how much of the daily protein target each meal should cover.",
       "less": "Less for {{name}}",
       "more": "More for {{name}}",
       "sum": "Total",
@@ -498,6 +498,12 @@
         "5": "Sa",
         "6": "Su"
       }
+    },
+    "meals": {
+      "title": "Which meals do you eat?",
+      "hint": "Meals you don't eat are not planned and don't count towards the protein target. The protein is spread over the others.",
+      "minOne": "At least one of breakfast, lunch and dinner must be on.",
+      "off": "Don't eat"
     }
   },
   "onboarding": {
@@ -537,6 +543,7 @@
       "adults": "Adults",
       "children": "Children",
       "excluded": "Excluded",
+      "meals": "Meals",
       "out": "Dinner out",
       "cheat": "Cheat days",
       "none": "None",

@@ -40,6 +40,7 @@ import {
 } from '@/data/planner'
 import { BOOST_THRESHOLD_G, totalPortions } from '@/data/protein'
 import { repository } from '@/data/repository'
+import { mealsOn } from '@/data/meals'
 import { MEAL_SLOTS, type DayPlan, type Id, type IsoDate, type MealSlot, type WeekId, type WeekPlan } from '@/data/types'
 import { diffMeals, isCurrent, revertChanges, type MealChange } from '@/data/undo'
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
@@ -157,7 +158,8 @@ export function WeekScreen() {
 
   const household = data.household
   const fixedDayOut = (date: IsoDate) => household.noDinnerAtHomeDays.includes(weekdayOf(date))
-  const isEmpty = (date: IsoDate, slot: MealSlot, status: string) => status === 'none' && !(slot === 'dinner' && fixedDayOut(date))
+  const slotsOn = mealsOn(household.proteinSplit)
+  const isEmpty = (date: IsoDate, slot: MealSlot, status: string) => status === 'none' && slotsOn.includes(slot) && !(slot === 'dinner' && fixedDayOut(date))
   const planned = plan.days.some((d) => MEAL_SLOTS.some((s) => d.meals[s].status !== 'none'))
   const hasEmpty = plan.days.some((d) => d.date >= today && MEAL_SLOTS.some((s) => isEmpty(d.date, s, d.meals[s].status)))
   const fillLabel = planned ? t('week.fillEmpty') : t('week.makePlan')
@@ -563,6 +565,7 @@ export function WeekScreen() {
               day={day}
               isToday={day.date === today}
               fixedDayOut={fixedDayOut(day.date)}
+              slots={slotsOn}
               people={household.people}
               protein={dayStarted(day) ? (protein[i] ?? []) : []}
               hasEmptyMeals={emptyMeals(household, day).length > 0}

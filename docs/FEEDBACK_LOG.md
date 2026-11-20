@@ -44,7 +44,7 @@ First feedback from someone outside the project (German-speaking), after trying 
 - **What they said:** eats only two meals plus a snack, but lunch is planned anyway – even with 0 % protein on lunch.
 - **Insight:** the four meals are hard-wired; a household that skips a meal gets a plan, a shopping list and a protein split that don't match how they eat.
 - **Priority:** High (the protein split – the core value – is wrong for them)
-- **What changed and why:** "Which meals do you eat?" per household, built before phase 3 (decision to follow); per person in phase 5 (BACKLOG #9).
+- **What changed and why:** "Which meals do you eat?" per household, built before phase 3 (#183); per person in phase 5 (BACKLOG #9).
 
 ## Acceptance test – milestone G (onboarding and settings), 2026-11-17
 

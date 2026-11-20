@@ -98,8 +98,8 @@
       "offHint": "Wenn eingeschaltet, erstellt die App den Plan für nächste Woche für dich."
     },
     "split": {
-      "title": "Proteinverteilung",
-      "text": "Welchen Anteil des Tagesziels jede Mahlzeit decken soll.",
+      "title": "Mahlzeiten und Protein",
+      "text": "Schalte Mahlzeiten aus, die ihr nicht esst – das Protein verteilt sich dann auf die anderen. Der Prozentwert ist der Anteil am Tagesziel, den jede Mahlzeit abdecken soll.",
       "less": "Weniger für {{name}}",
       "more": "Mehr für {{name}}",
       "sum": "Summe",
@@ -497,6 +497,12 @@
         "5": "Sa",
         "6": "So"
       }
+    },
+    "meals": {
+      "title": "Welche Mahlzeiten esst ihr?",
+      "hint": "Mahlzeiten, die ihr nicht esst, werden nicht geplant und zählen nicht zum Proteinziel. Das Protein verteilt sich auf die anderen.",
+      "minOne": "Mindestens Frühstück, Mittagessen oder Abendessen muss an sein.",
+      "off": "Esst ihr nicht"
     }
   },
   "onboarding": {
@@ -536,6 +542,7 @@
       "adults": "Erwachsene",
       "children": "Kinder",
       "excluded": "Ausgeschlossen",
+      "meals": "Mahlzeiten",
       "out": "Abendessen auswärts",
       "cheat": "Cheat Days",
       "none": "Keine",
