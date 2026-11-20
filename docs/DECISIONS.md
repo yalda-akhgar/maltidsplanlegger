@@ -1387,3 +1387,31 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Consequences:** No new stored field: a meal is on when its share in `proteinSplit` is above 0 (no schema migration). `src/data/meals.ts`: `mealOn`, `mealsOn`, `canTurnOff`, `turnMealOff`, `turnMealOn`, `onlyMealsOn` (older plans may still hold meals that are now off – they are ignored in the day's protein). Planner: `generateWeekPlan` leaves off meals empty; `swapMeal` does nothing for them; a dinner no longer turns the next day's lunch into leftovers when lunch is off (`applyMeal`, `followSundayDinner`); `dinnerPortionsToCook` adds no leftovers; `emptyMeals` and `planNotes` skip off meals; `adaptToSettings` empties meals turned off and fills meals turned back on (lunch with leftovers where possible). UI: `MealsOnFields` (wizard), switches on the "Meals and protein" page, `DayCard` shows only meals that are on. Tests: `src/data/meals.test.ts` (143 in total).
 - **Interpretations (approved with the draft):** a meal turned back on gets its default share (lunch 30 %) and the others shrink in proportion; cheat days are hidden while the evening snack is off; children's "eats lunch at home" is hidden while lunch is off; with fewer meals the day target can be harder to reach (portions are still at most 2×) – the app shows "X g under" as today.
 - **Made while building (approved 2026-11-20):** (a) Lowering a meal to 0 % with − also turns it off, but the last main meal stops at 5 %. (b) The Settings row shows the meals that are on: "Breakfast 36 % · Dinner 43 % · Evening 21 %". (c) A meal that is off shows "Don't eat" instead of the percentage. (d) The wizard summary gets a "Meals" row. (e) "Reset to 25 / 30 / 30 / 15" turns all four meals back on. Follow-up (product owner, 2026-11-20): the hint "The next day gets a quick lunch" under fixed days out is hidden while lunch is off.
+
+## 184. Phase 3 plan and the first choices
+- **Date:** 2026-11-20
+- **Decision:** Phase 3 is built in five milestones, with a stop after each: **3A** the calculation of what the week needs (tests, no screen), **3B** "Approve week plan" (the sheet, "Do you still have …?", confirmation), **3C** the shopping list screen, **3D** the Home screen and "Use what we have at home first", **3E** swapping a dish after approval (#173 point 6). Choices:
+  1. The shopping list covers **one calendar week (Mon–Sun)**. "Fixed shopping day" (#113) is built at the end of phase 3.
+  2. Amounts are **merged in the recipes' units and rounded** ("Chicken fillet 900 g", "Peppers 3 pcs"), not in store packs.
+  3. Staples (oil, salt, spices …) sit in a **closed "Staples" section** at the bottom of the approve sheet. They count as "have", but each can be moved to the list with one tap.
+  4. **Each item in the approve sheet has a "Have" / "Buy" button** (the same style as in Home) instead of a checkbox, so there is never any doubt what the choice means. The button at the bottom counts the "Buy" items. Items marked as at home in Home start as "Have"; the rest start as "Buy".
+  5. Changes after approval that are not a swap (guests, eating out, a removed meal) show **a small banner on the week plan**: "The plan has changed – 2 more items / 1 fewer [Update the list]".
+  6. A new store section **"Other"** for own items and things that aren't food.
+  7. **In phase 3 now:** share the list (Web Share, e.g. WhatsApp/SMS) and fixed shopping day. **Later** (backlog): expiry dates, lunchbox mode and weekly budget.
+  8. With two approved weeks there is **one shared shopping list**, where each item has a small "Week 47" label.
+- **Alternatives:** (1) Fixed shopping day from the start. (2) Store packs, which need a pack size for every ingredient. (3) Staples not shown at all. (4) A checkbox meaning "have at home" (#173), or a checkbox meaning "buy". (5) The swap dialog for every change, or no update at all. (6) Also a "Spices and staples" section. (7) Everything in phase 3. (8) One list per week, with tabs.
+- **Rationale:** Product owner's choice: 1a, 2a, 3a, 5a, 6a, 7a, 8a; for 4 the product owner chose its own option ("Have" / "Buy" buttons). The core flow reaches testers sooner, and every choice is clear on screen.
+- **Consequences:** #173 point 2 ("items at home are ticked in advance") now means "items at home start as Have". Expiry dates, lunchbox mode and weekly budget go to `docs/BACKLOG.md`. Real-time sharing of the list still needs an account (phase 5); until then the list lives on each phone, and "Share" sends it as text.
+
+## 185. How the shopping list counts amounts (milestone 3A)
+- **Date:** 2026-11-20
+- **Decision:**
+  - **A.** The same item in different units becomes one amount: **pieces if the ingredient has a piece weight, otherwise grams** ("Cucumber 1 pcs + 100 g" → "1½ pcs" before rounding; "2 dl + 300 g yoghurt" → "500 g").
+  - **B.** **Pieces, cans and packs are rounded up to whole ones** (you can't buy half a cucumber). Grams and dl are rounded as in recipes (#84).
+  - **C.** An ingredient left out of one person's portion (#181) is **bought as for everyone**.
+  - **D.** A protein boost added to a meal **is on the list**.
+  - **E.** Sunday's dinner that becomes Monday's lunch in the next week is **bought in the week the dinner is cooked**.
+  - **F.** Approving a week that has already started covers **only today and the rest of the week**.
+- **Alternatives:** (A) Both amounts on one line ("1 pcs + 100 g"). (B) Halves as in recipes. (C) Subtract that person's share. (D) Leave boosts off the list. (E) Count the leftovers in the next week. (F) The whole week.
+- **Rationale:** Product owner's choice ("a" on all): one clear amount per line, amounts you can actually buy, and nothing that has already been eaten.
+- **Consequences:** `src/data/shopping.ts`: `weekNeeds(ctx, plan, { nextWeek, fromDate })` returns one line per ingredient (amount, unit, store section, staple flag, and every meal that uses it), sorted by store section; `roundForShopping`. Only `planned` meals that are on (#183) count; a dinner counts the next day's leftovers lunch through `dinnerPortionsToCook`; safe alternatives (#180) replace the original. If a unit's weight is unknown (only possible for the user's own ingredients), the item gets one line per unit. Tests: `src/data/shopping.test.ts` (160 in total).

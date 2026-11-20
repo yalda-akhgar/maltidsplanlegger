@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-20 – resume here)
-**Phase 1 done (2026-11-17) and published on Vercel: https://maltidsplanlegger.vercel.app (README links it; deploys automatically from `main`). Pre-phase-3 work done and approved (2026-11-20): allergies (#180), "Doesn't tolerate" (#181), "not stated" for own ingredients (#182), "Which meals do you eat?" (#183, first external tester). NEXT: phase 3 – Home + shopping list (core flow #173, plus #177/#178); start by showing the product owner a draft with choices. Then phase 2. Phase 5 login is optional (#179).**
+**Phase 3 started (decisions #184, #185). Milestone 3A done: `src/data/shopping.ts` (`weekNeeds` – what a week plan needs, merged and rounded; tests in `src/data/shopping.test.ts`, 160 in total). NEXT: 3B "Approve week plan" (sheet with Have/Buy buttons per item, staples section, "Do you still have …?", confirmation) – show the product owner a draft with choices first. Then 3C shopping list, 3D Home, 3E swap after approval. Phase 1 is published on Vercel: https://maltidsplanlegger.vercel.app.**
 
 Meals the household eats (#183): 0 % in `proteinSplit` = meal off (`src/data/meals.ts`); off meals not planned, not shown, not counted; lunch off → no leftovers portions; settings page "Meals and protein" with switches; wizard step 5 starts with "Which meals do you eat?" (`MealsOnFields`). Tests: 143.
 

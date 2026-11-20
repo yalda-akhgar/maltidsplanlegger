@@ -16,6 +16,9 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 10 | Pantry step and reminder | If testers use the pantry toggle a lot: consider a pantry step in onboarding and a weekly reminder. | Maybe | The "use what we have at home first" toggle is an unvalidated idea, shipped small and off by default first (#177). | 2026-11-17 |
 | 11 | Guests with allergies | Guests with allergies: set allergies for the guests at a meal, so the dish is checked for them too. **High priority.** | Planned | Allergies are per household member for now (#180, point 12). | 2026-11-19 |
 | 12 | Show what blends contain | Show "contains: chili, cumin …" under spice blends and sauces in the recipe view, and let users fill in "contains" on their own ingredients. | Maybe | The pick list already names the ingredient that doesn't fit (#181). | 2026-11-19 |
+| 13 | Expiry dates in Home | "Use before" date on items at home; the planner suggests dishes that use them first. The data model already has `PantryItem.expiresOn`. | Later | Core flow of phase 3 first (#184, choice 7). | 2026-11-20 |
+| 14 | Lunchbox mode | Lunch (leftovers) shown as a lunchbox, with its own list. | Later | Core flow of phase 3 first (#184, choice 7). | 2026-11-20 |
+| 15 | Weekly budget | Approximate price of the shopping list and cheaper alternatives. Needs a price for every ingredient (`Ingredient.price`). | Later | Core flow of phase 3 first; prices are missing (#184, choice 7). | 2026-11-20 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.
