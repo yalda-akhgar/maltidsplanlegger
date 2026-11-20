@@ -412,7 +412,39 @@
     },
     "noPeopleLink": "Set up the family",
     "noTarget": "Add a protein target for {{names}} so the app can adjust the portions.",
-    "noTargetLink": "Go to Settings"
+    "noTargetLink": "Go to Settings",
+    "missingMeals_one": "{{count}} meal missing",
+    "missingMeals_other": "{{count}} meals missing",
+    "approve": {
+      "button": "Approve week plan",
+      "seeItems": "See the week’s items",
+      "approved": "Approved",
+      "title": "Approve week {{week}}",
+      "titleAgain": "Items for week {{week}}",
+      "intro": "Choose “Have” for what you have at home. What you need to buy goes on the shopping list.",
+      "fromToday": "From today on. What has been eaten is already bought.",
+      "choiceLabel": "{{name}}: have or buy",
+      "have": "Have",
+      "buy": "Buy",
+      "atHome": "At home ✓",
+      "usedLastWeek": "Used last week – do you still have some?",
+      "staples": "Staples ({{count}})",
+      "staplesHint": "Count as “Have”. Choose “Buy” for anything that has run out.",
+      "usedIn": "Used in: {{list}}",
+      "showUses": "Show which dishes use {{name}}",
+      "nothing": "This week needs no items.",
+      "add_one": "Add {{count}} item to the shopping list",
+      "add_other": "Add {{count}} items to the shopping list",
+      "addNone": "Approve without new items",
+      "update_one": "Update the shopping list ({{count}} item)",
+      "update_other": "Update the shopping list ({{count}} items)",
+      "skip": "Skip",
+      "done": "Week {{week}} is ready ✓",
+      "added_one": "{{count}} item added",
+      "added_other": "{{count}} items added",
+      "updated": "The shopping list is updated",
+      "seeList": "See shopping list"
+    }
   },
   "household": {
     "gramsPerDay": "g per day",
@@ -618,5 +650,10 @@
       "hint": "Choose all that are in the item, hidden ones too (e.g. soy sauce = gluten). If you choose nothing, it says “allergens not stated”."
     },
     "or": "{{a}} or {{b}}"
+  },
+  "shopping": {
+    "empty": "The shopping list is empty. Approve a week plan and the items appear here.",
+    "weekLabel": "Week {{week}}",
+    "comingSoon": "Ticking off and your own items are coming soon."
   }
 }

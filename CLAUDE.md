@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-20 – resume here)
-**Phase 3 started (decisions #184, #185). Milestone 3A done: `src/data/shopping.ts` (`weekNeeds` – what a week plan needs, merged and rounded; tests in `src/data/shopping.test.ts`, 160 in total). NEXT: 3B "Approve week plan" (sheet with Have/Buy buttons per item, staples section, "Do you still have …?", confirmation) – show the product owner a draft with choices first. Then 3C shopping list, 3D Home, 3E swap after approval. Phase 1 is published on Vercel: https://maltidsplanlegger.vercel.app.**
+**Phase 3 in progress (decisions #184–#186). 3A done: `src/data/shopping.ts` (`weekNeeds`). 3B done (awaiting approval): "Approve week plan" – `ApproveSheet` with Have/Buy per item, staples section, "Do you still have …?", approvals stored apart from week plans (`getApproval`/`saveApproval`), `ShoppingItem` list (`listShoppingItems`/`saveShoppingItems`), simple Shopping list screen. Tests: 169. NEXT: 3C shopping list (tick off → Home, own items + "Other" section, share, banner #184.5) – draft with choices first. Then 3D Home, 3E swap after approval. Published: https://maltidsplanlegger.vercel.app.**
 
 Meals the household eats (#183): 0 % in `proteinSplit` = meal off (`src/data/meals.ts`); off meals not planned, not shown, not counted; lunch off → no leftovers portions; settings page "Meals and protein" with switches; wizard step 5 starts with "Which meals do you eat?" (`MealsOnFields`). Tests: 143.
 

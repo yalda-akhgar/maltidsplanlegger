@@ -1,4 +1,4 @@
-import { ChevronLeftIcon, ChevronRightIcon, EllipsisIcon, SparklesIcon, Undo2Icon } from 'lucide-react'
+import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, EllipsisIcon, ListChecksIcon, SparklesIcon, Undo2Icon } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
@@ -39,9 +39,10 @@ import {
   type PlannerContext,
 } from '@/data/planner'
 import { BOOST_THRESHOLD_G, totalPortions } from '@/data/protein'
-import { repository } from '@/data/repository'
+import { newId, repository } from '@/data/repository'
+import { applyApproval, approvalRows, toApproval, usedIngredients, weekNeeds, type ApprovalRow } from '@/data/shopping'
 import { mealsOn } from '@/data/meals'
-import { MEAL_SLOTS, type DayPlan, type Id, type IsoDate, type MealSlot, type WeekId, type WeekPlan } from '@/data/types'
+import { MEAL_SLOTS, type DayPlan, type Id, type IsoDate, type MealSlot, type WeekApproval, type WeekId, type WeekPlan } from '@/data/types'
 import { diffMeals, isCurrent, revertChanges, type MealChange } from '@/data/undo'
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
 import { InstallCard } from '@/features/install/InstallCard'
@@ -49,6 +50,7 @@ import { useRecipeData } from '@/features/recipes/useRecipeData'
 import { withExampleFamily } from '@/features/household/example-family'
 import { useLanguage } from '@/i18n/useLanguage'
 import type { AllergyNoteTexts } from './AllergyNotes'
+import { ApproveSheet } from './ApproveSheet'
 import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'
 import { MoreSheet } from './MoreSheet'
@@ -57,7 +59,7 @@ import { mealUndo, popMealStep, popWeekStep, pushMealStep, pushWeekStep, weekUnd
 import { formatDay, formatWeek, weekdayName, weekNumber } from './week-format'
 
 /** The plans the screen works on: this week, plus its neighbours for leftovers (#13). */
-type Plans = { weekId: WeekId; plan: WeekPlan; previous?: WeekPlan; next?: WeekPlan }
+type Plans = { weekId: WeekId; plan: WeekPlan; previous?: WeekPlan; next?: WeekPlan; approval?: WeekApproval }
 /** A new version of the shown week and the next one (for Monday's leftovers). */
 type Change = { plan: WeekPlan; next?: WeekPlan }
 /** Which undo button a change belongs to: one meal's ↶ or the top button for a whole-week action (#146). */
@@ -79,6 +81,8 @@ export function WeekScreen() {
   const [mealTarget, setMealTarget] = useState<MealTarget | null>(null)
   const [pickTarget, setPickTarget] = useState<PickTarget | null>(null)
   const [moreOpen, setMoreOpen] = useState(false)
+  /** The approve sheet's items while it is open (#173, #186). */
+  const [approveRows, setApproveRows] = useState<ApprovalRow[] | null>(null)
   /** Set while asking before replacing the week: with favourites only or not. */
   const [confirmReplace, setConfirmReplace] = useState<{ favoritesOnly: boolean } | null>(null)
   const [alertsOn] = useState(() => repository.getProteinAlertsSync())
@@ -102,9 +106,10 @@ export function WeekScreen() {
       repository.getWeekPlan(shiftWeek(weekId, -1)),
       repository.getWeekPlan(weekId),
       repository.getWeekPlan(shiftWeek(weekId, 1)),
-    ]).then(([previous, plan, next]) => {
+      repository.getApproval(weekId),
+    ]).then(([previous, plan, next, approval]) => {
       if (!active) return
-      setPlans({ weekId, plan: plan ?? emptyWeekPlan(weekId, data.household), previous, next })
+      setPlans({ weekId, plan: plan ?? emptyWeekPlan(weekId, data.household), previous, next, approval })
     })
     return () => {
       active = false
@@ -163,6 +168,13 @@ export function WeekScreen() {
   const planned = plan.days.some((d) => MEAL_SLOTS.some((s) => d.meals[s].status !== 'none'))
   const hasEmpty = plan.days.some((d) => d.date >= today && MEAL_SLOTS.some((s) => isEmpty(d.date, s, d.meals[s].status)))
   const fillLabel = planned ? t('week.fillEmpty') : t('week.makePlan')
+  const emptyCount = plan.days.reduce((n, d) => n + (d.date >= today ? MEAL_SLOTS.filter((s) => isEmpty(d.date, s, d.meals[s].status)).length : 0), 0)
+  // A week can be approved when every meal from today on is filled (#186 point 2); a week that is over can't.
+  const weekOver = plan.days[6].date < today
+  const canApprove = planned && !hasEmpty && !weekOver
+  const approval = plans.approval
+  /** The first day the approval covers (#185 F). */
+  const approveFrom = plan.days[0].date < today ? today : plan.days[0].date
   const hasAdults = household.people.some((p) => p.kind === 'adult')
   const withoutTarget = household.people.filter((p) => p.kind === 'adult' && !p.proteinTargetG)
   const dayTitle = (date: IsoDate) => formatDay(date, language, t, true)
@@ -416,6 +428,44 @@ export function WeekScreen() {
     toast(t('week.dev.done'))
   }
 
+  // --- Approving the week (#173, #184, #186) --------------------------------
+
+  async function openApprove() {
+    const current = plansRef.current
+    if (!current || !ctx) return
+    const pantry = await repository.listPantry()
+    const needs = weekNeeds(ctx, current.plan, { nextWeek: current.next, fromDate: approveFrom })
+    const usedLastWeek = current.previous ? usedIngredients(ctx, current.previous, current.plan) : undefined
+    setApproveRows(approvalRows(needs, { pantry, usedLastWeek, previous: current.approval }))
+  }
+
+  /** Approves the week; with `addItems` the "Buy" items go on the shopping list. Stays on the week plan (#173 point 4). */
+  async function confirmApprove(addItems: boolean) {
+    const current = plansRef.current
+    const rows = approveRows
+    if (!current || !rows) return
+    const again = current.approval !== undefined
+    const now = new Date().toISOString()
+    const saved = await repository.saveApproval(toApproval(current.weekId, approveFrom, rows, now))
+    let added = 0
+    if (addItems) {
+      const result = applyApproval(await repository.listShoppingItems(), saved, now, newId)
+      await repository.saveShoppingItems(result.items)
+      added = result.added
+    }
+    const updated = { ...current, approval: saved }
+    plansRef.current = updated
+    setPlans(updated)
+    setApproveRows(null)
+    const title = again ? t('week.approve.updated') : t('week.approve.done', { week: weekNumber(current.weekId) })
+    setAnnouncement(title)
+    toast(title, {
+      description: !again && added > 0 ? t('week.approve.added', { count: added }) : undefined,
+      duration: 8000,
+      action: addItems ? { label: t('week.approve.seeList'), onClick: () => navigate('/shopping') } : undefined,
+    })
+  }
+
   function changeWeek(step: number) {
     toast.dismiss()
     setWeekId((w) => shiftWeek(w, step))
@@ -496,6 +546,12 @@ export function WeekScreen() {
           </Button>
           <p aria-live="polite" className="text-center font-semibold">
             {formatWeek(weekId, language, t)}
+            {approval ? (
+              <span className="mt-0.5 flex items-center justify-center gap-1 text-sm font-medium text-success-foreground">
+                <CheckIcon aria-hidden className="size-4" />
+                {t('week.approve.approved')}
+              </span>
+            ) : null}
           </p>
           <Button variant="outline" size="icon" aria-label={t('week.nextWeek')} onClick={() => changeWeek(1)}>
             <ChevronRightIcon />
@@ -538,15 +594,21 @@ export function WeekScreen() {
           </div>
         ) : null}
 
+        {planned && hasEmpty ? <p className="-mb-2 text-sm font-medium">{t('week.missingMeals', { count: emptyCount })}</p> : null}
         <div className="flex gap-2">
           {hasEmpty ? (
             <Button className="flex-1" onClick={() => fill(false)}>
               <SparklesIcon aria-hidden />
               {fillLabel}
             </Button>
+          ) : canApprove ? (
+            <Button className="flex-1" variant={approval ? 'secondary' : 'default'} onClick={() => void openApprove()}>
+              {approval ? <ListChecksIcon aria-hidden /> : <CheckIcon aria-hidden />}
+              {approval ? t('week.approve.seeItems') : t('week.approve.button')}
+            </Button>
           ) : null}
           {hasEmpty || planned ? (
-            <Button variant="secondary" className={hasEmpty ? undefined : 'flex-1'} aria-label={t('week.moreLabel')} onClick={() => setMoreOpen(true)}>
+            <Button variant="secondary" className={hasEmpty || canApprove ? undefined : 'flex-1'} aria-label={t('week.moreLabel')} onClick={() => setMoreOpen(true)}>
               <EllipsisIcon aria-hidden />
               {t('week.more')}
             </Button>
@@ -647,6 +709,20 @@ export function WeekScreen() {
           setConfirmPick(null)
           if (id) pick(id, true)
         }}
+      />
+
+      <ApproveSheet
+        open={approveRows !== null}
+        week={weekNumber(weekId)}
+        rows={approveRows ?? []}
+        again={approval !== undefined}
+        fromToday={approveFrom > plan.days[0].date}
+        ingredientName={(id) => localize(data.ingredientMap.get(id)?.name, language)}
+        recipeName={(id) => recipeName(id)}
+        onChoice={(index, choice) => setApproveRows((rows) => rows?.map((r, i) => (i === index ? { ...r, choice } : r)) ?? null)}
+        onConfirm={() => void confirmApprove(true)}
+        onSkip={() => void confirmApprove(false)}
+        onClose={() => setApproveRows(null)}
       />
 
       <MoreSheet

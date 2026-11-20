@@ -338,6 +338,51 @@ export interface WeekPlan {
 }
 
 // ---------------------------------------------------------------------------
+// Approving a week plan and the shopping list (phase 3, #173, #184, #186)
+// ---------------------------------------------------------------------------
+
+/** The user's choice for one item in the approve sheet (#184 point 4). */
+export type ItemChoice = 'have' | 'buy'
+
+/** One item of an approved week, as the user left it in the approve sheet. */
+export interface ApprovedItem {
+  ingredientId: Id
+  amount: number
+  unit: Unit
+  choice: ItemChoice
+}
+
+/**
+ * A week plan the user approved (#173). Stored apart from the week plan, so
+ * re-making the plan never loses it silently.
+ */
+export interface WeekApproval {
+  weekId: WeekId
+  approvedAt: Timestamp
+  /** The first day the approval covers: today when the week had started (#185 F). */
+  fromDate: IsoDate
+  items: ApprovedItem[]
+}
+
+/** One line on the shopping list. */
+export interface ShoppingItem {
+  id: Id
+  /** Catalogue ingredient, or … */
+  ingredientId?: Id
+  /** … a free-text item (also non-food), added by the user (phase 3C). */
+  customName?: string
+  amount?: number
+  unit?: Unit
+  /** The week the item was added for ("Week 47" label, #184 point 8). */
+  weekId?: WeekId
+  /** Added by approving a week plan (and replaced when it is approved again), or by the user. */
+  source: 'plan' | 'user'
+  bought: boolean
+  createdAt: Timestamp
+  updatedAt: Timestamp
+}
+
+// ---------------------------------------------------------------------------
 // Pantry (phase 3, model reserved now – #25)
 // ---------------------------------------------------------------------------
 

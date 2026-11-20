@@ -442,7 +442,39 @@
     },
     "noPeopleLink": "Sett opp familien",
     "noTarget": "Legg inn proteinmål for {{names}}, så kan appen tilpasse porsjonene.",
-    "noTargetLink": "Til innstillinger"
+    "noTargetLink": "Til innstillinger",
+    "missingMeals_one": "{{count}} måltid mangler",
+    "missingMeals_other": "{{count}} måltider mangler",
+    "approve": {
+      "button": "Godkjenn ukeplan",
+      "seeItems": "Se varene for uken",
+      "approved": "Godkjent",
+      "title": "Godkjenn uke {{week}}",
+      "titleAgain": "Varene for uke {{week}}",
+      "intro": "Velg «Har» for det dere har hjemme. Det dere skal kjøpe, legges på handlelisten.",
+      "fromToday": "Gjelder fra i dag. Det som er spist, er allerede kjøpt.",
+      "choiceLabel": "{{name}}: har eller kjøp",
+      "have": "Har",
+      "buy": "Kjøp",
+      "atHome": "Hjemme ✓",
+      "usedLastWeek": "Brukt forrige uke – har dere fortsatt?",
+      "staples": "Basisvarer ({{count}})",
+      "staplesHint": "Regnes som «Har». Velg «Kjøp» på det som er tomt.",
+      "usedIn": "Brukes i: {{list}}",
+      "showUses": "Vis hvilke retter som bruker {{name}}",
+      "nothing": "Uken trenger ingen varer.",
+      "add_one": "Legg {{count}} vare på handlelisten",
+      "add_other": "Legg {{count}} varer på handlelisten",
+      "addNone": "Godkjenn uten nye varer",
+      "update_one": "Oppdater handlelisten ({{count}} vare)",
+      "update_other": "Oppdater handlelisten ({{count}} varer)",
+      "skip": "Hopp over",
+      "done": "Uke {{week}} er klar ✓",
+      "added_one": "{{count}} vare lagt til",
+      "added_other": "{{count}} varer lagt til",
+      "updated": "Handlelisten er oppdatert",
+      "seeList": "Se handlelisten"
+    }
   },
   "household": {
     "gramsPerDay": "g per dag",
@@ -648,5 +680,10 @@
       "hint": "Velg alle som finnes i varen, også skjulte (f.eks. soyasaus = gluten). Velger du ingenting, står det «allergener ikke oppgitt»."
     },
     "or": "{{a}} eller {{b}}"
+  },
+  "shopping": {
+    "empty": "Handlelisten er tom. Godkjenn en ukeplan, så kommer varene hit.",
+    "weekLabel": "Uke {{week}}",
+    "comingSoon": "Avkrysning og egne varer kommer snart."
   }
 }

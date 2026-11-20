@@ -411,7 +411,39 @@
     },
     "noPeopleLink": "Familie einrichten",
     "noTarget": "Lege ein Proteinziel für {{names}} fest, damit die App die Portionen anpassen kann.",
-    "noTargetLink": "Zu den Einstellungen"
+    "noTargetLink": "Zu den Einstellungen",
+    "missingMeals_one": "{{count}} Mahlzeit fehlt",
+    "missingMeals_other": "{{count}} Mahlzeiten fehlen",
+    "approve": {
+      "button": "Wochenplan freigeben",
+      "seeItems": "Zutaten der Woche ansehen",
+      "approved": "Freigegeben",
+      "title": "Woche {{week}} freigeben",
+      "titleAgain": "Zutaten für Woche {{week}}",
+      "intro": "Wähle „Habe ich“ für alles, was ihr zu Hause habt. Was ihr kaufen müsst, kommt auf die Einkaufsliste.",
+      "fromToday": "Gilt ab heute. Was schon gegessen wurde, ist bereits gekauft.",
+      "choiceLabel": "{{name}}: vorhanden oder kaufen",
+      "have": "Habe ich",
+      "buy": "Kaufen",
+      "atHome": "Zu Hause ✓",
+      "usedLastWeek": "Letzte Woche verwendet – habt ihr noch etwas?",
+      "staples": "Grundzutaten ({{count}})",
+      "staplesHint": "Zählen als „Habe ich“. Wähle „Kaufen“ bei allem, was leer ist.",
+      "usedIn": "Verwendet in: {{list}}",
+      "showUses": "Zeigen, welche Gerichte {{name}} verwenden",
+      "nothing": "Diese Woche braucht keine Zutaten.",
+      "add_one": "{{count}} Zutat auf die Einkaufsliste",
+      "add_other": "{{count}} Zutaten auf die Einkaufsliste",
+      "addNone": "Ohne neue Zutaten freigeben",
+      "update_one": "Einkaufsliste aktualisieren ({{count}} Zutat)",
+      "update_other": "Einkaufsliste aktualisieren ({{count}} Zutaten)",
+      "skip": "Überspringen",
+      "done": "Woche {{week}} ist fertig ✓",
+      "added_one": "{{count}} Zutat hinzugefügt",
+      "added_other": "{{count}} Zutaten hinzugefügt",
+      "updated": "Die Einkaufsliste ist aktualisiert",
+      "seeList": "Zur Einkaufsliste"
+    }
   },
   "household": {
     "gramsPerDay": "g pro Tag",
@@ -617,5 +649,10 @@
       "hint": "Wähle alle, die enthalten sind, auch versteckte (z. B. Sojasoße = Gluten). Ohne Auswahl steht dort „Allergene nicht angegeben“."
     },
     "or": "{{a}} oder {{b}}"
+  },
+  "shopping": {
+    "empty": "Die Einkaufsliste ist leer. Gib einen Wochenplan frei, dann erscheinen die Zutaten hier.",
+    "weekLabel": "Woche {{week}}",
+    "comingSoon": "Abhaken und eigene Artikel kommen bald."
   }
 }

@@ -4,8 +4,8 @@ import { turnMealOff } from './meals'
 import { emptyWeekPlan, generateWeekPlan, type PlannerContext } from './planner'
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import { SEED_RECIPES } from './seed/recipes'
-import { roundForShopping, weekNeeds } from './shopping'
-import { STORE_SECTIONS, type HouseholdSettings, type Id, type MealSlot, type PlannedMeal, type Recipe, type RecipeIngredient, type WeekPlan } from './types'
+import { applyApproval, approvalRows, buyCount, roundForShopping, toApproval, usedIngredients, weekNeeds, type ShoppingNeed } from './shopping'
+import { STORE_SECTIONS, type HouseholdSettings, type Id, type MealSlot, type PlannedMeal, type Recipe, type RecipeIngredient, type ShoppingItem, type WeekApproval, type WeekPlan } from './types'
 import { shiftWeek } from './week'
 
 const WEEK = '2026-W47' // Monday 2026-11-16 … Sunday 2026-11-22
@@ -220,5 +220,134 @@ describe('weekNeeds', () => {
     }
     expect(needs.every((n) => n.amount > 0)).toBe(true)
     expect(new Set(needs.map((n) => `${n.ingredientId}|${n.unit}`)).size).toBe(needs.length)
+  })
+})
+
+describe('approving the week (#173, #184, #186)', () => {
+  const needOf = (key: string, extra: Partial<ShoppingNeed> = {}): ShoppingNeed => ({
+    ingredientId: ing(key),
+    amount: 1,
+    unit: 'pcs',
+    storeSection: 'produce',
+    isStaple: false,
+    uses: [],
+    ...extra,
+  })
+  const pantry = (key: string, status: 'have' | 'empty') => ({ id: key, ingredientId: ing(key), status, updatedAt: NOW })
+
+  it('items start as "Buy", items at home as "Have"', () => {
+    const rows = approvalRows([needOf('onion'), needOf('tomato')], { pantry: [pantry('onion', 'have')] })
+    expect(rows.map((r) => [r.choice, r.atHome])).toEqual([
+      ['have', true],
+      ['buy', false],
+    ])
+  })
+
+  it('staples start as "Have", unless Home says they are empty', () => {
+    const rows = approvalRows([needOf('salt', { isStaple: true }), needOf('olive-oil', { isStaple: true })], { pantry: [pantry('olive-oil', 'empty')] })
+    expect(rows.map((r) => r.choice)).toEqual(['have', 'buy'])
+  })
+
+  it('items used last week start as "Buy" with the question, even if Home says "have" (#186 point 3)', () => {
+    const rows = approvalRows([needOf('onion'), needOf('salt', { isStaple: true })], {
+      pantry: [pantry('onion', 'have')],
+      usedLastWeek: new Set([ing('onion'), ing('salt')]),
+    })
+    expect(rows[0]).toMatchObject({ choice: 'buy', usedLastWeek: true, atHome: true })
+    // Staples never get the question.
+    expect(rows[1]).toMatchObject({ choice: 'have', usedLastWeek: false })
+  })
+
+  it('shown again after approval, items keep the user’s choice (#186 point 8)', () => {
+    const previous: WeekApproval = {
+      weekId: WEEK,
+      approvedAt: NOW,
+      fromDate: '2026-11-16',
+      items: [{ ingredientId: ing('tomato'), amount: 1, unit: 'pcs', choice: 'have' }],
+    }
+    expect(approvalRows([needOf('tomato'), needOf('onion')], { previous }).map((r) => r.choice)).toEqual(['have', 'buy'])
+    expect(buyCount(approvalRows([needOf('tomato'), needOf('onion')], { previous }))).toBe(1)
+  })
+
+  it('usedIngredients lists what a plan used, without staples', () => {
+    const plan = set(empty(), [0, 'dinner', meal({ recipeId: 'chicken' })])
+    const used = usedIngredients(ctx(), plan)
+    expect(used.has(ing('chicken-breast'))).toBe(true)
+    expect(used.has(ing('olive-oil'))).toBe(false)
+  })
+
+  describe('applyApproval', () => {
+    let n = 0
+    const newId = () => `id-${++n}`
+    const approval = (items: WeekApproval['items'], weekId = WEEK): WeekApproval => ({ weekId, approvedAt: NOW, fromDate: '2026-11-16', items })
+    const item = (key: string, amount: number, extra: Partial<ShoppingItem> = {}): ShoppingItem => ({
+      id: `old-${key}`,
+      ingredientId: ing(key),
+      amount,
+      unit: 'pcs',
+      weekId: WEEK,
+      source: 'plan',
+      bought: false,
+      createdAt: NOW,
+      updatedAt: NOW,
+      ...extra,
+    })
+
+    it('adds only the "Buy" items, with the week', () => {
+      const { items, added } = applyApproval(
+        [],
+        approval([
+          { ingredientId: ing('onion'), amount: 2, unit: 'pcs', choice: 'buy' },
+          { ingredientId: ing('tomato'), amount: 3, unit: 'pcs', choice: 'have' },
+        ]),
+        NOW,
+        newId,
+      )
+      expect(added).toBe(1)
+      expect(items).toEqual([expect.objectContaining({ ingredientId: ing('onion'), amount: 2, weekId: WEEK, source: 'plan', bought: false })])
+    })
+
+    it('approving again replaces the week’s items not bought yet, and keeps own items and other weeks', () => {
+      const own: ShoppingItem = { ...item('x', 1), id: 'own', ingredientId: undefined, customName: 'Toothpaste', source: 'user', weekId: undefined }
+      const other = item('onion', 1, { id: 'other', weekId: shiftWeek(WEEK, 1) })
+      const { items } = applyApproval(
+        [item('onion', 2), own, other],
+        approval([{ ingredientId: ing('onion'), amount: 3, unit: 'pcs', choice: 'buy' }]),
+        NOW,
+        newId,
+      )
+      expect(items.map((i) => i.id)).not.toContain('old-onion')
+      expect(items.find((i) => i.id === 'own')).toBeDefined()
+      expect(items.find((i) => i.id === 'other')).toBeDefined()
+      expect(items.filter((i) => i.weekId === WEEK && i.source === 'plan').map((i) => i.amount)).toEqual([3])
+    })
+
+    it('what was already bought for the week is subtracted', () => {
+      const { items, added } = applyApproval(
+        [item('onion', 2, { bought: true }), item('tomato', 4, { bought: true })],
+        approval([
+          { ingredientId: ing('onion'), amount: 3, unit: 'pcs', choice: 'buy' },
+          { ingredientId: ing('tomato'), amount: 4, unit: 'pcs', choice: 'buy' },
+        ]),
+        NOW,
+        newId,
+      )
+      expect(added).toBe(1)
+      expect(items.filter((i) => !i.bought)).toEqual([expect.objectContaining({ ingredientId: ing('onion'), amount: 1 })])
+      expect(items.filter((i) => i.bought)).toHaveLength(2)
+    })
+
+    it('toApproval keeps every row and its choice', () => {
+      const rows = approvalRows([needOf('onion'), needOf('tomato')], { pantry: [pantry('onion', 'have')] })
+      expect(toApproval(WEEK, '2026-11-18', rows, NOW)).toEqual({
+        weekId: WEEK,
+        approvedAt: NOW,
+        fromDate: '2026-11-18',
+        items: [
+          { ingredientId: ing('onion'), amount: 1, unit: 'pcs', choice: 'have' },
+          { ingredientId: ing('tomato'), amount: 1, unit: 'pcs', choice: 'buy' },
+        ],
+      })
+    })
   })
 })

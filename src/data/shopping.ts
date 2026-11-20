@@ -28,7 +28,23 @@ import { onlyMealsOn } from './meals'
 import { gramsOf } from './nutrition'
 import { dinnerPortionsToCook, type PlannerContext } from './planner'
 import { totalPortions } from './protein'
-import { MEAL_SLOTS, STORE_SECTIONS, type Id, type Ingredient, type IsoDate, type MealSlot, type StoreSection, type Unit, type WeekPlan } from './types'
+import {
+  MEAL_SLOTS,
+  STORE_SECTIONS,
+  type Id,
+  type Ingredient,
+  type IsoDate,
+  type ItemChoice,
+  type MealSlot,
+  type PantryItem,
+  type ShoppingItem,
+  type StoreSection,
+  type Timestamp,
+  type Unit,
+  type WeekApproval,
+  type WeekId,
+  type WeekPlan,
+} from './types'
 
 /** Where an item is used in the plan. `recipeId` is missing for extras. */
 export interface ShoppingUse {
@@ -155,3 +171,103 @@ export function weekNeeds(ctx: PlannerContext, plan: WeekPlan, options: NeedsOpt
   const order = (s: StoreSection) => STORE_SECTIONS.indexOf(s)
   return needs.sort((a, b) => order(a.storeSection) - order(b.storeSection))
 }
+
+// ---------------------------------------------------------------------------
+// Approving the week (milestone 3B, #173, #184, #186)
+// ---------------------------------------------------------------------------
+
+/** One item in the approve sheet. */
+export interface ApprovalRow {
+  need: ShoppingNeed
+  choice: ItemChoice
+  /** Home says the household has it (#178). */
+  atHome: boolean
+  /** Last week's plan used it too: "Do you still have …?" (#145, #186 point 3). */
+  usedLastWeek: boolean
+}
+
+/** The ingredients (not staples) a week plan uses – for "Do you still have …?" the week after (#145). */
+export function usedIngredients(ctx: PlannerContext, plan: WeekPlan, nextWeek?: WeekPlan): Set<Id> {
+  return new Set(weekNeeds(ctx, plan, { nextWeek }).filter((n) => !n.isStaple).map((n) => n.ingredientId))
+}
+
+const itemKey = (item: { ingredientId: Id; unit: Unit }) => `${item.ingredientId}|${item.unit}`
+
+/**
+ * The items of the approve sheet and how each starts (#184 point 3–4, #186):
+ * - shown again after approval: as the user left them (#186 point 8);
+ * - staples: "Have", unless Home says they are empty;
+ * - used last week: "Buy", with the question "Do you still have …?";
+ * - at home: "Have"; everything else: "Buy".
+ */
+export function approvalRows(
+  needs: ShoppingNeed[],
+  options: { pantry?: PantryItem[]; usedLastWeek?: ReadonlySet<Id>; previous?: WeekApproval } = {},
+): ApprovalRow[] {
+  const status = new Map((options.pantry ?? []).filter((p) => p.ingredientId).map((p) => [p.ingredientId!, p.status]))
+  const saved = new Map((options.previous?.items ?? []).map((i) => [itemKey(i), i.choice]))
+  return needs.map((need) => {
+    const atHome = status.get(need.ingredientId) === 'have'
+    const usedLastWeek = !need.isStaple && (options.usedLastWeek?.has(need.ingredientId) ?? false)
+    let choice: ItemChoice
+    if (need.isStaple) choice = status.get(need.ingredientId) === 'empty' ? 'buy' : 'have'
+    else if (usedLastWeek) choice = 'buy'
+    else choice = atHome ? 'have' : 'buy'
+    return { need, choice: saved.get(itemKey(need)) ?? choice, atHome, usedLastWeek }
+  })
+}
+
+/** The approval to store for a week. */
+export function toApproval(weekId: WeekId, fromDate: IsoDate, rows: ApprovalRow[], now: Timestamp): WeekApproval {
+  return {
+    weekId,
+    approvedAt: now,
+    fromDate,
+    items: rows.map((r) => ({ ingredientId: r.need.ingredientId, amount: r.need.amount, unit: r.need.unit, choice: r.choice })),
+  }
+}
+
+/**
+ * Puts a week's "Buy" items on the shopping list (#173 point 3). Approving
+ * the same week again replaces its earlier plan items that are not bought
+ * yet; what was already bought for that week is subtracted. The user's own
+ * items and other weeks are kept. Returns the new list and how many items
+ * were added.
+ */
+export function applyApproval(
+  list: ShoppingItem[],
+  approval: WeekApproval,
+  now: Timestamp,
+  newId: () => Id,
+): { items: ShoppingItem[]; added: number } {
+  const ofWeek = (i: ShoppingItem) => i.source === 'plan' && i.weekId === approval.weekId
+  const kept = list.filter((i) => !(ofWeek(i) && !i.bought))
+  const bought = new Map<string, number>()
+  for (const i of list) {
+    if (ofWeek(i) && i.bought && i.ingredientId && i.unit) {
+      const key = itemKey({ ingredientId: i.ingredientId, unit: i.unit })
+      bought.set(key, (bought.get(key) ?? 0) + (i.amount ?? 0))
+    }
+  }
+  const added: ShoppingItem[] = []
+  for (const item of approval.items) {
+    if (item.choice !== 'buy') continue
+    const amount = item.amount - (bought.get(itemKey(item)) ?? 0)
+    if (amount <= 0) continue
+    added.push({
+      id: newId(),
+      ingredientId: item.ingredientId,
+      amount: roundForShopping(amount, item.unit),
+      unit: item.unit,
+      weekId: approval.weekId,
+      source: 'plan',
+      bought: false,
+      createdAt: now,
+      updatedAt: now,
+    })
+  }
+  return { items: [...kept, ...added], added: added.length }
+}
+
+/** Items chosen as "Buy" (the count on the approve button). */
+export const buyCount = (rows: Pick<ApprovalRow, 'choice'>[]) => rows.filter((r) => r.choice === 'buy').length

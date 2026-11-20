@@ -25,6 +25,8 @@ import {
   type Language,
   type PantryItem,
   type Recipe,
+  type ShoppingItem,
+  type WeekApproval,
   type WeekId,
   type WeekPlan,
 } from './types'
@@ -46,6 +48,9 @@ const KEYS = {
   recipes: 'recipes',
   weekPlans: 'weekPlans',
   pantry: 'pantry',
+  /** Approved weeks (#173, #186): Record<WeekId, WeekApproval>. */
+  approvals: 'approvals',
+  shoppingList: 'shoppingList',
   installCardDismissed: 'installCardDismissed',
   language: 'language', // device preference (#74)
   proteinAlerts: 'proteinAlerts', // device preference (#128)
@@ -275,6 +280,25 @@ export function createRepository(storage: KeyValueStorage) {
       plans[plan.weekId] = saved
       write(KEYS.weekPlans, plans)
       return saved
+    },
+
+    // --- Approved weeks and the shopping list (phase 3) -------------------
+    async getApproval(weekId: WeekId): Promise<WeekApproval | undefined> {
+      return read<Record<WeekId, WeekApproval>>(KEYS.approvals, {})[weekId]
+    },
+    async saveApproval(approval: WeekApproval): Promise<WeekApproval> {
+      const approvals = read<Record<WeekId, WeekApproval>>(KEYS.approvals, {})
+      approvals[approval.weekId] = approval
+      write(KEYS.approvals, approvals)
+      return approval
+    },
+    async listShoppingItems(): Promise<ShoppingItem[]> {
+      return list<ShoppingItem>(KEYS.shoppingList)
+    },
+    /** Replaces the whole shopping list (it is small, and approving changes many lines at once). */
+    async saveShoppingItems(items: ShoppingItem[]): Promise<ShoppingItem[]> {
+      write(KEYS.shoppingList, items)
+      return items
     },
 
     // --- Pantry (phase 3) ------------------------------------------------
