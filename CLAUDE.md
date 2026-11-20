@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-17 – resume here)
-**Phase 1 done (2026-11-17). Allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182) built before phase 3 (2026-11-19/20) – waiting for the product owner's test. Publishing (#174, #176): code ready; waiting for the product owner to create the Vercel project and send the address (then put the link in the README). Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
+**Phase 1 done (2026-11-17). Allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182) built before phase 3 (2026-11-19/20) – waiting for the product owner's test. Published on Vercel: https://maltidsplanlegger.vercel.app (README links it; deploys automatically from `main`). Next before phase 3: "Which meals do you eat?" (external tester 1, FEEDBACK_LOG) – draft shown, waiting for the product owner's choices. Then phase 3 (core flow #173, plus #177/#178), then phase 2. Phase 5 login is optional (#179).**
 
 Own ingredients (#182): the new-ingredient form asks what the household doesn't tolerate (`Ingredient.containsCheckedFor`); unstated → yellow "Not stated whether X contains chili", dish not suggested; "Fill in" button in the recipe view (`IngredientFacts.tsx`). Tests: 135.
 

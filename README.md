@@ -4,7 +4,7 @@
 
 Each adult sets their own protein target. The app plans breakfast, lunch, dinner and an evening snack for the week, scales every person's portion so the day adds up to their target, and keeps the week varied and child-friendly. It installs on any phone as a Progressive Web App (PWA).
 
-**Live demo:** coming soon
+**Live demo:** [maltidsplanlegger.vercel.app](https://maltidsplanlegger.vercel.app)
 
 > The app is Norwegian by default, with German and English built in. The screenshots below use the English interface.
 
@@ -86,7 +86,7 @@ WCAG 2.2 AA is a project requirement, not an afterthought: contrast is checked f
 | Phase | Content | Status |
 |---|---|---|
 | 1 | Foundation: design system, data model, recipes, planner, week plan, onboarding, settings | ✅ Done |
-| – | Publish (live demo) | Next |
+| – | Publish (live demo) | ✅ Done |
 | 3 | Home + shopping list: approve the week plan, check what you have at home, confirmed shopping list | Planned |
 | 2 | Cooking mode, ratings, mark meals as eaten, check-in and weekly summary | Planned |
 | 4 | Voice commands | Planned |

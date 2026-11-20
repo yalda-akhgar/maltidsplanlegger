@@ -20,6 +20,32 @@ Copy this block for each piece of feedback:
 
 ---
 
+## External tester 1, 2026-11-20
+
+First feedback from someone outside the project (German-speaking), after trying the live demo.
+
+### Positive first impression
+- **Who / role:** external tester (German-speaking)
+- **Context:** first use of the live demo
+- **What they said:** easy to use and clear; likes "leftovers for lunch"; would use the app for inspiration and to keep track of protein.
+- **Insight:** the core idea (protein overview + leftovers for lunch) is understood without explanation.
+- **Priority:** –
+- **What changed and why:** nothing – confirms the direction.
+
+### Choosing allergens
+- **Who / role:** external tester (German-speaking)
+- **What they said:** wanted to be able to choose allergens.
+- **Insight:** allergies are a basic need for families, not an extra.
+- **Priority:** High
+- **What changed and why:** already built: allergies (#180), "Doesn't tolerate" (#181) and "not stated" for own ingredients (#182).
+
+### Not everyone eats four meals
+- **Who / role:** external tester (German-speaking)
+- **What they said:** eats only two meals plus a snack, but lunch is planned anyway – even with 0 % protein on lunch.
+- **Insight:** the four meals are hard-wired; a household that skips a meal gets a plan, a shopping list and a protein split that don't match how they eat.
+- **Priority:** High (the protein split – the core value – is wrong for them)
+- **What changed and why:** "Which meals do you eat?" per household, built before phase 3 (decision to follow); per person in phase 5 (BACKLOG #9).
+
 ## Acceptance test – milestone G (onboarding and settings), 2026-11-17
 
 ### Plan changes after the shopping list is made
