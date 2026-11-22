@@ -604,7 +604,7 @@
       "title": "Klart!",
       "adults": "Voksne",
       "children": "Barn",
-      "excluded": "Utelukket",
+      "excluded": "Mat vi ikke vil ha",
       "meals": "Måltider",
       "out": "Middag ute",
       "cheat": "Cheat days",
@@ -612,8 +612,10 @@
       "text": "Alt kan endres under Innstillinger.",
       "textAgain": "Ukeplanen tilpasses fra i dag når du lagrer.",
       "makePlan": "Lag min første ukeplan",
-      "save": "Lagre"
-    }
+      "save": "Lagre",
+      "edit": "Endre {{label}}"
+    },
+    "toSummary": "Til oppsummeringen"
   },
   "allergens": {
     "names": {

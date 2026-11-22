@@ -20,6 +20,32 @@ Copy this block for each piece of feedback:
 
 ---
 
+## Product owner acceptance test (milestone 3B and the wizard), 2026-11-22
+
+### Staples with an amount on the shopping list
+- **Who / role:** product owner (acceptance test)
+- **Context:** approving the week with the example family
+- **What they said:** "Olive oil 85 g" on the shopping list – in the shop you buy a bottle, not 85 g.
+- **Insight:** staples (oil, salt, spices) are bought as a whole pack; an amount is noise.
+- **Priority:** Medium
+- **What changed and why:** staples go on the shopping list without an amount (#187). The approve sheet stays as it is; testers will tell whether it is too long.
+
+### "Back" on the summary jumped to step 5
+- **Who / role:** product owner (acceptance test)
+- **Context:** the onboarding wizard: step 1 → "Skip everything" → summary → "Back"
+- **What they said:** "I came to step 5. I expected to go back to step 1, where I was. 'Back' should follow the path the user actually took, not the order of the steps."
+- **Insight:** "Back" must mean "where I came from". Changing one answer from the summary should not mean walking through every step.
+- **Priority:** High
+- **What changed and why:** "Back" follows the path taken; every row in the summary opens its step, and "Back to the summary" returns there (#187).
+
+### Pork pre-selected under "Food we don't want"
+- **Who / role:** product owner (acceptance test)
+- **Context:** step 4 of the wizard
+- **What they said:** nothing should be pre-selected – not even pork. Pork was pre-selected because the product owner's family doesn't eat it, but the app must suit everyone.
+- **Insight:** defaults based on the founder's own family exclude other users and make the app feel like it was made for someone else.
+- **Priority:** High
+- **What changed and why:** nothing is excluded for new households; pork is still one tap away in the list; the summary shows "Food we don't want: None" (#188). Existing data is not changed.
+
 ## External tester 1, 2026-11-20
 
 First feedback from someone outside the project (German-speaking), after trying the live demo.

@@ -11,11 +11,14 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'snack', mealSlot: 'snack', builtIn: true, sortOrder: 4, name: { nb: 'Snacks', de: 'Snacks', en: 'Snacks' } },
 ]
 
-/** Household before onboarding: no people yet, pork excluded (#18). */
+/**
+ * Household before onboarding: no people yet, nothing excluded (#188 – no
+ * defaults based on the founder's own family; replaces "pork by default", #18).
+ */
 export function defaultHousehold(now = new Date().toISOString()): HouseholdSettings {
   return {
     people: [],
-    excludedTags: ['pork'],
+    excludedTags: [],
     excludedTerms: [],
     proteinSplit: { ...DEFAULT_PROTEIN_SPLIT },
     cheatDays: [],

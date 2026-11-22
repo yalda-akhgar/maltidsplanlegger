@@ -15,10 +15,11 @@ function memoryStorage(initial: Record<string, string> = {}): KeyValueStorage & 
 }
 
 describe('repository', () => {
-  it('creates defaults on first run: pork excluded, 25/30/30/15 split, 4 categories', async () => {
+  it('creates defaults on first run: nothing excluded (#188), 25/30/30/15 split, 4 categories', async () => {
     const repo = createRepository(memoryStorage())
     const household = await repo.getHousehold()
-    expect(household.excludedTags).toEqual(['pork'])
+    expect(household.excludedTags).toEqual([])
+    expect(household.excludedTerms).toEqual([])
     expect(household.proteinSplit).toEqual({ breakfast: 25, lunch: 30, dinner: 30, snack: 15 })
     expect(household.people).toEqual([])
     expect(household.onboardingDone).toBe(false)

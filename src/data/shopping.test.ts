@@ -351,3 +351,32 @@ describe('approving the week (#173, #184, #186)', () => {
     })
   })
 })
+
+describe('staples on the shopping list (#187)', () => {
+  const approval: WeekApproval = {
+    weekId: WEEK,
+    approvedAt: NOW,
+    fromDate: '2026-11-16',
+    items: [
+      { ingredientId: ing('olive-oil'), amount: 85, unit: 'g', choice: 'buy' },
+      { ingredientId: ing('onion'), amount: 2, unit: 'pcs', choice: 'buy' },
+    ],
+  }
+  const isStaple = (id: Id) => ingredients.get(id)?.isStaple ?? false
+  let n = 0
+  const newId = () => `s-${++n}`
+
+  it('staples go on the list without an amount; other items keep theirs', () => {
+    const { items } = applyApproval([], approval, NOW, newId, isStaple)
+    const oil = items.find((i) => i.ingredientId === ing('olive-oil'))!
+    expect(oil.amount).toBeUndefined()
+    expect(oil.unit).toBeUndefined()
+    expect(items.find((i) => i.ingredientId === ing('onion'))).toMatchObject({ amount: 2, unit: 'pcs' })
+  })
+
+  it('a staple already bought for the week is not added again', () => {
+    const first = applyApproval([], approval, NOW, newId, isStaple).items.map((i) => (i.ingredientId === ing('olive-oil') ? { ...i, bought: true } : i))
+    const { items } = applyApproval(first, approval, NOW, newId, isStaple)
+    expect(items.filter((i) => i.ingredientId === ing('olive-oil'))).toHaveLength(1)
+  })
+})

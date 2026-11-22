@@ -27,6 +27,7 @@ export function ShoppingScreen() {
 
   const open = items.filter((i) => !i.bought)
   const nameOf = (item: ShoppingItem) => item.customName ?? localize(item.ingredientId ? data.ingredientMap.get(item.ingredientId)?.name : undefined, language)
+  const isStaple = (item: ShoppingItem) => (item.ingredientId ? data.ingredientMap.get(item.ingredientId)?.isStaple : false) ?? false
   const sectionOf = (item: ShoppingItem) => (item.ingredientId ? data.ingredientMap.get(item.ingredientId)?.storeSection : undefined)
   const sections = STORE_SECTIONS.map((section) => ({
     section,
@@ -49,7 +50,8 @@ export function ShoppingScreen() {
                   <li key={item.id} className="flex min-h-11 items-center justify-between gap-3 py-2">
                     <span>
                       <span className="font-medium">{nameOf(item)}</span>
-                      {item.amount !== undefined && item.unit ? (
+                      {/* Staples are shown without an amount: you buy a bottle, not 85 g (#187). */}
+                      {item.amount !== undefined && item.unit && !isStaple(item) ? (
                         <span className="text-muted-foreground">
                           {' '}
                           · {formatAmount(item.amount, language)} {t(`units.short.${item.unit}`, { count: unitCount(item.amount) })}

@@ -1,4 +1,4 @@
-import { XIcon, UsersIcon } from 'lucide-react'
+import { PencilIcon, XIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type * as React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -18,6 +18,7 @@ import { ProteinTargetField } from '@/features/household/ProteinTargetField'
 import { withExampleFamily } from '@/features/household/example-family'
 import { makeFirstWeekPlan, saveSettings, showSavedToast } from '@/features/household/save-settings'
 import { cn } from '@/lib/utils'
+import { back, currentStep, edit, next, skipAll, startNav } from './wizard-nav'
 
 const STEPS = 6
 
@@ -68,7 +69,9 @@ export function OnboardingScreen() {
   const again = params.get('again') === '1'
   const [loaded, setLoaded] = useState<{ household: HouseholdSettings; ingredients: Ingredient[] } | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
-  const [step, setStep] = useState(1)
+  /** The path through the steps: "Back" follows it (#187). */
+  const [nav, setNav] = useState(startNav)
+  const step = currentStep(nav)
   const [busy, setBusy] = useState(false)
   const headingRef = useRef<HTMLHeadingElement>(null)
 
@@ -224,27 +227,27 @@ export function OnboardingScreen() {
               />
             </div>
           ) : null}
-          {step === 6 ? <Summary draft={draft} again={again} /> : null}
+          {step === 6 ? <Summary draft={draft} again={again} onEdit={(target) => setNav(edit(nav, target))} /> : null}
         </main>
 
         <div className="sticky bottom-0 mt-6 flex flex-wrap items-center gap-2 bg-background py-3">
           {step > 1 ? (
-            <Button variant="secondary" onClick={() => setStep(step - 1)}>
+            <Button variant="secondary" onClick={() => setNav(back(nav))}>
               {t('common.back')}
             </Button>
           ) : null}
           {step === 1 ? (
-            <Button variant="ghost" className="text-primary-text" onClick={() => setStep(STEPS)}>
+            <Button variant="ghost" className="text-primary-text" onClick={() => setNav(skipAll(nav, STEPS))}>
               {t('onboarding.skipAll')}
             </Button>
-          ) : step < STEPS ? (
-            <Button variant="ghost" className="text-primary-text" onClick={() => setStep(step + 1)}>
+          ) : step < STEPS && !nav.editing ? (
+            <Button variant="ghost" className="text-primary-text" onClick={() => setNav(next(nav, STEPS))}>
               {t('onboarding.skip')}
             </Button>
           ) : null}
           {step < STEPS ? (
-            <Button className="ml-auto min-w-28" disabled={invalid} onClick={() => setStep(step + 1)}>
-              {t('onboarding.next')}
+            <Button className="ml-auto min-w-28" disabled={invalid} onClick={() => setNav(next(nav, STEPS))}>
+              {nav.editing ? t('onboarding.toSummary') : t('onboarding.next')}
             </Button>
           ) : (
             <Button className="ml-auto" disabled={busy} onClick={() => void finish()}>
@@ -291,7 +294,7 @@ function WelcomeStep({ name, onName }: { name: string; onName: (name: string) =>
   )
 }
 
-function Summary({ draft, again }: { draft: Draft; again: boolean }) {
+function Summary({ draft, again, onEdit }: { draft: Draft; again: boolean; onEdit: (step: number) => void }) {
   const { t } = useTranslation()
   const days = (list: Weekday[]) => (list.length > 0 ? list.map((d) => t(`household.weekdays.long.${d}`)).join(', ') : t('onboarding.done.none'))
   const adults = [
@@ -302,31 +305,44 @@ function Summary({ draft, again }: { draft: Draft; again: boolean }) {
   ]
   const children = draft.others.filter((p) => p.kind === 'child').map((p) => p.name.trim() || t('household.child'))
   const excluded = [...(draft.excludedTags.includes('pork') ? [t('household.food.pork')] : []), ...draft.excludedTerms]
-  const rows: [string, string][] = [
-    [t('onboarding.done.adults'), adults.join(', ')],
-    [t('onboarding.done.children'), children.length > 0 ? children.join(', ') : t('onboarding.done.none')],
-    [t('onboarding.done.excluded'), excluded.length > 0 ? excluded.join(', ') : t('onboarding.done.none')],
-    [t('onboarding.done.meals'), mealsOn(draft.proteinSplit).map((s) => t(`week.slots.${s}`)).join(', ')],
-    [t('onboarding.done.out'), days(draft.noDinnerAtHomeDays)],
-    ...(mealOn(draft.proteinSplit, 'snack') ? [[t('onboarding.done.cheat'), days(draft.cheatDays)] as [string, string]] : []),
+  // [label, value, the step where it is changed] (#187)
+  const rows: [string, string, number][] = [
+    [t('onboarding.done.adults'), adults.join(', '), 3],
+    [t('onboarding.done.children'), children.length > 0 ? children.join(', ') : t('onboarding.done.none'), 3],
+    [t('onboarding.done.excluded'), excluded.length > 0 ? excluded.join(', ') : t('onboarding.done.none'), 4],
+    [t('onboarding.done.meals'), mealsOn(draft.proteinSplit).map((s) => t(`week.slots.${s}`)).join(', '), 5],
+    [t('onboarding.done.out'), days(draft.noDinnerAtHomeDays), 5],
+    ...(mealOn(draft.proteinSplit, 'snack') ? [[t('onboarding.done.cheat'), days(draft.cheatDays), 5] as [string, string, number]] : []),
   ]
   return (
     <>
-      <dl className="divide-y rounded-2xl border bg-card">
-        {rows.map(([label, value]) => (
-          <SummaryRow key={label} label={label} value={value} />
+      <ul className="divide-y rounded-2xl border bg-card">
+        {rows.map(([label, value, target]) => (
+          <SummaryRow key={label} label={label} value={value} onEdit={() => onEdit(target)} />
         ))}
-      </dl>
+      </ul>
       <p className="text-muted-foreground">{again ? t('onboarding.done.textAgain') : t('onboarding.done.text')}</p>
     </>
   )
 }
 
-function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
+/** A summary row is a button: it opens the step where the value is changed (#187). */
+function SummaryRow({ label, value, onEdit }: { label: string; value: React.ReactNode; onEdit: () => void }) {
+  const { t } = useTranslation()
   return (
-    <div className="flex justify-between gap-4 p-3 text-sm">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-semibold">{value}</dd>
-    </div>
+    <li>
+      <button
+        type="button"
+        onClick={onEdit}
+        aria-label={t('onboarding.done.edit', { label })}
+        className="flex min-h-11 w-full items-center justify-between gap-4 rounded-2xl p-3 text-left text-sm outline-none hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <span className="text-muted-foreground">{label}</span>
+        <span className="flex items-center gap-2 text-right font-semibold">
+          {value}
+          <PencilIcon aria-hidden className="size-4 shrink-0 text-primary-text" />
+        </span>
+      </button>
+    </li>
   )
 }

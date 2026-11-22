@@ -140,11 +140,18 @@ describe('week structure', () => {
 })
 
 describe('dish rules', () => {
-  it('never suggests excluded food (pork by default, tags and free text)', () => {
+  it('a new household excludes nothing: pork is allowed until the household excludes it (#188)', () => {
+    const pork: Recipe = { ...byId.get(r('beef-tacos'))!, id: 'pork-dish', tags: ['pork'] }
+    const fresh = { ...defaultHousehold(), people: household().people }
+    expect(isRecipeAllowed(pork, ingredients, fresh)).toBe(true)
+    expect(isRecipeAllowed(pork, ingredients, { ...fresh, excludedTags: ['pork'] })).toBe(false)
+  })
+
+  it('never suggests excluded food (tags and free text)', () => {
     const pork: Recipe = { ...byId.get(r('beef-tacos'))!, id: 'pork-dish', favorite: true, tags: ['pork'] }
     forManyWeeks(
       (plan) => expect(dinnerIds(plan)).not.toContain('pork-dish'),
-      (seed) => ctx(seed, { recipes: [...SEED_RECIPES, pork] }),
+      (seed) => ctx(seed, { recipes: [...SEED_RECIPES, pork], household: household({ excludedTags: ['pork'] }) }),
     )
 
     const noFishOrChicken = household({ excludedTags: ['pork', 'fish'], excludedTerms: ['kylling'] })

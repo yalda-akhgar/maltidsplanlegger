@@ -126,6 +126,8 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Consequences:** Small additional bundle size.
 
 ## 18. Only pork excluded by default, plus custom exclusions
+> **Superseded by #188** (nothing is excluded by default; pork stays one tap away).
+
 - **Date:** 2026-11-15
 - **Decision:** Pork is the only food excluded by default. Users can add their own exclusions through a "Add food we don't want" field.
 - **Alternatives:** Preset exclusion chips for fish/seafood and nuts.
@@ -1430,4 +1432,23 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) The button in the "More" menu. (2) Approving with empty meals. (3) Neither choice selected. (4) Dishes always shown; not shown. (5) +/− per item. (6) "Skip" = close. (7) The link only in 3C; 3B and 3C together. (8) Only the label.
 - **Rationale:** Product owner's choice: 1a with its own wording, 2b, 3a, 4a, 5a, 6a, 7a, 8a.
 - **Consequences:** New types `WeekApproval`, `ApprovedItem`, `ItemChoice`, `ShoppingItem` (`source: 'plan' | 'user'`, `bought`, `weekId`). Approvals are stored **apart from the week plan** (repository `getApproval` / `saveApproval`, key `approvals`), so re-making a plan never loses an approval silently; the list is stored under `shoppingList` (`listShoppingItems` / `saveShoppingItems`). No schema migration (new keys only). `src/data/shopping.ts`: `approvalRows`, `usedIngredients`, `toApproval`, `applyApproval`, `buyCount`. UI: `src/features/week/ApproveSheet.tsx` (with `ChoiceButtons`, to be reused in Home), buttons in `WeekScreen`, simple `ShoppingScreen`. Tests: 169 in total.
-- **Interpretations made while building (to be approved):** (a) "Every meal filled in" counts **from today**, like "Fill in empty" – empty meals on past days don't block approval. (b) A week that is over can't be approved (the button is hidden). (c) When everything is "Have", the main button reads "Approve without new items". (d) Approving again replaces the week's items that are not bought yet; what was already bought for that week is subtracted. (e) When the sheet is opened again, "Skip" is hidden (only "Update the shopping list" and ✕). (f) On the simple list, the week label is only shown when the list has items from more than one week. (g) A protein boost is listed as "Evening (Thu)" under "Used in".
+- **Interpretations made while building (approved 2026-11-22):** (a) "Every meal filled in" counts **from today**, like "Fill in empty" – empty meals on past days don't block approval. (b) A week that is over can't be approved (the button is hidden). (c) When everything is "Have", the main button reads "Approve without new items". (d) Approving again replaces the week's items that are not bought yet; what was already bought for that week is subtracted. (e) When the sheet is opened again, "Skip" is hidden (only "Update the shopping list" and ✕). (f) On the simple list, the week label is only shown when the list has items from more than one week. (g) A protein boost is listed as "Evening (Thu)" under "Used in".
+
+## 187. Follow-ups to milestone 3B and the wizard's "Back"
+- **Date:** 2026-11-22
+- **Decision:**
+  1. **Staples (oil, salt, spices …) go on the shopping list without an amount** – in the shop you buy a bottle, not 85 g. A staple already bought for the week isn't added again when the week is approved again.
+  2. The approve sheet **stays as it is** (long with many items); testers' feedback decides.
+  3. The interpretations (a)–(g) in #186 are approved.
+  4. **"Back" in the onboarding wizard follows the path the user actually took**, not the order of the steps: step 1 → "Skip everything" → summary → "Back" returns to step 1.
+  5. **Every row in the wizard summary can be tapped** (with a pencil icon): it opens the step where the value is changed. On that step the main button reads **"Back to the summary"**, and "Skip" is hidden; "Back" also returns to the summary.
+- **Alternatives:** (1) Amounts for staples too; rounding to packs. (4) Keep "Back" in step order. (5) Edit in place in the summary.
+- **Rationale:** Product owner's acceptance test (FEEDBACK_LOG, 2026-11-22).
+- **Consequences:** `applyApproval` takes an `isStaple` check; the simple shopping list also hides amounts of staples (covers lists made before this change). The approve sheet still shows amounts for staples. Wizard navigation is a pure module, `src/features/onboarding/wizard-nav.ts` (`startNav`, `back`, `next`, `skipAll`, `edit`), with tests. Summary rows map to steps: adults and children → step 3, food we don't want → step 4, meals, dinner out and cheat days → step 5. New UI texts `onboarding.toSummary`, `onboarding.done.edit`.
+
+## 188. No defaults based on the founder's own family – nothing pre-selected
+- **Date:** 2026-11-22
+- **Decision:** Replaces #18. **Nothing is pre-selected** under "Food we don't want" – not even pork. Each household adds what it doesn't want itself; pork stays one tap away in the list. The summary shows "Food we don't want: None" when nothing is chosen. **Existing data is not changed.** General rule: settings never default to the product owner's own family's habits; the product owner's household sets its own choices like any other user (as with fixed days out, #107).
+- **Alternatives:** Keep pork as the default (#18); ask in the wizard with pork pre-selected.
+- **Rationale:** Product owner's acceptance test: pork was pre-selected because the founder's family doesn't eat it, but the app must suit everyone.
+- **Consequences:** `defaultHousehold` has `excludedTags: []`. Tests updated: the default excludes nothing, a pork dish is allowed until the household excludes it. The summary label is now "Food we don't want" (was "Excluded"). The example family ("Try with an example family") excludes nothing either. The original brief (`docs/PROMPT.md`) still says pork by default; this decision overrides it.

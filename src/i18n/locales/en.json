@@ -574,7 +574,7 @@
       "title": "All set!",
       "adults": "Adults",
       "children": "Children",
-      "excluded": "Excluded",
+      "excluded": "Food we don’t want",
       "meals": "Meals",
       "out": "Dinner out",
       "cheat": "Cheat days",
@@ -582,8 +582,10 @@
       "text": "Everything can be changed under Settings.",
       "textAgain": "The week plan is adjusted from today when you save.",
       "makePlan": "Make my first week plan",
-      "save": "Save"
-    }
+      "save": "Save",
+      "edit": "Change {{label}}"
+    },
+    "toSummary": "Back to the summary"
   },
   "allergens": {
     "names": {

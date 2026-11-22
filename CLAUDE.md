@@ -1,7 +1,7 @@
 # CLAUDE.md
 
 ## 📍 Status (updated 2026-11-20 – resume here)
-**Phase 3 in progress (decisions #184–#186). 3A done: `src/data/shopping.ts` (`weekNeeds`). 3B done (awaiting approval): "Approve week plan" – `ApproveSheet` with Have/Buy per item, staples section, "Do you still have …?", approvals stored apart from week plans (`getApproval`/`saveApproval`), `ShoppingItem` list (`listShoppingItems`/`saveShoppingItems`), simple Shopping list screen. Tests: 169. NEXT: 3C shopping list (tick off → Home, own items + "Other" section, share, banner #184.5) – draft with choices first. Then 3D Home, 3E swap after approval. Published: https://maltidsplanlegger.vercel.app.**
+**Phase 3 in progress (decisions #184–#188). 3A done: `src/data/shopping.ts` (`weekNeeds`). 3B done and approved (2026-11-22): "Approve week plan" – `ApproveSheet` with Have/Buy per item, staples section, "Do you still have …?", approvals stored apart from week plans (`getApproval`/`saveApproval`), `ShoppingItem` list (`listShoppingItems`/`saveShoppingItems`), simple Shopping list screen; staples go on the list without an amount (#187). Acceptance-test fixes (2026-11-22): wizard "Back" follows the path taken + tappable summary rows (`src/features/onboarding/wizard-nav.ts`, #187); nothing pre-selected under "Food we don't want" (#188). Tests: 177. NEXT: 3C shopping list (tick off → Home, own items + "Other" section, share, banner #184.5) – draft with choices first; wait for the product owner's go. Then 3D Home, 3E swap after approval. Published: https://maltidsplanlegger.vercel.app.**
 
 Meals the household eats (#183): 0 % in `proteinSplit` = meal off (`src/data/meals.ts`); off meals not planned, not shown, not counted; lunch off → no leftovers portions; settings page "Meals and protein" with switches; wizard step 5 starts with "Which meals do you eat?" (`MealsOnFields`). Tests: 143.
 
@@ -95,7 +95,7 @@ Full vision: `docs/PROMPT.md`. Phase 1 brief: `docs/FASE1_PROMPT.md` plus the pr
 ## Key product rules (phase 1)
 See `docs/DECISIONS.md` for details and rationale. Highlights:
 - Family-specific rules are settings, not hard-coded (#107): fixed "no dinner at home" days (default none; the product owner's household picks Friday). Lunch = leftovers from the previous day's dinner (Monday = previous week's Sunday); after any dinner not cooked at home → quick lunch (#108). Meals outside the app are not counted in the day's protein target (#109).
-- Excluded food (pork by default, plus custom exclusions) is never suggested. Dislikes (adults and children, #181) are avoided where possible (soft rule).
+- Excluded food (nothing by default – no defaults based on the founder's own family, #188; pork is one tap away) is never suggested. Dislikes (adults and children, #181) are avoided where possible (soft rule).
 - Dinners ≤ 30 min. No repeated dinner within a week, no same protein source two days in a row. Favourites twice as likely. Rather repeat a dinner than serve a child's disliked dish (#110).
 - Personal protein targets, split 25/30/30/15 % (breakfast/lunch/dinner/snack), portions scaled 0.75×–2× per person, then a "protein boost" suggestion. A child = 0.5 portion, no target. Guests = standard adult portion.
 - The household chooses which meals it eats (#183): a meal at 0 % is off – not planned, not shown, not counted; at least one main meal stays on. Per person in phase 5.

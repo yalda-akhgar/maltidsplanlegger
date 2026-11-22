@@ -449,7 +449,7 @@ export function WeekScreen() {
     const saved = await repository.saveApproval(toApproval(current.weekId, approveFrom, rows, now))
     let added = 0
     if (addItems) {
-      const result = applyApproval(await repository.listShoppingItems(), saved, now, newId)
+      const result = applyApproval(await repository.listShoppingItems(), saved, now, newId, (id) => data?.ingredientMap.get(id)?.isStaple ?? false)
       await repository.saveShoppingItems(result.items)
       added = result.added
     }

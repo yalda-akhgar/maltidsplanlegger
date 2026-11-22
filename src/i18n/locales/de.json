@@ -573,7 +573,7 @@
       "title": "Fertig!",
       "adults": "Erwachsene",
       "children": "Kinder",
-      "excluded": "Ausgeschlossen",
+      "excluded": "Unerwünschte Lebensmittel",
       "meals": "Mahlzeiten",
       "out": "Abendessen auswärts",
       "cheat": "Cheat Days",
@@ -581,8 +581,10 @@
       "text": "Alles kann unter Einstellungen geändert werden.",
       "textAgain": "Der Wochenplan wird ab heute angepasst, wenn du speicherst.",
       "makePlan": "Meinen ersten Wochenplan erstellen",
-      "save": "Speichern"
-    }
+      "save": "Speichern",
+      "edit": "{{label}} ändern"
+    },
+    "toSummary": "Zur Zusammenfassung"
   },
   "allergens": {
     "names": {

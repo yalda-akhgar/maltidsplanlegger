@@ -241,7 +241,7 @@ export type Weekday = 0 | 1 | 2 | 3 | 4 | 5 | 6
 export interface HouseholdSettings {
   /** People in the household; adults/children are counted from this (#69). */
   people: Person[]
-  /** Excluded tags, e.g. ["pork"] – pork by default (#18). */
+  /** Excluded tags, e.g. ["pork"]. Nothing by default (#188). */
   excludedTags: string[]
   /** Custom exclusions typed by the user, matched against ingredient names (#18, #68). */
   excludedTerms: string[]

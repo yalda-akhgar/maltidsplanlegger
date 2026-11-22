@@ -231,18 +231,21 @@ export function toApproval(weekId: WeekId, fromDate: IsoDate, rows: ApprovalRow[
  * Puts a week's "Buy" items on the shopping list (#173 point 3). Approving
  * the same week again replaces its earlier plan items that are not bought
  * yet; what was already bought for that week is subtracted. The user's own
- * items and other weeks are kept. Returns the new list and how many items
- * were added.
+ * items and other weeks are kept. Staples (oil, salt, spices) go on the
+ * list without an amount – you buy a bottle, not 85 g (#187). Returns the
+ * new list and how many items were added.
  */
 export function applyApproval(
   list: ShoppingItem[],
   approval: WeekApproval,
   now: Timestamp,
   newId: () => Id,
+  isStaple: (ingredientId: Id) => boolean = () => false,
 ): { items: ShoppingItem[]; added: number } {
   const ofWeek = (i: ShoppingItem) => i.source === 'plan' && i.weekId === approval.weekId
   const kept = list.filter((i) => !(ofWeek(i) && !i.bought))
   const bought = new Map<string, number>()
+  const boughtIds = new Set(list.filter((i) => ofWeek(i) && i.bought && i.ingredientId).map((i) => i.ingredientId!))
   for (const i of list) {
     if (ofWeek(i) && i.bought && i.ingredientId && i.unit) {
       const key = itemKey({ ingredientId: i.ingredientId, unit: i.unit })
@@ -252,6 +255,12 @@ export function applyApproval(
   const added: ShoppingItem[] = []
   for (const item of approval.items) {
     if (item.choice !== 'buy') continue
+    if (isStaple(item.ingredientId)) {
+      // Without an amount, and only once: a staple already bought for the week isn't added again.
+      if (boughtIds.has(item.ingredientId)) continue
+      added.push({ id: newId(), ingredientId: item.ingredientId, weekId: approval.weekId, source: 'plan', bought: false, createdAt: now, updatedAt: now })
+      continue
+    }
     const amount = item.amount - (bought.get(itemKey(item)) ?? 0)
     if (amount <= 0) continue
     added.push({
