@@ -16,6 +16,7 @@
 import { DEFAULT_CATEGORIES, defaultHousehold } from './defaults'
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import { SEED_RECIPES } from './seed/recipes'
+import type { SectionMemory } from './shopping-input'
 import {
   LANGUAGES,
   type Category,
@@ -51,6 +52,9 @@ const KEYS = {
   /** Approved weeks (#173, #186): Record<WeekId, WeekApproval>. */
   approvals: 'approvals',
   shoppingList: 'shoppingList',
+  /** Store sections the household chose by moving an item (#190): SectionMemory. */
+  shopSections: 'shopSections',
+  boughtSectionOpen: 'boughtSectionOpen', // device preference (#190)
   installCardDismissed: 'installCardDismissed',
   language: 'language', // device preference (#74)
   proteinAlerts: 'proteinAlerts', // device preference (#128)
@@ -301,6 +305,15 @@ export function createRepository(storage: KeyValueStorage) {
       return items
     },
 
+    /** Sections the household chose by moving an item; used the next time (#190). */
+    async getSectionMemory(): Promise<SectionMemory> {
+      return read<SectionMemory>(KEYS.shopSections, {})
+    },
+    async saveSectionMemory(memory: SectionMemory): Promise<SectionMemory> {
+      write(KEYS.shopSections, memory)
+      return memory
+    },
+
     // --- Pantry (phase 3) ------------------------------------------------
     async listPantry(): Promise<PantryItem[]> {
       return list<PantryItem>(KEYS.pantry)
@@ -331,6 +344,13 @@ export function createRepository(storage: KeyValueStorage) {
     },
     setProteinAlerts(on: boolean): void {
       write(KEYS.proteinAlerts, on)
+    },
+    /** Whether the "Bought" section of the shopping list is open on this device (#190). Default closed. */
+    isBoughtSectionOpen(): boolean {
+      return read<boolean>(KEYS.boughtSectionOpen, false) === true
+    },
+    setBoughtSectionOpen(open: boolean): void {
+      write(KEYS.boughtSectionOpen, open)
     },
     isInstallCardDismissed(): boolean {
       return read(KEYS.installCardDismissed, false)

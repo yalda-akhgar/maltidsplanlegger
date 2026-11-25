@@ -67,7 +67,12 @@ export const ALLERGENS = [
 ] as const
 export type Allergen = (typeof ALLERGENS)[number]
 
-export const STORE_SECTIONS = ['produce', 'meatFish', 'dairy', 'bread', 'dryGoods', 'frozen'] as const
+/**
+ * Store sections, in shop order. "drinks" and "household" hold common items
+ * that are not in the catalogue (#190); "other" holds everything the app
+ * doesn't recognise (#184 point 6).
+ */
+export const STORE_SECTIONS = ['produce', 'meatFish', 'dairy', 'bread', 'dryGoods', 'frozen', 'drinks', 'household', 'other'] as const
 export type StoreSection = (typeof STORE_SECTIONS)[number]
 
 /** Nutrition per 100 g of an ingredient. */
@@ -377,7 +382,19 @@ export interface ShoppingItem {
   weekId?: WeekId
   /** Added by approving a week plan (and replaced when it is approved again), or by the user. */
   source: 'plan' | 'user'
+  /**
+   * Store section chosen for this item: sorted automatically when added, or
+   * moved by the user (#190). Missing = the ingredient's own section.
+   */
+  storeSection?: StoreSection
   bought: boolean
+  /** When it was ticked off; bought items are cleared once their week is over (#190). */
+  boughtAt?: Timestamp
+  /**
+   * Home's status for the ingredient before ticking it off set it to "have"
+   * (#178, #190), so un-ticking can put it back. "none" = not in Home.
+   */
+  pantryBefore?: 'have' | 'empty' | 'none'
   createdAt: Timestamp
   updatedAt: Timestamp
 }

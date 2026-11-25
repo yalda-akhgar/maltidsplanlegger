@@ -1462,3 +1462,35 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Let the "Adults" row open step 1. (2) Keep amounts in the sheet as information.
 - **Rationale:** Product owner's review of #187 (2026-11-25).
 - **Consequences:** The name is on step 1 and the target on step 2, so the "You" row edits **steps 1–2**: "Next" on step 1 goes to step 2, whose main button reads "Back to the summary"; "Back" walks the same way back to the summary. On step 1 in edit mode "Back" is shown and "Skip everything" is hidden. `wizard-nav.ts` now stores the edited range (`edit: {start, last}`, `isEditing`, `nextReturnsToSummary`), with tests. Without a target the row shows only the name ("Me" if no name). New UI texts `onboarding.done.you`, `onboarding.done.protein`.
+
+## 190. The shopping list (milestone 3C)
+- **Date:** 2026-11-25
+- **Decision:**
+  1. **Ticking off:** tap anywhere on the row (a big target – one hand holds the basket). The item gets ✓, turns grey and is struck through, like on paper. After about **1 second** it glides down to a **"Bought (3)"** section at the bottom – not at once, so the list doesn't jump. Undo in three ways: tap again within the second; the message "Milk bought · Undo" (one message at a time, #148); or tap the item in "Bought" and it goes back up. When everything is ticked off: **"All done ✓"**.
+     - (a) Editing an item: a **"⋯" button** at the right of each row opens the item sheet (amount, section, delete).
+     - (b) "Bought" is **closed by default**; the phone remembers whether it was opened.
+     - (c) "All done ✓" is a short message **and** a card at the top of the list with [Remove bought].
+     - (d) **No vibration** on tick (backlog #17).
+  2. **Bought items are marked "have" in Home right away** (#178), although the Home screen comes in 3D. Un-ticking puts Home back as it was.
+  3. **Own items are written freely, never by picking a section first.** "melk, couscous, vann, cola" becomes four items (comma or line break). The app sorts each item: (1) the section the household chose before, (2) the catalogue – **whole names only**, in nb/de/en, ignoring case and simple inflections ("tomater" → Tomat), (3) a small built-in word list, (4) otherwise **"Other"**. Moving an item to another section is optional (tap "⋯").
+     - (x) **No suggestions** while typing.
+     - (y) Moving an item is **remembered** for the household and used the next time.
+     - (z) **New sections "Drinks" and "Household"** now, with a small built-in word list (water, cola, juice, toothpaste, toilet paper …).
+  4. An **amount can be typed** in front of or behind the name ("2 l melk", "melk 2 l", "6 egg"); when unclear, the whole text is the name. It can also be set in the item sheet.
+  5. **An item already on the list** is not added again: "Milk is already on the list", and the item sheet opens (when it was the only item typed).
+  6. **Delete** in the item sheet, with an undo message (no swipe – works with keyboard and screen readers, WCAG).
+  7. **"Remove bought"** (with undo), and bought items also **disappear by themselves when their week is over**.
+  8. **"Share"** sends only what is not bought, by section, with amounts (Web Share); if the phone can't share, the text is copied ("Copied").
+  9. **"Update the list"** in the banner opens the approve sheet again with the saved choices; what changed is shown first, marked **"New"** / **"New amount"**.
+  10. **No counter** on the "Shopping list" tab for now.
+- **Alternatives:** (1) Struck through in place; disappearing with only an undo message; long press to edit; "Bought" always open; message only; vibration. (2) Link Home in 3D. (3) Partial name matches; suggestions while typing; moves apply once; unknown drinks/household items in "Other". (4) No amounts in the text. (5) A second line. (6) Swipe. (7) Button only; automatic only. (8) Everything, also bought items. (9) Update at once with an undo message. (10) A counter.
+- **Rationale:** Product owner's choices (2026-11-25): the list should feel like a paper list in the shop – fast to write, fast to tick off, with a feeling of progress.
+- **Consequences:** `STORE_SECTIONS` gets `drinks`, `household` and `other` (also offered when the user adds an own ingredient). `ShoppingItem` gets `storeSection`, `boughtAt` and `pantryBefore`. New pure modules `src/data/shopping-input.ts` (splitting, amount parsing, catalogue match, word list, `resolveEntry`) and `src/data/shopping-list.ts` (`addTypedItems`, `setBought`, `clearBought`, `dropFinishedBought`, `sectionOf`, `shareText`, `planChanges`), tested in `shopping-list.test.ts`. Repository: `getSectionMemory` / `saveSectionMemory` (key `shopSections`) and the device preference `isBoughtSectionOpen`. UI: `ShoppingScreen`, `ItemSheet`; the banner "The plan has changed – 2 more items · 1 fewer · 1 new amount [Update the list]" on the week plan; "Changed since last time" in `ApproveSheet`. The glide down uses the browser's View Transitions where available, and is skipped with reduced motion.
+- **Interpretations made while building (to be approved):**
+  - (a) The word list also covers everyday food that the catalogue names differently ("melk" – the catalogue has "Lettmelk"; "brød", "smør", "pasta" …), so the product owner's own example sorts correctly.
+  - (b) Own items get a capital first letter ("couscous" → "Couscous").
+  - (c) Only catalogue items go to Home when bought; free-text items (toothpaste, water) don't.
+  - (d) Staples have no amount field in the item sheet (they are listed without an amount, #187).
+  - (e) Approving a week **again** keeps the first approval's start day (#185 F) instead of today, so items already ticked off for the week are subtracted from the same days. Before, an update in the middle of the week could subtract bought items twice and add too little.
+  - (f) The banner counts new items, removed items and changed amounts; changed amounts of staples are ignored (they have no amount on the list).
+  - (g) Changing an amount by hand on a plan item is replaced when the week is approved again.

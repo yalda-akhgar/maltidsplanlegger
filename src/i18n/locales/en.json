@@ -169,7 +169,10 @@
     "dairy": "Dairy and chilled",
     "bread": "Bread",
     "dryGoods": "Dry goods",
-    "frozen": "Frozen"
+    "frozen": "Frozen",
+    "drinks": "Drinks",
+    "household": "Household",
+    "other": "Other"
   },
   "recipes": {
     "recipeCount_one": "{{count}} recipe",
@@ -443,7 +446,20 @@
       "added_one": "{{count}} item added",
       "added_other": "{{count}} items added",
       "updated": "The shopping list is updated",
-      "seeList": "See shopping list"
+      "seeList": "See shopping list",
+      "changedTitle": "Changed since last time",
+      "isNew": "New",
+      "newAmount": "New amount"
+    },
+    "changes": {
+      "title": "The plan has changed",
+      "added_one": "{{count}} more item",
+      "added_other": "{{count}} more items",
+      "removed_one": "{{count}} fewer",
+      "removed_other": "{{count}} fewer",
+      "changed_one": "{{count}} new amount",
+      "changed_other": "{{count}} new amounts",
+      "update": "Update the list"
     }
   },
   "household": {
@@ -656,8 +672,39 @@
     "or": "{{a}} or {{b}}"
   },
   "shopping": {
-    "empty": "The shopping list is empty. Approve a week plan and the items appear here.",
+    "empty": "The shopping list is empty. Type items above, or approve a week plan.",
     "weekLabel": "Week {{week}}",
-    "comingSoon": "Ticking off and your own items are coming soon."
+    "summary": "{{left}} left · {{bought}} bought",
+    "addLabel": "Add items",
+    "addPlaceholder": "E.g. milk, bread, 2 l cola",
+    "addHint": "Write freely. Separate items with commas or new lines – the app sorts them.",
+    "addButton": "Add",
+    "added_one": "{{name}} added",
+    "added_other": "{{count}} items added",
+    "alreadyOn": "{{names}} is already on the list",
+    "edit": "Edit {{name}}",
+    "bought": "Bought ({{count}})",
+    "boughtToast": "{{name}} bought",
+    "allDone": "All done ✓",
+    "allDoneText": "Everything is ticked off.",
+    "clearBought": "Remove bought",
+    "cleared_one": "{{count}} bought item removed",
+    "cleared_other": "{{count}} bought items removed",
+    "share": "Share",
+    "shareTitle": "Shopping list",
+    "copied": "Shopping list copied",
+    "shareFailed": "Couldn’t share the list",
+    "sheet": {
+      "name": "Name",
+      "amount": "Amount",
+      "unit": "Unit",
+      "noAmount": "No amount",
+      "section": "Section",
+      "sectionHint": "The app remembers the section next time.",
+      "save": "Save",
+      "delete": "Delete",
+      "deleted": "{{name}} deleted",
+      "stapleHint": "Staples are listed without an amount."
+    }
   }
 }

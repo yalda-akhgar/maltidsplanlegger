@@ -5,7 +5,8 @@ import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
 import { formatAmount, unitCount } from '@/data/amounts'
 import type { ApprovalRow } from '@/data/shopping'
-import { STORE_SECTIONS, type Id, type ItemChoice, type Language, type StoreSection } from '@/data/types'
+import { needKey, type ItemChange } from '@/data/shopping-list'
+import { STORE_SECTIONS, type Id, type ItemChoice, type Language } from '@/data/types'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/i18n/useLanguage'
 import { weekdayName } from './week-format'
@@ -18,6 +19,8 @@ type ApproveSheetProps = {
   again: boolean
   /** The week has started: only today and the rest of the week count (#185 F). */
   fromToday: boolean
+  /** What changed in the plan since the approval: shown first, marked "New" / "New amount" (#190 point 9). */
+  changes?: ReadonlyMap<string, ItemChange>
   ingredientName: (id: Id) => string
   recipeName: (id: Id) => string
   onChoice: (index: number, choice: ItemChoice) => void
@@ -27,14 +30,16 @@ type ApproveSheetProps = {
 }
 
 /** "Approve week plan" (#173, #184, #186): every item the week needs, with "Have" / "Buy" per item. */
-export function ApproveSheet({ open, week, rows, again, fromToday, ingredientName, recipeName, onChoice, onConfirm, onSkip, onClose }: ApproveSheetProps) {
+export function ApproveSheet({ open, week, rows, again, fromToday, changes, ingredientName, recipeName, onChoice, onConfirm, onSkip, onClose }: ApproveSheetProps) {
   const { t } = useTranslation()
-  const indexed = rows.map((row, index) => ({ row, index }))
+  const indexed = rows.map((row, index) => ({ row, index, change: changes?.get(needKey(row.need)) }))
+  const changed = indexed.filter(({ change }) => change !== undefined)
+  const rest = indexed.filter(({ change }) => change === undefined)
   const sections = STORE_SECTIONS.map((section) => ({
     section,
-    items: indexed.filter(({ row }) => !row.need.isStaple && row.need.storeSection === section),
+    items: rest.filter(({ row }) => !row.need.isStaple && row.need.storeSection === section),
   })).filter((s) => s.items.length > 0)
-  const staples = indexed.filter(({ row }) => row.need.isStaple)
+  const staples = rest.filter(({ row }) => row.need.isStaple)
   const count = rows.filter((r) => r.choice === 'buy').length
   const mainLabel = again ? t('week.approve.update', { count }) : count > 0 ? t('week.approve.add', { count }) : t('week.approve.addNone')
 
@@ -58,8 +63,16 @@ export function ApproveSheet({ open, week, rows, again, fromToday, ingredientNam
       {fromToday ? <p className="mb-3 text-sm text-muted-foreground">{t('week.approve.fromToday')}</p> : null}
       {rows.length === 0 ? <p className="text-sm">{t('week.approve.nothing')}</p> : null}
 
+      {changed.length > 0 ? (
+        <Section title={t('week.approve.changedTitle')}>
+          {changed.map(({ row, index, change }) => (
+            <ItemRow key={`${row.need.ingredientId}|${row.need.unit}`} row={row} change={change} name={ingredientName(row.need.ingredientId)} recipeName={recipeName} onChoice={(c) => onChoice(index, c)} />
+          ))}
+        </Section>
+      ) : null}
+
       {sections.map(({ section, items }) => (
-        <Section key={section} section={section}>
+        <Section key={section} title={t(`storeSections.${section}`)}>
           {items.map(({ row, index }) => (
             <ItemRow key={`${row.need.ingredientId}|${row.need.unit}`} row={row} name={ingredientName(row.need.ingredientId)} recipeName={recipeName} onChoice={(c) => onChoice(index, c)} />
           ))}
@@ -86,17 +99,16 @@ export function ApproveSheet({ open, week, rows, again, fromToday, ingredientNam
   )
 }
 
-function Section({ section, children }: { section: StoreSection; children: ReactNode }) {
-  const { t } = useTranslation()
+function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="mb-4">
-      <h3 className="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{t(`storeSections.${section}`)}</h3>
+      <h3 className="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">{title}</h3>
       <ul className="divide-y">{children}</ul>
     </section>
   )
 }
 
-function ItemRow({ row, name, recipeName, onChoice }: { row: ApprovalRow; name: string; recipeName: (id: Id) => string; onChoice: (choice: ItemChoice) => void }) {
+function ItemRow({ row, change, name, recipeName, onChoice }: { row: ApprovalRow; change?: ItemChange; name: string; recipeName: (id: Id) => string; onChoice: (choice: ItemChoice) => void }) {
   const { t } = useTranslation()
   const language = useLanguage()
   const [showUses, setShowUses] = useState(false)
@@ -115,6 +127,11 @@ function ItemRow({ row, name, recipeName, onChoice }: { row: ApprovalRow; name: 
         >
           <span className="font-medium">{name}</span>
           {amount ? <span className="text-muted-foreground"> · {amount}</span> : null}
+          {change ? (
+            <span className="ml-2 inline-block rounded-full bg-secondary px-2 py-0.5 text-xs font-semibold text-secondary-foreground">
+              {change === 'new' ? t('week.approve.isNew') : t('week.approve.newAmount')}
+            </span>
+          ) : null}
         </button>
         <ChoiceButtons name={name} choice={row.choice} onChoice={onChoice} />
       </div>

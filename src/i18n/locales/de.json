@@ -168,7 +168,10 @@
     "dairy": "Molkerei und Kühlregal",
     "bread": "Brot",
     "dryGoods": "Trockenwaren",
-    "frozen": "Tiefkühl"
+    "frozen": "Tiefkühl",
+    "drinks": "Getränke",
+    "household": "Haushalt",
+    "other": "Sonstiges"
   },
   "recipes": {
     "recipeCount_one": "{{count}} Rezept",
@@ -442,7 +445,20 @@
       "added_one": "{{count}} Zutat hinzugefügt",
       "added_other": "{{count}} Zutaten hinzugefügt",
       "updated": "Die Einkaufsliste ist aktualisiert",
-      "seeList": "Zur Einkaufsliste"
+      "seeList": "Zur Einkaufsliste",
+      "changedTitle": "Seit dem letzten Mal geändert",
+      "isNew": "Neu",
+      "newAmount": "Neue Menge"
+    },
+    "changes": {
+      "title": "Der Plan hat sich geändert",
+      "added_one": "{{count}} Artikel mehr",
+      "added_other": "{{count}} Artikel mehr",
+      "removed_one": "{{count}} weniger",
+      "removed_other": "{{count}} weniger",
+      "changed_one": "{{count}} neue Menge",
+      "changed_other": "{{count}} neue Mengen",
+      "update": "Liste aktualisieren"
     }
   },
   "household": {
@@ -655,8 +671,39 @@
     "or": "{{a}} oder {{b}}"
   },
   "shopping": {
-    "empty": "Die Einkaufsliste ist leer. Gib einen Wochenplan frei, dann erscheinen die Zutaten hier.",
+    "empty": "Die Einkaufsliste ist leer. Trag oben Artikel ein oder bestätige einen Wochenplan.",
     "weekLabel": "Woche {{week}}",
-    "comingSoon": "Abhaken und eigene Artikel kommen bald."
+    "summary": "{{left}} offen · {{bought}} gekauft",
+    "addLabel": "Artikel hinzufügen",
+    "addPlaceholder": "z. B. Milch, Brot, 2 l Cola",
+    "addHint": "Schreib einfach los. Trenne Artikel mit Komma oder neuer Zeile – die App sortiert sie.",
+    "addButton": "Hinzufügen",
+    "added_one": "{{name}} hinzugefügt",
+    "added_other": "{{count}} Artikel hinzugefügt",
+    "alreadyOn": "{{names}} steht schon auf der Liste",
+    "edit": "{{name}} bearbeiten",
+    "bought": "Gekauft ({{count}})",
+    "boughtToast": "{{name}} gekauft",
+    "allDone": "Alles eingekauft ✓",
+    "allDoneText": "Alle Artikel sind abgehakt.",
+    "clearBought": "Gekaufte entfernen",
+    "cleared_one": "{{count}} gekaufter Artikel entfernt",
+    "cleared_other": "{{count}} gekaufte Artikel entfernt",
+    "share": "Teilen",
+    "shareTitle": "Einkaufsliste",
+    "copied": "Die Einkaufsliste wurde kopiert",
+    "shareFailed": "Die Liste konnte nicht geteilt werden",
+    "sheet": {
+      "name": "Name",
+      "amount": "Menge",
+      "unit": "Einheit",
+      "noAmount": "Ohne Menge",
+      "section": "Abteilung",
+      "sectionHint": "Die App merkt sich die Abteilung fürs nächste Mal.",
+      "save": "Speichern",
+      "delete": "Löschen",
+      "deleted": "{{name}} gelöscht",
+      "stapleHint": "Vorräte stehen ohne Menge auf der Liste."
+    }
   }
 }

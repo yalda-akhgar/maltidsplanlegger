@@ -199,7 +199,10 @@
     "dairy": "Meieri og kjøl",
     "bread": "Brød",
     "dryGoods": "Tørrvarer",
-    "frozen": "Frys"
+    "frozen": "Frys",
+    "drinks": "Drikke",
+    "household": "Husholdning",
+    "other": "Annet"
   },
   "recipes": {
     "recipeCount_one": "{{count}} oppskrift",
@@ -473,7 +476,20 @@
       "added_one": "{{count}} vare lagt til",
       "added_other": "{{count}} varer lagt til",
       "updated": "Handlelisten er oppdatert",
-      "seeList": "Se handlelisten"
+      "seeList": "Se handlelisten",
+      "changedTitle": "Endret siden sist",
+      "isNew": "Ny",
+      "newAmount": "Ny mengde"
+    },
+    "changes": {
+      "title": "Planen er endret",
+      "added_one": "{{count}} vare til",
+      "added_other": "{{count}} varer til",
+      "removed_one": "{{count}} færre",
+      "removed_other": "{{count}} færre",
+      "changed_one": "{{count}} ny mengde",
+      "changed_other": "{{count}} nye mengder",
+      "update": "Oppdater listen"
     }
   },
   "household": {
@@ -686,8 +702,39 @@
     "or": "{{a}} eller {{b}}"
   },
   "shopping": {
-    "empty": "Handlelisten er tom. Godkjenn en ukeplan, så kommer varene hit.",
+    "empty": "Handlelisten er tom. Skriv inn varer over, eller godkjenn en ukeplan.",
     "weekLabel": "Uke {{week}}",
-    "comingSoon": "Avkrysning og egne varer kommer snart."
+    "summary": "{{left}} igjen · {{bought}} kjøpt",
+    "addLabel": "Legg til varer",
+    "addPlaceholder": "F.eks. melk, brød, 2 l cola",
+    "addHint": "Skriv fritt. Skill varer med komma eller ny linje – appen sorterer dem.",
+    "addButton": "Legg til",
+    "added_one": "{{name}} lagt til",
+    "added_other": "{{count}} varer lagt til",
+    "alreadyOn": "{{names}} står allerede på listen",
+    "edit": "Endre {{name}}",
+    "bought": "Kjøpt ({{count}})",
+    "boughtToast": "{{name}} kjøpt",
+    "allDone": "Alt er handlet ✓",
+    "allDoneText": "Alle varene er krysset av.",
+    "clearBought": "Fjern kjøpte",
+    "cleared_one": "{{count}} kjøpt vare fjernet",
+    "cleared_other": "{{count}} kjøpte varer fjernet",
+    "share": "Del",
+    "shareTitle": "Handleliste",
+    "copied": "Handlelisten er kopiert",
+    "shareFailed": "Kunne ikke dele listen",
+    "sheet": {
+      "name": "Navn",
+      "amount": "Mengde",
+      "unit": "Enhet",
+      "noAmount": "Uten mengde",
+      "section": "Avdeling",
+      "sectionHint": "Appen husker avdelingen til neste gang.",
+      "save": "Lagre",
+      "delete": "Slett",
+      "deleted": "{{name}} slettet",
+      "stapleHint": "Basisvarer står uten mengde."
+    }
   }
 }

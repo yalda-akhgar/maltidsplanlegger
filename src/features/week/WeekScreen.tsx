@@ -41,6 +41,7 @@ import {
 import { BOOST_THRESHOLD_G, totalPortions } from '@/data/protein'
 import { newId, repository } from '@/data/repository'
 import { applyApproval, approvalRows, toApproval, usedIngredients, weekNeeds, type ApprovalRow } from '@/data/shopping'
+import { weekPlanChanges, type ItemChange } from '@/data/shopping-list'
 import { mealsOn } from '@/data/meals'
 import { MEAL_SLOTS, type DayPlan, type Id, type IsoDate, type MealSlot, type WeekApproval, type WeekId, type WeekPlan } from '@/data/types'
 import { diffMeals, isCurrent, revertChanges, type MealChange } from '@/data/undo'
@@ -83,6 +84,8 @@ export function WeekScreen() {
   const [moreOpen, setMoreOpen] = useState(false)
   /** The approve sheet's items while it is open (#173, #186). */
   const [approveRows, setApproveRows] = useState<ApprovalRow[] | null>(null)
+  /** What changed since the approval, while the approve sheet is open again (#190 point 9). */
+  const [approveChanges, setApproveChanges] = useState<ReadonlyMap<string, ItemChange> | undefined>(undefined)
   /** Set while asking before replacing the week: with favourites only or not. */
   const [confirmReplace, setConfirmReplace] = useState<{ favoritesOnly: boolean } | null>(null)
   const [alertsOn] = useState(() => repository.getProteinAlertsSync())
@@ -173,8 +176,14 @@ export function WeekScreen() {
   const weekOver = plan.days[6].date < today
   const canApprove = planned && !hasEmpty && !weekOver
   const approval = plans.approval
-  /** The first day the approval covers (#185 F). */
-  const approveFrom = plan.days[0].date < today ? today : plan.days[0].date
+  /**
+   * The first day the approval covers (#185 F). Approving again keeps the first approval's
+   * start, so what was already bought for the week is subtracted from the same days (#190).
+   */
+  const approveFrom = approval?.fromDate ?? (plan.days[0].date < today ? today : plan.days[0].date)
+  /** The plan changed after approval: the banner "The plan has changed" (#184 point 5). */
+  const changes = approval && !weekOver ? weekPlanChanges(ctx, plan, approval, plans.next) : undefined
+  const hasChanges = changes !== undefined && changes.added + changes.removed + changes.changed > 0
   const hasAdults = household.people.some((p) => p.kind === 'adult')
   const withoutTarget = household.people.filter((p) => p.kind === 'adult' && !p.proteinTargetG)
   const dayTitle = (date: IsoDate) => formatDay(date, language, t, true)
@@ -437,6 +446,7 @@ export function WeekScreen() {
     const needs = weekNeeds(ctx, current.plan, { nextWeek: current.next, fromDate: approveFrom })
     const usedLastWeek = current.previous ? usedIngredients(ctx, current.previous, current.plan) : undefined
     setApproveRows(approvalRows(needs, { pantry, usedLastWeek, previous: current.approval }))
+    setApproveChanges(current.approval ? weekPlanChanges(ctx, current.plan, current.approval, current.next).byKey : undefined)
   }
 
   /** Approves the week; with `addItems` the "Buy" items go on the shopping list. Stays on the week plan (#173 point 4). */
@@ -594,6 +604,25 @@ export function WeekScreen() {
           </div>
         ) : null}
 
+        {hasChanges ? (
+          <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl bg-warning p-3 text-warning-foreground">
+            <p className="text-sm">
+              <span className="font-semibold">{t('week.changes.title')}</span>
+              {' – '}
+              {[
+                changes.added > 0 ? t('week.changes.added', { count: changes.added }) : null,
+                changes.removed > 0 ? t('week.changes.removed', { count: changes.removed }) : null,
+                changes.changed > 0 ? t('week.changes.changed', { count: changes.changed }) : null,
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </p>
+            <Button size="sm" variant="secondary" onClick={() => void openApprove()}>
+              {t('week.changes.update')}
+            </Button>
+          </div>
+        ) : null}
+
         {planned && hasEmpty ? <p className="-mb-2 text-sm font-medium">{t('week.missingMeals', { count: emptyCount })}</p> : null}
         <div className="flex gap-2">
           {hasEmpty ? (
@@ -722,6 +751,7 @@ export function WeekScreen() {
         onChoice={(index, choice) => setApproveRows((rows) => rows?.map((r, i) => (i === index ? { ...r, choice } : r)) ?? null)}
         onConfirm={() => void confirmApprove(true)}
         onSkip={() => void confirmApprove(false)}
+        changes={approveChanges}
         onClose={() => setApproveRows(null)}
       />
 

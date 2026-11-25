@@ -19,6 +19,8 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 13 | Expiry dates in Home | "Use before" date on items at home; the planner suggests dishes that use them first. The data model already has `PantryItem.expiresOn`. | Later | Core flow of phase 3 first (#184, choice 7). | 2026-11-20 |
 | 14 | Lunchbox mode | Lunch (leftovers) shown as a lunchbox, with its own list. | Later | Core flow of phase 3 first (#184, choice 7). | 2026-11-20 |
 | 15 | Weekly budget | Approximate price of the shopping list and cheaper alternatives. Needs a price for every ingredient (`Ingredient.price`). | Later | Core flow of phase 3 first; prices are missing (#184, choice 7). | 2026-11-20 |
+| 16 | Own order of store sections | Sort the shopping list sections in the order of the household's own shop. | Later | Fixed shop order is enough to start with (#190). | 2026-11-25 |
+| 17 | Vibration when ticking off | A short vibration when an item is ticked off (Android only; iPhone browsers don't support it). | Maybe | Some find it annoying, and it doesn't work the same everywhere (#190, 1d). | 2026-11-25 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.
