@@ -403,6 +403,8 @@ export interface ShoppingItem {
   planAmount?: { amount: number; unit: Unit }
   /** What approving again added on top of the user's amount: "+200 g from the plan" (#191). */
   fromPlan?: { amount: number; unit: Unit }
+  /** The plan no longer needs an item whose amount the user changed: "No longer needed in the plan" (#192). */
+  notInPlan?: true
   createdAt: Timestamp
   updatedAt: Timestamp
 }

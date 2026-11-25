@@ -705,6 +705,7 @@
       "deleted": "{{name}} gelöscht",
       "stapleHint": "Vorräte stehen ohne Menge auf der Liste."
     },
-    "fromPlan": "+{{amount}} aus dem Plan"
+    "fromPlan": "+{{amount}} aus dem Plan",
+    "notInPlan": "Wird im Plan nicht mehr gebraucht"
   }
 }

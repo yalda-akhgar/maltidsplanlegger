@@ -238,7 +238,8 @@ export function toApproval(weekId: WeekId, fromDate: IsoDate, rows: ApprovalRow[
  * An amount the user changed by hand is never overwritten (#191): if the
  * plan now needs more than when the user changed it, only the difference is
  * added, with the note "+200 g from the plan" (`fromPlan`). If the plan needs
- * less, or the item is no longer needed, the user's item stays as it is –
+ * less, the user's amount stays. If the plan no longer needs the item at
+ * all, it stays with the note "No longer needed in the plan" (#192) –
  * unless the user chose "Have" for it in the approve sheet.
  */
 export function applyApproval(
@@ -279,8 +280,9 @@ export function applyApproval(
       const base = edited.planAmount!
       const extra = base.unit === item.unit ? roundForShopping(amount - base.amount, item.unit) : 0
       const sameUnit = edited.unit === item.unit && edited.amount !== undefined
+      const { notInPlan: _notInPlan, ...still } = edited
       updated.set(edited.id, {
-        ...edited,
+        ...still,
         ...(extra > 0
           ? {
               amount: sameUnit ? roundForShopping(edited.amount! + extra, item.unit) : edited.amount,
@@ -304,6 +306,10 @@ export function applyApproval(
       createdAt: now,
       updatedAt: now,
     })
+  }
+  // Items with the user's own amount that the plan no longer needs get a note instead of being removed (#192).
+  for (const edited of editedByIngredient.values()) {
+    if (!updated.has(edited.id) && !approval.items.some((i) => i.ingredientId === edited.ingredientId)) updated.set(edited.id, { ...edited, notInPlan: true })
   }
   return { items: [...kept.map((i) => updated.get(i.id) ?? i), ...added], added: added.length }
 }

@@ -302,6 +302,8 @@ export function ShoppingScreen() {
           <span className={cn('min-w-0 flex-1', checked && 'text-muted-foreground line-through')}>
             <span className={cn(!checked && 'font-medium')}>{name}</span>
             {amount ? <span className="text-muted-foreground"> · {amount}</span> : null}
+            {/* The plan no longer needs an item the user changed: it stays, with a note (#192). */}
+            {item.notInPlan && !checked ? <span className="block text-sm text-muted-foreground">{t('shopping.notInPlan')}</span> : null}
             {/* More from the plan on top of the user's own amount (#191). */}
             {item.fromPlan && !checked ? (
               <span className="block text-sm text-primary-text">

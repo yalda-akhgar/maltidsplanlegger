@@ -1504,3 +1504,13 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Overwrite the amount with the plan's new amount (#190 g); ask every time. (2) At the top of the screen; a floating message at the bottom.
 - **Rationale:** Product owner's review of milestone 3C (2026-11-25).
 - **Consequences:** `ShoppingItem` gets `planAmount` (what the plan needed when the user changed the amount – marks the amount as the user's own) and `fromPlan` (what approving again added on top). `applyApproval` keeps such items and adds only the extra; if the user's unit differs from the plan's, the amount stays and only the note shows the extra. The note stays until the user changes the amount again. **Interpretations made while building (to be approved):** (a) an item with the user's own amount that the plan no longer needs **stays** on the list; (b) choosing **"Have"** for it in the approve sheet removes it (that is also the user's own choice); (c) if the plan first needs less and later more, the extra is counted from the latest plan amount. The week plan scrolls to the banner instead of today's card when the banner is shown, so both are in view.
+
+## 192. Automation never overrides the user's own choices
+- **Date:** 2026-11-25
+- **Decision:**
+  1. **A fixed rule for the whole app** (added to `CLAUDE.md` under the most important rule): *Automation never overrides the user's own choices. Anything the user has set, changed or chosen manually (dishes, lunches, quantities, Have/Buy) is kept when the app recalculates – unless it no longer fits a hard rule (allergy, can't tolerate, meal turned off). Then only that item changes, with Undo.*
+  2. An item whose amount the user changed, and that the plan **no longer needs**, stays on the shopping list with a small note: **"No longer needed in the plan"**. The note goes away if the plan needs the item again.
+  3. Interpretations (a)–(c) in #191 are approved, with point 2 added to (a).
+- **Alternatives:** (1) Decide case by case. (2) Keep the item without a note; remove it.
+- **Rationale:** Product owner's review of #191 (2026-11-25): the user must be able to trust that the app never silently undoes what they did by hand.
+- **Consequences:** `ShoppingItem.notInPlan`, set by `applyApproval`, shown in muted text under the item. Earlier features that recalculate (for example `adaptToSettings` #162, re-filling a removed meal #170, re-approving a week) must follow the rule; any gap found later is a bug, not a new choice.

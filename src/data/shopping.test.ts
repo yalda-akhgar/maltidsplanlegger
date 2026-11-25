@@ -323,9 +323,16 @@ describe('approving the week (#173, #184, #186)', () => {
 
       it('stays when the plan no longer needs it, but goes when the user chooses "Have"', () => {
         const mine = g('chicken-breast', 1000, { planAmount: { amount: 900, unit: 'g' } })
-        expect(applyApproval([mine], approval([]), NOW, newId).items).toEqual([mine])
+        expect(applyApproval([mine], approval([]), NOW, newId).items).toEqual([{ ...mine, notInPlan: true }])
         const have = { ...buy('chicken-breast', 900), choice: 'have' as const }
         expect(applyApproval([mine], approval([have]), NOW, newId).items).toEqual([])
+      })
+
+      it('loses the note "No longer needed in the plan" when the plan needs it again (#192)', () => {
+        const mine = g('chicken-breast', 1000, { planAmount: { amount: 900, unit: 'g' }, notInPlan: true })
+        const { items } = applyApproval([mine], approval([buy('chicken-breast', 800)]), NOW, newId)
+        expect(items[0].notInPlan).toBeUndefined()
+        expect(items[0].amount).toBe(1000)
       })
 
       it('items the user did not change are still replaced', () => {
