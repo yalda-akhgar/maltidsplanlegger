@@ -234,6 +234,12 @@ export function toApproval(weekId: WeekId, fromDate: IsoDate, rows: ApprovalRow[
  * items and other weeks are kept. Staples (oil, salt, spices) go on the
  * list without an amount – you buy a bottle, not 85 g (#187). Returns the
  * new list and how many items were added.
+ *
+ * An amount the user changed by hand is never overwritten (#191): if the
+ * plan now needs more than when the user changed it, only the difference is
+ * added, with the note "+200 g from the plan" (`fromPlan`). If the plan needs
+ * less, or the item is no longer needed, the user's item stays as it is –
+ * unless the user chose "Have" for it in the approve sheet.
  */
 export function applyApproval(
   list: ShoppingItem[],
@@ -243,7 +249,12 @@ export function applyApproval(
   isStaple: (ingredientId: Id) => boolean = () => false,
 ): { items: ShoppingItem[]; added: number } {
   const ofWeek = (i: ShoppingItem) => i.source === 'plan' && i.weekId === approval.weekId
-  const kept = list.filter((i) => !(ofWeek(i) && !i.bought))
+  const userAmount = (i: ShoppingItem) => ofWeek(i) && !i.bought && i.planAmount !== undefined
+  const haveNow = new Set(approval.items.filter((i) => i.choice === 'have').map((i) => i.ingredientId))
+  // Items with the user's own amount stay (#191), unless the user now says "Have"; other open plan items are replaced.
+  const kept = list.filter((i) => !(ofWeek(i) && !i.bought) || (userAmount(i) && !haveNow.has(i.ingredientId!)))
+  const editedByIngredient = new Map(kept.filter(userAmount).map((i) => [i.ingredientId!, i]))
+  const updated = new Map<Id, ShoppingItem>()
   const bought = new Map<string, number>()
   const boughtIds = new Set(list.filter((i) => ofWeek(i) && i.bought && i.ingredientId).map((i) => i.ingredientId!))
   for (const i of list) {
@@ -262,6 +273,25 @@ export function applyApproval(
       continue
     }
     const amount = item.amount - (bought.get(itemKey(item)) ?? 0)
+    const edited = editedByIngredient.get(item.ingredientId)
+    if (edited) {
+      // The user's amount stays; only more than the plan needed when it was changed is added.
+      const base = edited.planAmount!
+      const extra = base.unit === item.unit ? roundForShopping(amount - base.amount, item.unit) : 0
+      const sameUnit = edited.unit === item.unit && edited.amount !== undefined
+      updated.set(edited.id, {
+        ...edited,
+        ...(extra > 0
+          ? {
+              amount: sameUnit ? roundForShopping(edited.amount! + extra, item.unit) : edited.amount,
+              fromPlan: { amount: roundForShopping((edited.fromPlan?.unit === item.unit ? edited.fromPlan.amount : 0) + extra, item.unit), unit: item.unit },
+              updatedAt: now,
+            }
+          : {}),
+        planAmount: { amount: Math.max(amount, 0), unit: item.unit },
+      })
+      continue
+    }
     if (amount <= 0) continue
     added.push({
       id: newId(),
@@ -275,7 +305,7 @@ export function applyApproval(
       updatedAt: now,
     })
   }
-  return { items: [...kept, ...added], added: added.length }
+  return { items: [...kept.map((i) => updated.get(i.id) ?? i), ...added], added: added.length }
 }
 
 /** Items chosen as "Buy" (the count on the approve button). */

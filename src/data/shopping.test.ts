@@ -293,6 +293,49 @@ describe('approving the week (#173, #184, #186)', () => {
       ...extra,
     })
 
+    describe('an amount the user changed by hand (#191)', () => {
+      const g = (key: string, amount: number, extra: Partial<ShoppingItem> = {}) => item(key, amount, { unit: 'g', ...extra })
+      const buy = (key: string, amount: number) => ({ ingredientId: ing(key), amount, unit: 'g' as const, choice: 'buy' as const })
+
+      it('is never overwritten when the plan needs the same or less', () => {
+        const mine = g('chicken-breast', 1000, { planAmount: { amount: 900, unit: 'g' } })
+        for (const planNeeds of [900, 600]) {
+          const { items } = applyApproval([mine], approval([buy('chicken-breast', planNeeds)]), NOW, newId)
+          expect(items).toEqual([{ ...mine, planAmount: { amount: planNeeds, unit: 'g' } }])
+        }
+      })
+
+      it('gets only the extra from the plan, with a note', () => {
+        const mine = g('chicken-breast', 1000, { planAmount: { amount: 900, unit: 'g' } })
+        const { items, added } = applyApproval([mine], approval([buy('chicken-breast', 1100)]), NOW, newId)
+        expect(added).toBe(0)
+        expect(items).toEqual([expect.objectContaining({ id: mine.id, amount: 1200, fromPlan: { amount: 200, unit: 'g' }, planAmount: { amount: 1100, unit: 'g' } })])
+        // Approving once more with the same plan adds nothing new.
+        const again = applyApproval(items, approval([buy('chicken-breast', 1100)]), NOW, newId)
+        expect(again.items).toEqual(items)
+      })
+
+      it('keeps the user’s unit and only notes the extra when the units differ', () => {
+        const mine = g('chicken-breast', 1, { unit: 'kg', planAmount: { amount: 900, unit: 'g' } })
+        const { items } = applyApproval([mine], approval([buy('chicken-breast', 1100)]), NOW, newId)
+        expect(items[0]).toMatchObject({ amount: 1, unit: 'kg', fromPlan: { amount: 200, unit: 'g' } })
+      })
+
+      it('stays when the plan no longer needs it, but goes when the user chooses "Have"', () => {
+        const mine = g('chicken-breast', 1000, { planAmount: { amount: 900, unit: 'g' } })
+        expect(applyApproval([mine], approval([]), NOW, newId).items).toEqual([mine])
+        const have = { ...buy('chicken-breast', 900), choice: 'have' as const }
+        expect(applyApproval([mine], approval([have]), NOW, newId).items).toEqual([])
+      })
+
+      it('items the user did not change are still replaced', () => {
+        const plain = g('salmon', 500)
+        const { items } = applyApproval([plain], approval([buy('salmon', 700)]), NOW, newId)
+        expect(items).toEqual([expect.objectContaining({ ingredientId: ing('salmon'), amount: 700 })])
+        expect(items[0].id).not.toBe(plain.id)
+      })
+    })
+
     it('adds only the "Buy" items, with the week', () => {
       const { items, added } = applyApproval(
         [],

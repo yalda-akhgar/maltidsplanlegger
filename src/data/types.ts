@@ -395,6 +395,14 @@ export interface ShoppingItem {
    * (#178, #190), so un-ticking can put it back. "none" = not in Home.
    */
   pantryBefore?: 'have' | 'empty' | 'none'
+  /**
+   * Set when the user changed the amount of a plan item by hand: what the
+   * plan needed then. The user's amount is never overwritten when the week
+   * is approved again (#191); only more from the plan is added.
+   */
+  planAmount?: { amount: number; unit: Unit }
+  /** What approving again added on top of the user's amount: "+200 g from the plan" (#191). */
+  fromPlan?: { amount: number; unit: Unit }
   createdAt: Timestamp
   updatedAt: Timestamp
 }

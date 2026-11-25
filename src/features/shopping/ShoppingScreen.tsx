@@ -208,8 +208,19 @@ export function ShoppingScreen() {
   // --- Editing one item (#190 point 6) ------------------------------------------------------
 
   function saveEdit(item: ShoppingItem, edit: ItemEdit) {
-    const { amount: _amount, unit: _unit, ...rest } = item
-    const updated: ShoppingItem = { ...rest, ...edit, updatedAt: new Date().toISOString() }
+    const { amount: _amount, unit: _unit, fromPlan: _fromPlan, ...rest } = item
+    const amountChanged = edit.amount !== item.amount || (edit.amount !== undefined && edit.unit !== item.unit)
+    const updated: ShoppingItem = {
+      ...rest,
+      ...edit,
+      // A plan item whose amount the user changed keeps that amount when the week is approved again (#191).
+      ...(item.source === 'plan' && amountChanged && !item.planAmount && item.amount !== undefined && item.unit
+        ? { planAmount: { amount: item.amount, unit: item.unit } }
+        : {}),
+      // The note "+200 g from the plan" stays until the user changes the amount again.
+      ...(item.fromPlan && !amountChanged ? { fromPlan: item.fromPlan } : {}),
+      updatedAt: new Date().toISOString(),
+    }
     persist((itemsRef.current ?? []).map((i) => (i.id === item.id ? updated : i)))
     // Moving an item is remembered for next time (#190 point 3y).
     if (edit.storeSection !== section(item)) {
@@ -291,6 +302,14 @@ export function ShoppingScreen() {
           <span className={cn('min-w-0 flex-1', checked && 'text-muted-foreground line-through')}>
             <span className={cn(!checked && 'font-medium')}>{name}</span>
             {amount ? <span className="text-muted-foreground"> · {amount}</span> : null}
+            {/* More from the plan on top of the user's own amount (#191). */}
+            {item.fromPlan && !checked ? (
+              <span className="block text-sm text-primary-text">
+                {t('shopping.fromPlan', {
+                  amount: `${formatAmount(item.fromPlan.amount, language)} ${t(`units.short.${item.fromPlan.unit}`, { count: unitCount(item.fromPlan.amount) })}`,
+                })}
+              </span>
+            ) : null}
           </span>
           {/* The week label only matters when the list has items from more than one week (#184 point 8). */}
           {item.weekId && weeks.size > 1 ? (

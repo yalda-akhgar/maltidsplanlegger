@@ -1,5 +1,5 @@
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, EllipsisIcon, ListChecksIcon, SparklesIcon, Undo2Icon } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { selfOf } from '@/features/household/household-draft'
@@ -128,13 +128,15 @@ export function WeekScreen() {
 
   // Scroll to today once the current week is shown (#117).
   const todayRef = useRef<HTMLElement>(null)
+  /** The "plan has changed" banner: scrolled to instead of today's card, so it is seen (#190). */
+  const bannerRef = useRef<HTMLDivElement>(null)
   const scrolledFor = useRef<WeekId | null>(null)
   useEffect(() => {
     if (!plans || scrolledFor.current === plans.weekId) return
     scrolledFor.current = plans.weekId
     if (plans.weekId !== weekIdOf(new Date())) return
     // Only scroll when today is not already in the upper half of the screen (e.g. Monday, or two columns on a PC).
-    const card = todayRef.current
+    const card = bannerRef.current ?? todayRef.current
     if (card && card.getBoundingClientRect().top > window.innerHeight / 2) card.scrollIntoView({ block: 'start' })
   }, [plans])
 
@@ -188,6 +190,27 @@ export function WeekScreen() {
   const withoutTarget = household.people.filter((p) => p.kind === 'adult' && !p.proteinTargetG)
   const dayTitle = (date: IsoDate) => formatDay(date, language, t, true)
   const recipeName = (id: Id | undefined) => localize(id ? recipesById.get(id)?.name : undefined, language)
+
+  /** "The plan has changed" (#184 point 5): right above today's card, or at the top before the week starts (#190). */
+  const bannerAtToday = plan.days.some((d) => d.date === today)
+  const changesBanner = hasChanges ? (
+    <div ref={bannerRef} role="status" className="lg:col-span-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl bg-warning p-3 text-warning-foreground">
+      <p className="text-sm">
+        <span className="font-semibold">{t('week.changes.title')}</span>
+        {' – '}
+        {[
+          changes.added > 0 ? t('week.changes.added', { count: changes.added }) : null,
+          changes.removed > 0 ? t('week.changes.removed', { count: changes.removed }) : null,
+          changes.changed > 0 ? t('week.changes.changed', { count: changes.changed }) : null,
+        ]
+          .filter(Boolean)
+          .join(' · ')}
+      </p>
+      <Button size="sm" variant="secondary" onClick={() => void openApprove()}>
+        {t('week.changes.update')}
+      </Button>
+    </div>
+  ) : null
 
   // --- Changing the plan --------------------------------------------------
 
@@ -604,24 +627,8 @@ export function WeekScreen() {
           </div>
         ) : null}
 
-        {hasChanges ? (
-          <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl bg-warning p-3 text-warning-foreground">
-            <p className="text-sm">
-              <span className="font-semibold">{t('week.changes.title')}</span>
-              {' – '}
-              {[
-                changes.added > 0 ? t('week.changes.added', { count: changes.added }) : null,
-                changes.removed > 0 ? t('week.changes.removed', { count: changes.removed }) : null,
-                changes.changed > 0 ? t('week.changes.changed', { count: changes.changed }) : null,
-              ]
-                .filter(Boolean)
-                .join(' · ')}
-            </p>
-            <Button size="sm" variant="secondary" onClick={() => void openApprove()}>
-              {t('week.changes.update')}
-            </Button>
-          </div>
-        ) : null}
+        {/* A week that has not started (no today card): the banner sits at the top. */}
+        {hasChanges && !bannerAtToday ? changesBanner : null}
 
         {planned && hasEmpty ? <p className="-mb-2 text-sm font-medium">{t('week.missingMeals', { count: emptyCount })}</p> : null}
         <div className="flex gap-2">
@@ -650,28 +657,31 @@ export function WeekScreen() {
 
         <div className="grid gap-3 lg:grid-cols-2">
           {plan.days.map((day, i) => (
-            <DayCard
-              key={day.date}
-              ref={day.date === today ? todayRef : undefined}
-              day={day}
-              isToday={day.date === today}
-              fixedDayOut={fixedDayOut(day.date)}
-              slots={slotsOn}
-              people={household.people}
-              protein={dayStarted(day) ? (protein[i] ?? []) : []}
-              hasEmptyMeals={emptyMeals(household, day).length > 0}
-              {...undoInfo(i)}
-              {...allergyInfo(day)}
-              onUndoMeal={(slot) => undoMeal(day.date, slot)}
-              notes={notes.filter((n) => n.date === day.date)}
-              recipes={recipesById}
-              ingredients={data.ingredientMap}
-              nutritionOf={nutritionOf}
-              onOpenMeal={(slot) => setMealTarget({ date: day.date, slot, dayTitle: dayTitle(day.date) })}
-              onPickMeal={(slot) => setPickTarget({ date: day.date, slot, dayTitle: dayTitle(day.date) })}
-              onSwapMeal={(slot) => swap(day.date, slot)}
-              onRemoveExtra={(index) => deleteExtra(day.date, index)}
-            />
+            <Fragment key={day.date}>
+              {/* Right above today's card, where the week plan opens (#190): the banner is seen at once. */}
+              {hasChanges && bannerAtToday && day.date === today ? changesBanner : null}
+              <DayCard
+                ref={day.date === today ? todayRef : undefined}
+                day={day}
+                isToday={day.date === today}
+                fixedDayOut={fixedDayOut(day.date)}
+                slots={slotsOn}
+                people={household.people}
+                protein={dayStarted(day) ? (protein[i] ?? []) : []}
+                hasEmptyMeals={emptyMeals(household, day).length > 0}
+                {...undoInfo(i)}
+                {...allergyInfo(day)}
+                onUndoMeal={(slot) => undoMeal(day.date, slot)}
+                notes={notes.filter((n) => n.date === day.date)}
+                recipes={recipesById}
+                ingredients={data.ingredientMap}
+                nutritionOf={nutritionOf}
+                onOpenMeal={(slot) => setMealTarget({ date: day.date, slot, dayTitle: dayTitle(day.date) })}
+                onPickMeal={(slot) => setPickTarget({ date: day.date, slot, dayTitle: dayTitle(day.date) })}
+                onSwapMeal={(slot) => swap(day.date, slot)}
+                onRemoveExtra={(index) => deleteExtra(day.date, index)}
+              />
+            </Fragment>
           ))}
         </div>
       </div>

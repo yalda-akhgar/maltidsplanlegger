@@ -735,6 +735,7 @@
       "delete": "Slett",
       "deleted": "{{name}} slettet",
       "stapleHint": "Basisvarer står uten mengde."
-    }
+    },
+    "fromPlan": "+{{amount}} fra planen"
   }
 }

@@ -705,6 +705,7 @@
       "delete": "Delete",
       "deleted": "{{name}} deleted",
       "stapleHint": "Staples are listed without an amount."
-    }
+    },
+    "fromPlan": "+{{amount}} from the plan"
   }
 }
