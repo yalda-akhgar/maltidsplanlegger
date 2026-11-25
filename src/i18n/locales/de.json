@@ -571,6 +571,8 @@
     },
     "done": {
       "title": "Fertig!",
+      "you": "Du",
+      "protein": "{{target}} g Protein",
       "adults": "Erwachsene",
       "children": "Kinder",
       "excluded": "Unerwünschte Lebensmittel",

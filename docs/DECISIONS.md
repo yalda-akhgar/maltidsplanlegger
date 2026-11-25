@@ -1452,3 +1452,13 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** Keep pork as the default (#18); ask in the wizard with pork pre-selected.
 - **Rationale:** Product owner's acceptance test: pork was pre-selected because the founder's family doesn't eat it, but the app must suit everyone.
 - **Consequences:** `defaultHousehold` has `excludedTags: []`. Tests updated: the default excludes nothing, a pork dish is allowed until the household excludes it. The summary label is now "Food we don't want" (was "Excluded"). The example family ("Try with an example family") excludes nothing either. The original brief (`docs/PROMPT.md`) still says pork by default; this decision overrides it.
+
+## 189. Own row for "You" in the wizard summary; no amounts for staples in the approve sheet
+- **Date:** 2026-11-25
+- **Decision:**
+  1. The wizard summary gets its own **top row "You: [name] · [target] g protein"** with a pencil; it opens step 1. "Adults" and "Children" still open step 3. The "Adults" row now lists only the other adults ("None" when there are none), so the user isn't shown twice.
+  2. **The approve sheet also shows staples without an amount** – the same rule as the shopping list (#187), to be consistent.
+  3. The other interpretations from #187 are approved: "Skip" is hidden when a step is opened from the summary; "None" is capitalised like the other rows; the example family excludes nothing.
+- **Alternatives:** (1) Let the "Adults" row open step 1. (2) Keep amounts in the sheet as information.
+- **Rationale:** Product owner's review of #187 (2026-11-25).
+- **Consequences:** The name is on step 1 and the target on step 2, so the "You" row edits **steps 1–2**: "Next" on step 1 goes to step 2, whose main button reads "Back to the summary"; "Back" walks the same way back to the summary. On step 1 in edit mode "Back" is shown and "Skip everything" is hidden. `wizard-nav.ts` now stores the edited range (`edit: {start, last}`, `isEditing`, `nextReturnsToSummary`), with tests. Without a target the row shows only the name ("Me" if no name). New UI texts `onboarding.done.you`, `onboarding.done.protein`.

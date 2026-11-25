@@ -101,18 +101,20 @@ function ItemRow({ row, name, recipeName, onChoice }: { row: ApprovalRow; name: 
   const language = useLanguage()
   const [showUses, setShowUses] = useState(false)
   const { need } = row
-  const amount = `${formatAmount(need.amount, language)} ${t(`units.short.${need.unit}`, { count: unitCount(need.amount) })}`
+  // Staples are shown without an amount, as on the shopping list (#187, #189).
+  const amount = need.isStaple ? undefined : `${formatAmount(need.amount, language)} ${t(`units.short.${need.unit}`, { count: unitCount(need.amount) })}`
   return (
     <li className="py-2">
       <div className="flex items-center gap-3">
         <button
           type="button"
           aria-expanded={showUses}
-          aria-label={`${name} · ${amount}. ${t('week.approve.showUses', { name })}`}
+          aria-label={`${amount ? `${name} · ${amount}` : name}. ${t('week.approve.showUses', { name })}`}
           onClick={() => setShowUses((v) => !v)}
           className="min-h-11 min-w-0 flex-1 rounded-lg text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span className="font-medium">{name}</span> <span className="text-muted-foreground">· {amount}</span>
+          <span className="font-medium">{name}</span>
+          {amount ? <span className="text-muted-foreground"> · {amount}</span> : null}
         </button>
         <ChoiceButtons name={name} choice={row.choice} onChoice={onChoice} />
       </div>

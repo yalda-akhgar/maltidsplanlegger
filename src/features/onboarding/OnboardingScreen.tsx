@@ -18,7 +18,7 @@ import { ProteinTargetField } from '@/features/household/ProteinTargetField'
 import { withExampleFamily } from '@/features/household/example-family'
 import { makeFirstWeekPlan, saveSettings, showSavedToast } from '@/features/household/save-settings'
 import { cn } from '@/lib/utils'
-import { back, currentStep, edit, next, skipAll, startNav } from './wizard-nav'
+import { back, currentStep, edit, isEditing, next, nextReturnsToSummary, skipAll, startNav } from './wizard-nav'
 
 const STEPS = 6
 
@@ -227,27 +227,27 @@ export function OnboardingScreen() {
               />
             </div>
           ) : null}
-          {step === 6 ? <Summary draft={draft} again={again} onEdit={(target) => setNav(edit(nav, target))} /> : null}
+          {step === 6 ? <Summary draft={draft} again={again} onEdit={(first, last) => setNav(edit(nav, first, last))} /> : null}
         </main>
 
         <div className="sticky bottom-0 mt-6 flex flex-wrap items-center gap-2 bg-background py-3">
-          {step > 1 ? (
+          {step > 1 || isEditing(nav) ? (
             <Button variant="secondary" onClick={() => setNav(back(nav))}>
               {t('common.back')}
             </Button>
           ) : null}
-          {step === 1 ? (
+          {isEditing(nav) ? null : step === 1 ? (
             <Button variant="ghost" className="text-primary-text" onClick={() => setNav(skipAll(nav, STEPS))}>
               {t('onboarding.skipAll')}
             </Button>
-          ) : step < STEPS && !nav.editing ? (
+          ) : step < STEPS ? (
             <Button variant="ghost" className="text-primary-text" onClick={() => setNav(next(nav, STEPS))}>
               {t('onboarding.skip')}
             </Button>
           ) : null}
           {step < STEPS ? (
             <Button className="ml-auto min-w-28" disabled={invalid} onClick={() => setNav(next(nav, STEPS))}>
-              {nav.editing ? t('onboarding.toSummary') : t('onboarding.next')}
+              {nextReturnsToSummary(nav) ? t('onboarding.toSummary') : t('onboarding.next')}
             </Button>
           ) : (
             <Button className="ml-auto" disabled={busy} onClick={() => void finish()}>
@@ -294,20 +294,21 @@ function WelcomeStep({ name, onName }: { name: string; onName: (name: string) =>
   )
 }
 
-function Summary({ draft, again, onEdit }: { draft: Draft; again: boolean; onEdit: (step: number) => void }) {
+function Summary({ draft, again, onEdit }: { draft: Draft; again: boolean; onEdit: (first: number, last?: number) => void }) {
   const { t } = useTranslation()
   const days = (list: Weekday[]) => (list.length > 0 ? list.map((d) => t(`household.weekdays.long.${d}`)).join(', ') : t('onboarding.done.none'))
-  const adults = [
-    `${draft.name.trim() || t('onboarding.me')}${parseTarget(draft.target) ? ` (${parseTarget(draft.target)} g)` : ''}`,
-    ...draft.others
-      .filter((p) => p.kind === 'adult')
-      .map((p) => `${p.name.trim() || t('household.adult')}${parseTarget(p.target) ? ` (${parseTarget(p.target)} g)` : ''}`),
-  ]
+  // The user's own name and target are set on steps 1–2, so they get their own row (#189).
+  const myTarget = parseTarget(draft.target)
+  const me = [draft.name.trim() || t('onboarding.me'), ...(myTarget ? [t('onboarding.done.protein', { target: myTarget })] : [])].join(' · ')
+  const adults = draft.others
+    .filter((p) => p.kind === 'adult')
+    .map((p) => `${p.name.trim() || t('household.adult')}${parseTarget(p.target) ? ` (${parseTarget(p.target)} g)` : ''}`)
   const children = draft.others.filter((p) => p.kind === 'child').map((p) => p.name.trim() || t('household.child'))
   const excluded = [...(draft.excludedTags.includes('pork') ? [t('household.food.pork')] : []), ...draft.excludedTerms]
-  // [label, value, the step where it is changed] (#187)
-  const rows: [string, string, number][] = [
-    [t('onboarding.done.adults'), adults.join(', '), 3],
+  // [label, value, the first step where it is changed, the last one] (#187, #189)
+  const rows: [string, string, number, number?][] = [
+    [t('onboarding.done.you'), me, 1, 2],
+    [t('onboarding.done.adults'), adults.length > 0 ? adults.join(', ') : t('onboarding.done.none'), 3],
     [t('onboarding.done.children'), children.length > 0 ? children.join(', ') : t('onboarding.done.none'), 3],
     [t('onboarding.done.excluded'), excluded.length > 0 ? excluded.join(', ') : t('onboarding.done.none'), 4],
     [t('onboarding.done.meals'), mealsOn(draft.proteinSplit).map((s) => t(`week.slots.${s}`)).join(', '), 5],
@@ -317,8 +318,8 @@ function Summary({ draft, again, onEdit }: { draft: Draft; again: boolean; onEdi
   return (
     <>
       <ul className="divide-y rounded-2xl border bg-card">
-        {rows.map(([label, value, target]) => (
-          <SummaryRow key={label} label={label} value={value} onEdit={() => onEdit(target)} />
+        {rows.map(([label, value, first, last]) => (
+          <SummaryRow key={label} label={label} value={value} onEdit={() => onEdit(first, last)} />
         ))}
       </ul>
       <p className="text-muted-foreground">{again ? t('onboarding.done.textAgain') : t('onboarding.done.text')}</p>

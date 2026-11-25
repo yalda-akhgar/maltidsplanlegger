@@ -602,6 +602,8 @@
     },
     "done": {
       "title": "Klart!",
+      "you": "Deg",
+      "protein": "{{target}} g protein",
       "adults": "Voksne",
       "children": "Barn",
       "excluded": "Mat vi ikke vil ha",

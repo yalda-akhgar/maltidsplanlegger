@@ -572,6 +572,8 @@
     },
     "done": {
       "title": "All set!",
+      "you": "You",
+      "protein": "{{target}} g protein",
       "adults": "Adults",
       "children": "Children",
       "excluded": "Food we don’t want",
