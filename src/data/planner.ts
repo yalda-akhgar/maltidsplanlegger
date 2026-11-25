@@ -532,6 +532,7 @@ function applyMeal(
   options: { plan: WeekPlan; date: IsoDate; slot: MealSlot; nextWeek?: WeekPlan },
   recipeId: Id,
   now: Timestamp,
+  chosenByUser = false,
 ): { plan: WeekPlan; nextWeek?: WeekPlan } {
   const days = options.plan.days.map((d) => ({ ...d, meals: { ...d.meals } }))
   const i = days.findIndex((d) => d.date === options.date)
@@ -541,6 +542,9 @@ function applyMeal(
   const meal: PlannedMeal = { ...old, status: 'planned', recipeId, portions: {} }
   delete meal.leftoversFrom
   delete meal.replacedLeftoversFrom
+  // Picked from the list = the user's choice; ↻ and the planner = the app's (#192 C).
+  if (chosenByUser) meal.chosenByUser = true
+  else delete meal.chosenByUser
   day.meals[options.slot] = meal
   days[i] = planner.withPortions(day, i)
 
@@ -576,7 +580,7 @@ export interface SetMealOptions {
 
 /** Puts a recipe the user picked on a meal (#112). Any recipe may be picked, also on a fixed day out. */
 export function setMeal(ctx: PlannerContext, options: SetMealOptions): { plan: WeekPlan; nextWeek?: WeekPlan } {
-  return applyMeal(new Planner(ctx), options, options.recipeId, options.now ?? new Date().toISOString())
+  return applyMeal(new Planner(ctx), options, options.recipeId, options.now ?? new Date().toISOString(), true)
 }
 
 /**
@@ -662,6 +666,7 @@ function clearMeal(
 function leftoversOf(lunch: PlannedMeal, recipeId: Id, dinnerDate: IsoDate): PlannedMeal {
   const meal: PlannedMeal = { ...lunch, status: 'leftovers', recipeId, leftoversFrom: dinnerDate }
   delete meal.replacedLeftoversFrom
+  delete meal.chosenByUser
   return meal
 }
 
@@ -875,7 +880,9 @@ export function refreshPortions(ctx: PlannerContext, plan: WeekPlan, fromDate: I
  *   removed (the next day's leftovers become a quick lunch, #108);
  * - meals the household no longer eats are emptied, and meals turned back on
  *   are filled – lunch with leftovers where possible (#183);
- * - everything else stays, including dishes the user picked;
+ * - everything else stays. Dishes the user picked from the list (`chosenByUser`)
+ *   only change for a hard rule: an allergy, food someone doesn't tolerate,
+ *   a meal turned off, or food the household doesn't want (#192);
  * - portions are recalculated for everyone.
  * `plans` are all stored weeks; the result has the same weeks.
  */
@@ -897,14 +904,17 @@ export function adaptToSettings(
   const fits = (meal: PlannedMeal, slot: MealSlot, dayIndex: number) => {
     const recipe = meal.recipeId ? recipes.get(meal.recipeId) : undefined
     if (!recipe) return true
-    if (!isRecipeAllowed(recipe, ctx.ingredients, household)) return false
+    // Food the household doesn't want counts as a hard rule (#192 A) – but only when it is new, so a dish
+    // brought back with Undo is not replaced again by a later, unrelated settings change.
+    if (!isRecipeAllowed(recipe, ctx.ingredients, household) && isRecipeAllowed(recipe, ctx.ingredients, oldHousehold)) return false
     // A new allergy (#180) or food someone doesn't tolerate (#181): replace dishes that became unsafe. A dish the user
     // already picked despite the warning stays until the allergies change.
     const eaters = meal.status === 'leftovers' ? 'dinner' : slot
     if (now_.safetyOf(recipe, eaters, dayIndex).status === 'unsafe' && before.safetyOf(recipe, eaters, dayIndex).status !== 'unsafe') return false
     const day = dayIndex as Weekday
     const noLongerCheat = oldHousehold.cheatDays.includes(day) && !household.cheatDays.includes(day)
-    return !(slot === 'snack' && recipe.snackKind === 'cheat' && noLongerCheat)
+    // Not a hard rule: a cheat snack the user picked stays (#192).
+    return !(slot === 'snack' && recipe.snackKind === 'cheat' && noLongerCheat && !meal.chosenByUser)
   }
 
   for (const weekId of [...byId.keys()].sort()) {
@@ -935,7 +945,8 @@ export function adaptToSettings(
           if (result.plan === placeholder) continue
         } else if (meal.status !== 'planned' && meal.status !== 'leftovers') {
           continue
-        } else if (slot === 'dinner' && newlyOut && meal.status === 'planned') {
+        } else if (slot === 'dinner' && newlyOut && meal.status === 'planned' && !meal.chosenByUser) {
+          // A new fixed day out is not a hard rule: a dinner the user picked stays (#192).
           result = setEatingOut(ctx, { ...options, eatingOut: false })
         } else if (!fits(meal, slot, i)) {
           result = swapMeal(ctx, options)

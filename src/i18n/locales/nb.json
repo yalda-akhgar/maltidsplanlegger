@@ -107,7 +107,9 @@
       "sumWrong": "{{sum}} % – må bli 100 %",
       "reset": "Tilbakestill til 25 / 30 / 30 / 15"
     },
-    "runWizard": "Kjør veiviseren på nytt"
+    "runWizard": "Kjør veiviseren på nytt",
+    "undoReplaced": "Angre byttene",
+    "replacedUndone": "Rettene er tilbake i ukeplanen"
   },
   "languages": {
     "nb": "Norsk",

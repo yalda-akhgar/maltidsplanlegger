@@ -631,6 +631,50 @@ describe('settings changes update planned weeks from today (#162)', () => {
     expect(byId.get(after.days[5].meals.snack.recipeId!)?.snackKind).not.toBe('cheat')
   })
 
+  describe('automation never overrides the user’s own choices (#192)', () => {
+    const CHEAT = SEED_RECIPES.find((x) => x.snackKind === 'cheat')!.id
+
+    it('marks dishes picked from the list as the user’s, and ↻ as the app’s', () => {
+      const c = ctx(21)
+      let plan = generate(c)
+      plan = setMeal(c, { plan, date: TUESDAY, slot: 'dinner', recipeId: SALMON }).plan
+      expect(plan.days[1].meals.dinner.chosenByUser).toBe(true)
+      expect(plan.days[2].meals.lunch.chosenByUser).toBeUndefined() // the leftovers are not a pick
+      plan = swapMeal(c, { plan, date: TUESDAY, slot: 'dinner' }).plan
+      expect(plan.days[1].meals.dinner.chosenByUser).toBeUndefined()
+    })
+
+    it('keeps a dinner the user picked on a new fixed day out', () => {
+      const c = ctx(22)
+      let plan = generate(c)
+      plan = setMeal(c, { plan, date: '2026-11-18', slot: 'dinner', recipeId: SALMON }).plan
+      const newCtx = { ...c, household: { ...c.household, noDinnerAtHomeDays: [1, 2, 4] as Weekday[] } }
+      const after = adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0]
+      expect(after.days[2].meals.dinner).toMatchObject({ status: 'planned', recipeId: SALMON, chosenByUser: true })
+      expect(after.days[1].meals.dinner.status).toBe('none') // the app's pick goes
+    })
+
+    it('keeps a cheat snack the user picked when the day is no longer a cheat day', () => {
+      const c = ctx(23, { household: household({ cheatDays: [5] }) })
+      let plan = generate(c)
+      plan = setMeal(c, { plan, date: '2026-11-21', slot: 'snack', recipeId: CHEAT }).plan
+      const newCtx = { ...c, household: { ...c.household, cheatDays: [] } }
+      expect(adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0].days[5].meals.snack.recipeId).toBe(CHEAT)
+    })
+
+    it('replaces a picked dish with newly unwanted food (a hard rule), but not again after Undo', () => {
+      const c = ctx(24)
+      let plan = generate(c)
+      plan = setMeal(c, { plan, date: TUESDAY, slot: 'dinner', recipeId: SALMON }).plan
+      const noFish = { ...c.household, excludedTags: ['fish'] }
+      const after = adaptToSettings({ ...c, household: noFish }, c.household, [plan], MONDAY).plans[0]
+      expect(after.days[1].meals.dinner.recipeId).not.toBe(SALMON)
+      // The user brings the salmon back (Undo); a later, unrelated change leaves it.
+      const later = { ...noFish, cheatDays: [6] as Weekday[] }
+      expect(adaptToSettings({ ...c, household: later }, noFish, [plan], MONDAY).plans[0].days[1].meals.dinner.recipeId).toBe(SALMON)
+    })
+  })
+
   it('recalculates portions with a new target from today only', () => {
     const c = ctx(14)
     const plan = generate(c)

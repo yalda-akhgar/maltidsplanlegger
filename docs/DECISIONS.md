@@ -1514,3 +1514,21 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Decide case by case. (2) Keep the item without a note; remove it.
 - **Rationale:** Product owner's review of #191 (2026-11-25): the user must be able to trust that the app never silently undoes what they did by hand.
 - **Consequences:** `ShoppingItem.notInPlan`, set by `applyApproval`, shown in muted text under the item. Earlier features that recalculate (for example `adaptToSettings` #162, re-filling a removed meal #170, re-approving a week) must follow the rule; any gap found later is a bug, not a new choice.
+
+## 193. Review of earlier features against "Automation never overrides the user's own choices"
+- **Date:** 2026-11-25
+- **Decision:** The product owner reviewed the audit of everything built before #192 and chose:
+  - **A (a):** "Food we don't want" counts as a **hard rule**, like allergies: dishes with newly unwanted food are replaced, also when the user picked them – with Undo.
+  - **B (a):** A plan item the user **deletes** from the shopping list is set to **"Have"** in the week's approval, so approving the week again doesn't bring it back.
+  - **C (a):** Only a dish picked from the list ("Pick a dish") is the user's choice. A dish from ↻ or the planner is the app's.
+  - **D (a):** "Start over" and "Favourites week" still replace every dish from today – an explicit command, with confirmation and Undo.
+  - Fixes 1–5 from the audit:
+    1. A **new fixed day without dinner at home** keeps a dinner the user picked; only the app's dinners are removed.
+    2. A day that is **no longer a cheat day** keeps a cheat snack the user picked.
+    3. See A.
+    4. **Undo after a settings change:** the "Saved" message gets **"Undo the swaps"**, which brings back the replaced dishes (the settings stay), and every replaced dish gets **its own ↶** on the week plan. A dinner and the next day's lunch that followed it are undone together.
+    5. See B.
+- **Alternatives:** (A) Not a hard rule – keep the dish with a note. (B) Remember "removed by you" separately. (C) Everything the user tapped counts. (D) Keep the user's dishes on "Start over" too.
+- **Rationale:** Product owner's choices ("a" on all), so the rule in `CLAUDE.md` holds for the whole app.
+- **Consequences:** `PlannedMeal.chosenByUser` (set by `setMeal`; removed by ↻, the planner and leftovers). Plans made before this have no marking, so their dishes count as the app's. `adaptToSettings` now replaces dishes only for **newly** unwanted food (as for allergies), so a dish brought back with Undo is not replaced again by a later, unrelated settings change. `save-settings.ts`: `undoReplacements` and per-dish undo steps; `shopping.ts`: `markAsHave`. Tests: 215.
+- **Open question for the product owner:** Undo also brings back a dish that was replaced because of a **new allergy** (the rule says "with Undo"). The allergy label is shown on the day card, but there is no "Pick anyway" question. Should undoing an allergy replacement ask "Pick anyway?" first (#180)?

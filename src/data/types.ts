@@ -298,6 +298,13 @@ export interface PlannedMeal {
   replacedLeftoversFrom?: IsoDate
   /** Portion size per person, as a multiple of a standard portion (0.75–2×, #27). */
   portions: Record<Id, number>
+  /**
+   * The user picked this dish from the list ("Pick a dish"). Recalculations
+   * after a settings change keep it unless a hard rule (allergy, doesn't
+   * tolerate, meal turned off, food the household doesn't want) rules it out
+   * (#192). A dish from ↻ or the planner is the app's choice.
+   */
+  chosenByUser?: true
   /** Extra guests eating this meal; each gets a standard adult portion (#31). */
   guests: number
   /** Extra items for single people, e.g. a protein boost on the evening (#120). */

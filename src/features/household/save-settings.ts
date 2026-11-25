@@ -3,12 +3,12 @@
  * updated from today (#162) with the change recorded for the week plan's top
  * "Undo".
  */
-import { adaptToSettings, autoPlanWeek, emptyWeekPlan, generateWeekPlan } from '@/data/planner'
+import { adaptToSettings, autoPlanWeek, emptyWeekPlan, generateWeekPlan, refreshPortions } from '@/data/planner'
 import { repository } from '@/data/repository'
 import type { HouseholdSettings, IsoDate, WeekPlan } from '@/data/types'
-import { diffMeals } from '@/data/undo'
+import { diffMeals, revertChanges, type MealChange } from '@/data/undo'
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
-import { pushWeekStep, type WeekAction } from '@/features/week/undo-store'
+import { pushMealStep, pushWeekStep, type WeekAction } from '@/features/week/undo-store'
 import { toast } from '@/lib/toast'
 import type { TFunction } from 'i18next'
 
@@ -26,20 +26,71 @@ async function savePlans(before: WeekPlan[], after: WeekPlan[], action: WeekActi
   }
 }
 
+/** A meal whose dish (or status) changed – not just its portions. */
+const isReplacement = (c: MealChange) => c.before.status !== c.after.status || c.before.recipeId !== c.after.recipeId
+
+/**
+ * Gives every dish a settings change replaced its own ↶ on the week plan (#192). A dinner and the
+ * next day's lunch that followed it are undone together.
+ */
+function pushReplacementSteps(replacements: MealChange[], plansBefore: WeekPlan[]) {
+  for (const change of replacements) {
+    const nextDay = toIsoDate(new Date(Date.parse(`${change.date}T12:00:00`) + 86_400_000))
+    const prevDay = toIsoDate(new Date(Date.parse(`${change.date}T12:00:00`) - 86_400_000))
+    const partner =
+      change.slot === 'dinner'
+        ? replacements.find((c) => c.slot === 'lunch' && c.date === nextDay)
+        : change.slot === 'lunch'
+          ? replacements.find((c) => c.slot === 'dinner' && c.date === prevDay)
+          : undefined
+    const swapped = change.before.recipeId && change.after.recipeId && change.after.status === 'planned'
+    pushMealStep(
+      change.date,
+      change.slot,
+      { kind: swapped ? 'swap' : 'change', previousRecipeId: change.before.recipeId, changes: partner ? [change, partner] : [change] },
+      plansBefore,
+    )
+  }
+}
+
+/** "Undo" in the saved message (#192): brings back the dishes the settings change replaced; the settings stay. */
+export async function undoReplacements(changes: MealChange[]): Promise<void> {
+  const [recipes, ingredients, household, plans] = await Promise.all([
+    repository.listRecipes(),
+    repository.listIngredients(),
+    repository.getHousehold(),
+    repository.listWeekPlans(),
+  ])
+  const ctx = { recipes, ingredients: new Map(ingredients.map((i) => [i.id, i])), household }
+  const today = toIsoDate(new Date())
+  const reverted = revertChanges(plans, changes)
+  for (let i = 0; i < plans.length; i++) {
+    // Portions of the restored dishes follow the new settings.
+    if (reverted[i] !== plans[i]) await repository.saveWeekPlan(refreshPortions(ctx, reverted[i], today))
+  }
+  notifyPlansChanged()
+}
+
 /**
  * Saves the household and adapts the planned weeks. Returns how many dishes
- * were replaced because they no longer fit, and how many weeks were updated.
+ * were replaced because they no longer fit, how many weeks were updated, and
+ * the replacements (for "Undo").
  */
-export async function saveSettings(oldHousehold: HouseholdSettings, household: HouseholdSettings): Promise<{ replaced: number; weeks: number }> {
+export async function saveSettings(
+  oldHousehold: HouseholdSettings,
+  household: HouseholdSettings,
+): Promise<{ replaced: number; weeks: number; replacements: MealChange[] }> {
   const saved = await repository.saveHousehold(household)
   const [recipes, ingredients, plans] = await Promise.all([repository.listRecipes(), repository.listIngredients(), repository.listWeekPlans()])
   const ctx = { recipes, ingredients: new Map(ingredients.map((i) => [i.id, i])), household: saved }
   const today = toIsoDate(new Date())
   const { plans: adapted, replaced } = adaptToSettings(ctx, oldHousehold, plans, today)
   const changed = adapted.filter((p) => !plans.includes(p))
+  const replacements = diffMeals(plans, changed).filter(isReplacement)
+  pushReplacementSteps(replacements, plans)
   await savePlans(plans, changed, 'settings', saved)
   notifyPlansChanged()
-  return { replaced, weeks: changed.length }
+  return { replaced, weeks: changed.length, replacements }
 }
 
 /** First run of the wizard: make the week plan from today (#24, #158). */
@@ -89,8 +140,18 @@ export async function runAutoWeekPlan(today: IsoDate = toIsoDate(new Date())): P
 }
 
 /** "Saved. 2 dishes in the week plan were replaced …" (#162). */
-export function showSavedToast(t: TFunction, result: { replaced: number; weeks: number }) {
+export function showSavedToast(t: TFunction, result: { replaced: number; weeks: number; replacements?: MealChange[] }) {
   const description =
     result.replaced > 0 ? t('settings.replaced', { count: result.replaced }) : result.weeks > 0 ? t('settings.recalculated') : undefined
-  toast(t('settings.saved'), { description })
+  const replacements = result.replacements ?? []
+  toast(t('settings.saved'), {
+    description,
+    // Undo brings the dishes back, not the settings (#192).
+    ...(replacements.length > 0
+      ? {
+          duration: 10000,
+          action: { label: t('settings.undoReplaced'), onClick: () => void undoReplacements(replacements).then(() => toast(t('settings.replacedUndone'))) },
+        }
+      : {}),
+  })
 }

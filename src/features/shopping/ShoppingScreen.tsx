@@ -9,6 +9,7 @@ import { formatAmount, unitCount } from '@/data/amounts'
 import { localize } from '@/data/localize'
 import { newId, repository } from '@/data/repository'
 import { memoryKey, type SectionMemory } from '@/data/shopping-input'
+import { markAsHave } from '@/data/shopping'
 import { addTypedItems, clearBought, dropFinishedBought, groupBySection, sectionOf, setBought, shareText } from '@/data/shopping-list'
 import type { Id, ShoppingItem } from '@/data/types'
 import { weekIdOf } from '@/data/week'
@@ -231,11 +232,15 @@ export function ShoppingScreen() {
     setEditId(null)
   }
 
-  function deleteItem(item: ShoppingItem) {
+  async function deleteItem(item: ShoppingItem) {
     const before = itemsRef.current ?? []
     const index = before.findIndex((i) => i.id === item.id)
     persist(before.filter((i) => i.id !== item.id))
     setEditId(null)
+    // A deleted plan item becomes "Have" in the week's approval, so approving again doesn't bring it back (#192 B).
+    const approval = item.source === 'plan' && item.weekId && item.ingredientId ? await repository.getApproval(item.weekId) : undefined
+    const marked = approval && item.ingredientId ? markAsHave(approval, item.ingredientId) : undefined
+    if (marked && marked !== approval) await repository.saveApproval(marked)
     toast(t('shopping.sheet.deleted', { name: nameOf(item) }), {
       duration: 8000,
       action: {
@@ -244,6 +249,7 @@ export function ShoppingScreen() {
           const now = [...(itemsRef.current ?? [])]
           now.splice(Math.min(index, now.length), 0, item)
           persist(now)
+          if (approval && marked !== approval) void repository.saveApproval(approval)
         },
       },
     })
@@ -426,7 +432,7 @@ export function ShoppingScreen() {
         section={editing ? section(editing) : 'other'}
         isStaple={editing ? isStaple(editing) : false}
         onSave={(edit) => editing && saveEdit(editing, edit)}
-        onDelete={() => editing && deleteItem(editing)}
+        onDelete={() => editing && void deleteItem(editing)}
         onClose={() => setEditId(null)}
       />
     </>

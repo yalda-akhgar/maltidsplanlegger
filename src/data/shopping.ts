@@ -314,5 +314,15 @@ export function applyApproval(
   return { items: [...kept.map((i) => updated.get(i.id) ?? i), ...added], added: added.length }
 }
 
+/**
+ * A plan item the user deleted from the shopping list counts as "Have" in the
+ * week's approval (#192 B), so approving the week again doesn't bring it back.
+ * Returns the approval unchanged if the item isn't in it.
+ */
+export function markAsHave(approval: WeekApproval, ingredientId: Id): WeekApproval {
+  if (!approval.items.some((i) => i.ingredientId === ingredientId && i.choice === 'buy')) return approval
+  return { ...approval, items: approval.items.map((i) => (i.ingredientId === ingredientId ? { ...i, choice: 'have' as const } : i)) }
+}
+
 /** Items chosen as "Buy" (the count on the approve button). */
 export const buyCount = (rows: Pick<ApprovalRow, 'choice'>[]) => rows.filter((r) => r.choice === 'buy').length

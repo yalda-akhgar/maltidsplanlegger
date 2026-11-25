@@ -4,7 +4,7 @@ import { turnMealOff } from './meals'
 import { emptyWeekPlan, generateWeekPlan, type PlannerContext } from './planner'
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import { SEED_RECIPES } from './seed/recipes'
-import { applyApproval, approvalRows, buyCount, roundForShopping, toApproval, usedIngredients, weekNeeds, type ShoppingNeed } from './shopping'
+import { applyApproval, approvalRows, buyCount, markAsHave, roundForShopping, toApproval, usedIngredients, weekNeeds, type ShoppingNeed } from './shopping'
 import { STORE_SECTIONS, type HouseholdSettings, type Id, type MealSlot, type PlannedMeal, type Recipe, type RecipeIngredient, type ShoppingItem, type WeekApproval, type WeekPlan } from './types'
 import { shiftWeek } from './week'
 
@@ -291,6 +291,17 @@ describe('approving the week (#173, #184, #186)', () => {
       createdAt: NOW,
       updatedAt: NOW,
       ...extra,
+    })
+
+    it('a plan item the user deleted counts as "Have" and is not added again (#192 B)', () => {
+      const week = approval([
+        { ingredientId: ing('onion'), amount: 2, unit: 'pcs', choice: 'buy' },
+        { ingredientId: ing('tomato'), amount: 3, unit: 'pcs', choice: 'buy' },
+      ])
+      const marked = markAsHave(week, ing('onion'))
+      expect(marked.items.map((i) => i.choice)).toEqual(['have', 'buy'])
+      expect(markAsHave(marked, ing('onion'))).toBe(marked)
+      expect(applyApproval([], marked, NOW, newId).items.map((i) => i.ingredientId)).toEqual([ing('tomato')])
     })
 
     describe('an amount the user changed by hand (#191)', () => {

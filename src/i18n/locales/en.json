@@ -107,7 +107,9 @@
       "sumWrong": "{{sum}} % – must be 100 %",
       "reset": "Reset to 25 / 30 / 30 / 15"
     },
-    "runWizard": "Run the wizard again"
+    "runWizard": "Run the wizard again",
+    "undoReplaced": "Undo the swaps",
+    "replacedUndone": "The dishes are back in the week plan"
   },
   "languages": {
     "nb": "Norsk",

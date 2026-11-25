@@ -107,7 +107,9 @@
       "sumWrong": "{{sum}} % – muss 100 % ergeben",
       "reset": "Auf 25 / 30 / 30 / 15 zurücksetzen"
     },
-    "runWizard": "Assistenten erneut starten"
+    "runWizard": "Assistenten erneut starten",
+    "undoReplaced": "Ersetzungen rückgängig",
+    "replacedUndone": "Die Gerichte sind zurück im Wochenplan"
   },
   "languages": {
     "nb": "Norsk",
