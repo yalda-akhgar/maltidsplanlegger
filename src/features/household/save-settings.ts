@@ -3,11 +3,14 @@
  * updated from today (#162) with the change recorded for the week plan's top
  * "Undo".
  */
-import { adaptToSettings, autoPlanWeek, emptyWeekPlan, generateWeekPlan, refreshPortions } from '@/data/planner'
+import { localize } from '@/data/localize'
+import { atHomeIds } from '@/data/pantry'
+import { adaptToSettings, autoPlanWeek, emptyWeekPlan, generateWeekPlan, refreshPortions, unsafeUndo } from '@/data/planner'
 import { repository } from '@/data/repository'
 import type { HouseholdSettings, IsoDate, WeekPlan } from '@/data/types'
 import { diffMeals, revertChanges, type MealChange } from '@/data/undo'
 import { shiftWeek, toIsoDate, weekIdOf } from '@/data/week'
+import { confirmUnsafeUndo } from '@/features/week/undo-anyway'
 import { pushMealStep, pushWeekStep, type WeekAction } from '@/features/week/undo-store'
 import { toast } from '@/lib/toast'
 import type { TFunction } from 'i18next'
@@ -53,8 +56,11 @@ function pushReplacementSteps(replacements: MealChange[], plansBefore: WeekPlan[
   }
 }
 
-/** "Undo" in the saved message (#192): brings back the dishes the settings change replaced; the settings stay. */
-export async function undoReplacements(changes: MealChange[]): Promise<void> {
+/**
+ * "Undo" in the saved message (#192): brings back the dishes the settings change replaced; the settings stay.
+ * A dish that doesn't fit an allergy or something someone doesn't tolerate comes back only after "Pick anyway?" (#194).
+ */
+export async function undoReplacements(changes: MealChange[], t: TFunction): Promise<void> {
   const [recipes, ingredients, household, plans] = await Promise.all([
     repository.listRecipes(),
     repository.listIngredients(),
@@ -63,7 +69,14 @@ export async function undoReplacements(changes: MealChange[]): Promise<void> {
   ])
   const ctx = { recipes, ingredients: new Map(ingredients.map((i) => [i.id, i])), household }
   const today = toIsoDate(new Date())
-  const reverted = revertChanges(plans, changes)
+  const unsafe = unsafeUndo(ctx, plans, changes)
+  let toRevert = changes
+  if (unsafe.length > 0) {
+    const language = repository.getLanguageSync()
+    const names = unsafe.map((c) => localize(recipes.find((r) => r.id === c.before.recipeId)?.name, language))
+    if (!(await confirmUnsafeUndo(t, names))) toRevert = changes.filter((c) => !unsafe.includes(c))
+  }
+  const reverted = revertChanges(plans, toRevert)
   for (let i = 0; i < plans.length; i++) {
     // Portions of the restored dishes follow the new settings.
     if (reverted[i] !== plans[i]) await repository.saveWeekPlan(refreshPortions(ctx, reverted[i], today))
@@ -124,7 +137,9 @@ export async function runAutoWeekPlan(today: IsoDate = toIsoDate(new Date())): P
     repository.getWeekPlan(weekId),
     repository.getWeekPlan(shiftWeek(weekId, -1)),
   ])
-  const ctx = { recipes, ingredients: new Map(ingredients.map((i) => [i.id, i])), household }
+  // "Use what we have at home first" (#177, #194) also applies to the automatic week plan.
+  const atHome = household.useHomeFirst ? atHomeIds(await repository.listPantry()) : undefined
+  const ctx = { recipes, ingredients: new Map(ingredients.map((i) => [i.id, i])), household, ...(atHome ? { atHome } : {}) }
   const plan = generateWeekPlan(ctx, {
     weekId,
     today,
@@ -150,7 +165,7 @@ export function showSavedToast(t: TFunction, result: { replaced: number; weeks: 
     ...(replacements.length > 0
       ? {
           duration: 10000,
-          action: { label: t('settings.undoReplaced'), onClick: () => void undoReplacements(replacements).then(() => toast(t('settings.replacedUndone'))) },
+          action: { label: t('settings.undoReplaced'), onClick: () => void undoReplacements(replacements, t).then(() => toast(t('settings.replacedUndone'))) },
         }
       : {}),
   })

@@ -461,6 +461,10 @@
       "changed_one": "{{count}} neue Menge",
       "changed_other": "{{count}} neue Mengen",
       "update": "Liste aktualisieren"
+    },
+    "homeFirst": {
+      "label": "Erst verwenden, was wir zu Hause haben",
+      "hint": "Trag deine Vorräte unter Zuhause ein, dann verwende ich sie im Plan."
     }
   },
   "household": {
@@ -670,7 +674,11 @@
       "none": "Keine Allergene",
       "hint": "Wähle alle, die enthalten sind, auch versteckte (z. B. Sojasoße = Gluten). Ohne Auswahl steht dort „Allergene nicht angegeben“."
     },
-    "or": "{{a}} oder {{b}}"
+    "or": "{{a}} oder {{b}}",
+    "undoAnyway": {
+      "description": "{{dishes}} wurde ersetzt, weil es nicht zu den Allergien oder Unverträglichkeiten passt. Trotzdem zurückholen?",
+      "cancel": "Ersetzung behalten"
+    }
   },
   "shopping": {
     "empty": "Die Einkaufsliste ist leer. Trag oben Artikel ein oder bestätige einen Wochenplan.",
@@ -709,5 +717,42 @@
     },
     "fromPlan": "+{{amount}} aus dem Plan",
     "notInPlan": "Wird im Plan nicht mehr gebraucht"
+  },
+  "listView": {
+    "label": "Ansicht",
+    "list": "Liste",
+    "categories": "Kategorien"
+  },
+  "pantry": {
+    "summary": "{{have}} da · {{empty}} leer",
+    "addLabel": "Artikel hinzufügen, die ihr zu Hause habt",
+    "addPlaceholder": "z. B. Hähnchenbrust, Reis, Eier",
+    "addHint": "Schreib einfach los. Trenne Artikel mit Komma oder neuer Zeile.",
+    "addButton": "Hinzufügen",
+    "added_one": "{{name}} hinzugefügt",
+    "added_other": "{{count}} Artikel hinzugefügt",
+    "alreadyHave": "{{names}} steht schon unter Zuhause",
+    "choiceLabel": "{{name}}: da oder leer",
+    "have": "Da",
+    "empty": "Leer",
+    "edit": "{{name}} bearbeiten",
+    "toList": "{{name}} auf die Einkaufsliste gesetzt",
+    "alreadyOnList": "{{name}} steht schon auf der Einkaufsliste",
+    "removed": "{{name}} aus Zuhause entfernt",
+    "remove": "Aus Zuhause entfernen",
+    "emptyState": "Was ihr im Laden abhakt, landet automatisch hier. Ihr könnt auch Artikel eintippen oder aus der Liste wählen.",
+    "categories": {
+      "protein": "Protein",
+      "produce": "Obst und Gemüse",
+      "dairy": "Milchprodukte",
+      "staples": "Vorräte",
+      "other": "Sonstiges"
+    },
+    "pick": {
+      "open": "Aus der Liste wählen",
+      "title": "Aus der Liste wählen",
+      "intro": "Tippe an, was ihr zu Hause habt. Nochmal tippen zum Entfernen.",
+      "done": "Fertig"
+    }
   }
 }

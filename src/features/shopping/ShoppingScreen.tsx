@@ -3,6 +3,7 @@ import { useEffect, useRef, useState, type FormEvent, type KeyboardEvent } from 
 import { flushSync } from 'react-dom'
 import { useTranslation } from 'react-i18next'
 import { PageHeader } from '@/components/PageHeader'
+import { ViewToggle, type ListView } from '@/components/ViewToggle'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { formatAmount, unitCount } from '@/data/amounts'
@@ -42,6 +43,8 @@ export function ShoppingScreen() {
   const [items, setItems] = useState<ShoppingItem[] | null>(null)
   const [memory, setMemory] = useState<SectionMemory>({})
   const [boughtOpen, setBoughtOpen] = useState(() => repository.isBoughtSectionOpen())
+  /** "List" (alphabetical, default) or "Categories" (store sections), remembered on this device (#194 point 2). */
+  const [view, setView] = useState<ListView>(() => repository.getListView('shopping'))
   /** Items just ticked off: they stay in place (with ✓) for a second before moving down. */
   const [moving, setMoving] = useState<ReadonlySet<Id>>(new Set())
   const timers = useRef(new Map<Id, number>())
@@ -88,6 +91,7 @@ export function ShoppingScreen() {
   const bought = items.filter((i) => i.bought && !moving.has(i.id))
   const leftCount = items.filter((i) => !i.bought).length
   const groups = groupBySection(open, section, nameOf, language)
+  const byName = (list: ShoppingItem[]) => [...list].sort((a, b) => nameOf(a).localeCompare(nameOf(b), language))
   const weeks = new Set(items.map((i) => i.weekId).filter(Boolean))
   const editing = items.find((i) => i.id === editId) ?? null
 
@@ -390,8 +394,21 @@ export function ShoppingScreen() {
         </div>
       ) : null}
 
+      {items.length > 0 ? (
+        <div className="mb-3 flex justify-end">
+          <ViewToggle
+            value={view}
+            onChange={(next) => {
+              setView(next)
+              repository.setListView('shopping', next)
+            }}
+          />
+        </div>
+      ) : null}
+
       <div className="space-y-4">
-        {groups.map(({ section: s, items: sectionItems }) => (
+        {view === 'list' && open.length > 0 ? <ul className="divide-y rounded-2xl border bg-card px-3">{byName(open).map(row)}</ul> : null}
+        {view === 'categories' && groups.map(({ section: s, items: sectionItems }) => (
           <section key={s} aria-labelledby={`section-${s}`}>
             <h2 id={`section-${s}`} className="mb-1 text-xs font-semibold tracking-wide text-muted-foreground uppercase">
               {t(`storeSections.${s}`)}
@@ -415,7 +432,9 @@ export function ShoppingScreen() {
               <ChevronDownIcon aria-hidden className="size-5 transition-transform group-open:rotate-180" />
             </summary>
             <div className="px-3 pb-3">
-              <ul className="divide-y">{groupBySection(bought, section, nameOf, language).flatMap((g) => g.items.map(row))}</ul>
+              <ul className="divide-y">
+                {(view === 'list' ? byName(bought) : groupBySection(bought, section, nameOf, language).flatMap((g) => g.items)).map(row)}
+              </ul>
               {open.length > 0 ? (
                 <Button variant="outline" className="mt-2" onClick={removeBought}>
                   {t('shopping.clearBought')}

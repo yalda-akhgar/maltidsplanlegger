@@ -55,6 +55,7 @@ const KEYS = {
   /** Store sections the household chose by moving an item (#190): SectionMemory. */
   shopSections: 'shopSections',
   boughtSectionOpen: 'boughtSectionOpen', // device preference (#190)
+  listViews: 'listViews', // device preference: "List | Categories" per screen (#194)
   installCardDismissed: 'installCardDismissed',
   language: 'language', // device preference (#74)
   proteinAlerts: 'proteinAlerts', // device preference (#128)
@@ -324,6 +325,11 @@ export function createRepository(storage: KeyValueStorage) {
     async deletePantryItem(id: Id): Promise<void> {
       remove(KEYS.pantry, id)
     },
+    /** Replaces the whole Home list (several items change at once when typing or picking). */
+    async savePantry(items: PantryItem[]): Promise<PantryItem[]> {
+      write(KEYS.pantry, items)
+      return items
+    },
 
     // --- Device preferences (not household data) ------------------------
     /**
@@ -344,6 +350,13 @@ export function createRepository(storage: KeyValueStorage) {
     },
     setProteinAlerts(on: boolean): void {
       write(KEYS.proteinAlerts, on)
+    },
+    /** "List" (alphabetical, the default) or "Categories" on a screen; remembered per screen on this device (#194). */
+    getListView(screen: 'shopping' | 'pantry'): 'list' | 'categories' {
+      return read<Record<string, string>>(KEYS.listViews, {})[screen] === 'categories' ? 'categories' : 'list'
+    },
+    setListView(screen: 'shopping' | 'pantry', view: 'list' | 'categories'): void {
+      write(KEYS.listViews, { ...read<Record<string, string>>(KEYS.listViews, {}), [screen]: view })
     },
     /** Whether the "Bought" section of the shopping list is open on this device (#190). Default closed. */
     isBoughtSectionOpen(): boolean {

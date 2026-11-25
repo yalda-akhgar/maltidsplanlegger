@@ -25,6 +25,7 @@ import {
   refillMeal,
   skipMeal,
   swapMeal,
+  unsafeUndo,
   type PlannerContext,
 } from './planner'
 import { eatsMeal, personalPortion, personDayNutrition, plannedTargetG, proteinBoost, totalPortions } from './protein'
@@ -588,6 +589,21 @@ describe('undo per meal and per week action (#146–#152)', () => {
   })
 })
 
+describe('"Use what we have at home first" (#177, #194)', () => {
+  it('makes dishes with items at home more likely', () => {
+    const SALMON = r('salmon-sweet-potato-broccoli')
+    const count = (atHome?: Set<string>) => {
+      let weeks = 0
+      for (let seed = 1; seed <= 150; seed++) {
+        const plan = generate(ctx(seed, atHome ? { atHome } : {}))
+        if (plan.days.some((d) => d.meals.dinner.recipeId === SALMON)) weeks++
+      }
+      return weeks
+    }
+    expect(count(new Set(['seed-ingredient-salmon']))).toBeGreaterThan(count())
+  })
+})
+
 describe('settings changes update planned weeks from today (#162)', () => {
   const TUESDAY = '2026-11-17'
   const SALMON = r('salmon-sweet-potato-broccoli')
@@ -660,6 +676,21 @@ describe('settings changes update planned weeks from today (#162)', () => {
       plan = setMeal(c, { plan, date: '2026-11-21', slot: 'snack', recipeId: CHEAT }).plan
       const newCtx = { ...c, household: { ...c.household, cheatDays: [] } }
       expect(adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0].days[5].meals.snack.recipeId).toBe(CHEAT)
+    })
+
+    it('finds the undos that would bring back a dish with an allergen (#194)', () => {
+      const c = ctx(25)
+      let plan = generate(c)
+      plan = setMeal(c, { plan, date: TUESDAY, slot: 'dinner', recipeId: SALMON }).plan
+      const people = c.household.people.map((p) => (p.id === 'a1' ? { ...p, allergies: ['fish' as const] } : p))
+      const newCtx = { ...c, household: { ...c.household, people } }
+      const after = adaptToSettings(newCtx, c.household, [plan], MONDAY).plans[0]
+      const changes = diffMeals([plan], [after]).filter((ch) => ch.before.recipeId !== ch.after.recipeId)
+      const unsafe = unsafeUndo(newCtx, [after], changes)
+      expect(unsafe.some((ch) => ch.date === TUESDAY && ch.slot === 'dinner')).toBe(true)
+      expect(unsafe.every((ch) => ch.before.recipeId && byId.get(ch.before.recipeId))).toBe(true)
+      // With the old household (no allergy) nothing is unsafe.
+      expect(unsafeUndo(c, [after], changes)).toEqual([])
     })
 
     it('replaces a picked dish with newly unwanted food (a hard rule), but not again after Undo', () => {

@@ -50,6 +50,7 @@ import type {
   Weekday,
   WeekPlan,
 } from './types'
+import { isCurrent, revertChanges, type MealChange } from './undo'
 import { datesOfWeek, shiftWeek, toIsoDate, weekIdOf } from './week'
 
 export const MAX_DINNER_MINUTES = 30
@@ -63,6 +64,11 @@ export interface PlannerContext {
   household: HouseholdSettings
   /** Random number in [0, 1). Injected so tests are repeatable. */
   random?: () => number
+  /**
+   * "Use what we have at home first" (#177, #194): ingredients marked "have"
+   * in Home. Dishes using them are more likely; missing = no preference.
+   */
+  atHome?: ReadonlySet<Id>
 }
 
 // ---------------------------------------------------------------------------
@@ -121,22 +127,25 @@ const inCategory = (recipe: Recipe, slot: MealSlot) => recipe.categoryIds.includ
 
 type Rule = (recipe: Recipe) => boolean
 
+type Weight = (recipe: Recipe) => number
+const favoriteWeight: Weight = (r) => (r.favorite ? 2 : 1)
+
 /**
  * Picks a recipe at random (favourites count twice, #14). Rules are listed
  * in the order they may be dropped: if no recipe meets all of them, the
  * first rule is dropped, then the next, and so on (#100).
  */
-function pick(candidates: Recipe[], rules: Rule[], random: () => number): Recipe | undefined {
+function pick(candidates: Recipe[], rules: Rule[], random: () => number, weight: Weight = favoriteWeight): Recipe | undefined {
   for (let skip = 0; skip <= rules.length; skip++) {
     const active = rules.slice(skip)
     const ok = candidates.filter((r) => active.every((rule) => rule(r)))
-    if (ok.length > 0) return weightedPick(ok, random)
+    if (ok.length > 0) return weightedPick(ok, random, weight)
   }
   return undefined
 }
 
-function weightedPick(recipes: Recipe[], random: () => number): Recipe {
-  const weights = recipes.map((r) => (r.favorite ? 2 : 1))
+function weightedPick(recipes: Recipe[], random: () => number, weight: Weight = favoriteWeight): Recipe {
+  const weights = recipes.map(weight)
   let roll = random() * weights.reduce((a, b) => a + b, 0)
   for (let i = 0; i < recipes.length; i++) {
     roll -= weights[i]
@@ -172,7 +181,21 @@ class Planner {
 
   /** Picks with the soft rules; in a favourites week a favourite is preferred while all other rules hold. */
   choose(candidates: Recipe[], rules: Rule[]): Recipe | undefined {
-    return pick(candidates, this.favoritesOnly ? [(r) => r.favorite, ...rules] : rules, this.random)
+    return pick(candidates, this.favoritesOnly ? [(r) => r.favorite, ...rules] : rules, this.random, this.weight)
+  }
+
+  /**
+   * How likely a recipe is to be picked: favourites twice (#14); with "Use what we have at home first"
+   * (#177, #194) a dish using items at home twice, and three times when its protein is at home.
+   */
+  readonly weight: Weight = (recipe) => favoriteWeight(recipe) * this.homeWeight(recipe)
+
+  private homeWeight(recipe: Recipe): number {
+    const atHome = this.ctx.atHome
+    if (!atHome || atHome.size === 0) return 1
+    const used = recipe.ingredients.map((l) => this.ctx.ingredients.get(l.ingredientId)).filter((i): i is Ingredient => !!i && !i.isStaple && atHome.has(i.id))
+    if (used.some((i) => i.proteinSource)) return 3
+    return used.length > 0 ? 2 : 1
   }
 
   recipe(id: Id | undefined): Recipe | undefined {
@@ -346,7 +369,7 @@ function planDinners(
             const ok = candidates.filter((r) => rules.every((rule) => rule(r)))
             const favorites = planner.favoritesOnly ? ok.filter((r) => r.favorite) : []
             const pool = favorites.length > 0 ? favorites : ok
-            return pool.length > 0 ? weightedPick(pool, planner.random) : undefined
+            return pool.length > 0 ? weightedPick(pool, planner.random, planner.weight) : undefined
           })()
         : planner.choose(candidates, rules)
       if (!recipe && strict && candidates.length > 0) return undefined
@@ -504,6 +527,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
       planner.safe(planner.dinners(), 'dinner', i).filter((r) => r.id !== meal.recipeId),
       [(r) => !others.has(r.id), planner.differentSource(...neighbours('dinner')), planner.noDislikes('dinner', i)],
       planner.random,
+      planner.weight,
     )
   } else {
     const candidates =
@@ -516,6 +540,7 @@ export function swapMeal(ctx: PlannerContext, options: SwapOptions): { plan: Wee
       planner.safe(candidates, options.slot, i).filter((r) => meal.status === 'leftovers' || r.id !== meal.recipeId),
       [planner.notSameAs(...neighbours(options.slot)), planner.noDislikes(options.slot, i)],
       planner.random,
+      planner.weight,
     )
   }
   if (!recipe) return { plan: options.plan, nextWeek: options.nextWeek }
@@ -1045,6 +1070,20 @@ export function planNotes(ctx: PlannerContext, plan: WeekPlan, previousWeek?: We
 // ---------------------------------------------------------------------------
 
 /** Safety of the dish on a meal for the people eating it (leftovers: the dinner's eaters). */
+/**
+ * The changes whose undo would bring back a dish that is unsafe for someone
+ * eating it – an allergy or something they don't tolerate. Undo asks "Pick
+ * anyway?" for these first (#194, #180).
+ */
+export function unsafeUndo(ctx: PlannerContext, plans: ReadonlyArray<WeekPlan | undefined>, changes: ReadonlyArray<MealChange>): MealChange[] {
+  const reverted = revertChanges([...plans], changes)
+  return changes.filter((c) => {
+    if (!isCurrent(c, plans)) return false
+    const day = reverted.find((p) => p?.weekId === c.weekId)?.days.find((d) => d.date === c.date)
+    return day !== undefined && mealSafety(ctx, day, c.slot)?.status === 'unsafe'
+  })
+}
+
 export function mealSafety(ctx: PlannerContext, day: DayPlan, slot: MealSlot): RecipeSafety | undefined {
   const meal = day.meals[slot]
   const planner = new Planner(ctx)

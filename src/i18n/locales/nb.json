@@ -492,6 +492,10 @@
       "changed_one": "{{count}} ny mengde",
       "changed_other": "{{count}} nye mengder",
       "update": "Oppdater listen"
+    },
+    "homeFirst": {
+      "label": "Bruk det vi har hjemme først",
+      "hint": "Legg inn varene dine under Hjemme, så bruker jeg dem i planen."
     }
   },
   "household": {
@@ -701,7 +705,11 @@
       "none": "Ingen allergener",
       "hint": "Velg alle som finnes i varen, også skjulte (f.eks. soyasaus = gluten). Velger du ingenting, står det «allergener ikke oppgitt»."
     },
-    "or": "{{a}} eller {{b}}"
+    "or": "{{a}} eller {{b}}",
+    "undoAnyway": {
+      "description": "{{dishes}} ble byttet ut fordi den ikke passer for allergiene eller det noen ikke tåler. Vil du ha den tilbake likevel?",
+      "cancel": "Behold byttet"
+    }
   },
   "shopping": {
     "empty": "Handlelisten er tom. Skriv inn varer over, eller godkjenn en ukeplan.",
@@ -740,5 +748,42 @@
     },
     "fromPlan": "+{{amount}} fra planen",
     "notInPlan": "Trengs ikke lenger i planen"
+  },
+  "listView": {
+    "label": "Visning",
+    "list": "Liste",
+    "categories": "Kategorier"
+  },
+  "pantry": {
+    "summary": "{{have}} har · {{empty}} tomme",
+    "addLabel": "Legg til varer dere har hjemme",
+    "addPlaceholder": "F.eks. kyllingfilet, ris, egg",
+    "addHint": "Skriv fritt. Skill varer med komma eller ny linje.",
+    "addButton": "Legg til",
+    "added_one": "{{name}} lagt til",
+    "added_other": "{{count}} varer lagt til",
+    "alreadyHave": "{{names}} står allerede på Hjemme",
+    "choiceLabel": "{{name}}: har eller tom",
+    "have": "Har",
+    "empty": "Tom",
+    "edit": "Endre {{name}}",
+    "toList": "{{name}} lagt på handlelisten",
+    "alreadyOnList": "{{name}} står allerede på handlelisten",
+    "removed": "{{name}} fjernet fra Hjemme",
+    "remove": "Fjern fra Hjemme",
+    "emptyState": "Det dere krysser av i butikken, havner her av seg selv. Du kan også skrive inn varer eller velge fra listen.",
+    "categories": {
+      "protein": "Protein",
+      "produce": "Frukt og grønt",
+      "dairy": "Meieri",
+      "staples": "Basisvarer",
+      "other": "Annet"
+    },
+    "pick": {
+      "open": "Velg fra listen",
+      "title": "Velg fra listen",
+      "intro": "Trykk på det dere har hjemme. Trykk igjen for å fjerne.",
+      "done": "Ferdig"
+    }
   }
 }

@@ -35,6 +35,7 @@ import {
   setGuests,
   setMeal,
   swapMeal,
+  unsafeUndo,
   weekdayOf,
   type PlannerContext,
 } from '@/data/planner'
@@ -51,7 +52,10 @@ import { useRecipeData } from '@/features/recipes/useRecipeData'
 import { withExampleFamily } from '@/features/household/example-family'
 import { useLanguage } from '@/i18n/useLanguage'
 import type { AllergyNoteTexts } from './AllergyNotes'
+import { Switch } from '@/components/ui/switch'
+import { atHomeIds } from '@/data/pantry'
 import { ApproveSheet } from './ApproveSheet'
+import { confirmUnsafeUndo } from './undo-anyway'
 import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'
 import { MoreSheet } from './MoreSheet'
@@ -89,6 +93,11 @@ export function WeekScreen() {
   /** Set while asking before replacing the week: with favourites only or not. */
   const [confirmReplace, setConfirmReplace] = useState<{ favoritesOnly: boolean } | null>(null)
   const [alertsOn] = useState(() => repository.getProteinAlertsSync())
+  /** Items at home, for "Use what we have at home first" (#177, #194). */
+  const [atHome, setAtHome] = useState<ReadonlySet<Id>>(new Set())
+  useEffect(() => {
+    void repository.listPantry().then((pantry) => setAtHome(atHomeIds(pantry)))
+  }, [])
 
   // The ref mirrors the latest state for toast buttons, which run after later changes.
   const plansRef = useRef(plans)
@@ -246,24 +255,43 @@ export function WeekScreen() {
   }
 
   /** ↶ on one meal: one step back (#146). The leftovers lunch that followed a dinner goes back too (#150). */
-  function undoMeal(date: IsoDate, slot: MealSlot) {
+  /**
+   * The changes to undo: all of them, or – when some would bring back a dish that doesn't fit an allergy
+   * or something someone doesn't tolerate – only the others, unless the user says "Pick anyway" (#194).
+   * Returns undefined when nothing is left to undo.
+   */
+  async function safeToUndo(current: Plans, changes: MealChange[]): Promise<MealChange[] | undefined> {
+    const unsafe = ctx ? unsafeUndo(ctx, [current.plan, current.next], changes) : []
+    if (unsafe.length === 0) return changes
+    if (await confirmUnsafeUndo(t, unsafe.map((c) => recipeName(c.before.recipeId)))) return changes
+    const rest = changes.filter((c) => !unsafe.includes(c))
+    return rest.length > 0 ? rest : undefined
+  }
+
+  async function undoMeal(date: IsoDate, slot: MealSlot) {
     const current = plansRef.current
     const step = current && mealUndo(date, slot, [current.plan, current.next]) ? popMealStep(date, slot) : undefined
     if (!current || !step) return
-    const [plan] = revertChanges([current.plan], step.changes)
-    const [next] = revertChanges([current.next], step.changes)
-    show(current, { plan, next })
+    const changes = await safeToUndo(current, step.changes)
+    if (!changes) return
+    const latest = plansRef.current ?? current
+    const [plan] = revertChanges([latest.plan], changes)
+    const [next] = revertChanges([latest.next], changes)
+    show(latest, { plan, next })
     afterMealChange(date, plan, t('week.toast.undone'))
   }
 
   /** The top ↶: undoes the last whole-week action, but not meals changed since (#146, #151). */
-  function undoWeek() {
+  async function undoWeek() {
     const current = plansRef.current
     const step = current && weekUndo(current.weekId, [current.plan, current.next]) ? popWeekStep(current.weekId) : undefined
     if (!current || !step) return
-    const [plan] = revertChanges([current.plan], step.changes)
-    const [next] = revertChanges([current.next], step.changes)
-    show(current, { plan, next })
+    const changes = await safeToUndo(current, step.changes)
+    if (!changes) return
+    const latest = plansRef.current ?? current
+    const [plan] = revertChanges([latest.plan], changes)
+    const [next] = revertChanges([latest.next], changes)
+    show(latest, { plan, next })
     toast.dismiss()
     setAnnouncement(t('week.toast.undone'))
   }
@@ -417,7 +445,7 @@ export function WeekScreen() {
   function fill(favoritesOnly: boolean, replace = false) {
     const current = plansRef.current
     if (!current || !ctx) return
-    const generated = generateWeekPlan(ctx, {
+    const generated = generateWeekPlan(household.useHomeFirst ? { ...ctx, atHome } : ctx, {
       weekId: current.weekId,
       today,
       existing: current.plan,
@@ -563,7 +591,7 @@ export function WeekScreen() {
         title={t('screens.week.title')}
         actions={
           topUndo ? (
-            <Button variant="secondary" onClick={undoWeek}>
+            <Button variant="secondary" onClick={() => void undoWeek()}>
               <Undo2Icon aria-hidden />
               {t('week.undoAction', { action: t(`week.undoActions.${topUndo.action}`) })}
             </Button>
@@ -651,6 +679,20 @@ export function WeekScreen() {
           ) : null}
         </div>
 
+        {/* "Use what we have at home first" (#177, #194): off by default, remembered for the household. */}
+        {hasEmpty ? (
+          <label className="-mt-2 flex items-start justify-between gap-3 rounded-2xl px-1 py-1">
+            <span>
+              <span className="block font-medium">{t('week.homeFirst.label')}</span>
+              <span className="block text-sm text-muted-foreground">{t('week.homeFirst.hint')}</span>
+            </span>
+            <Switch
+              checked={household.useHomeFirst === true}
+              onCheckedChange={(on) => void repository.saveHousehold({ ...household, useHomeFirst: on }).then(() => reload())}
+            />
+          </label>
+        ) : null}
+
         <p aria-live="polite" className="sr-only">
           {announcement}
         </p>
@@ -671,7 +713,7 @@ export function WeekScreen() {
                 hasEmptyMeals={emptyMeals(household, day).length > 0}
                 {...undoInfo(i)}
                 {...allergyInfo(day)}
-                onUndoMeal={(slot) => undoMeal(day.date, slot)}
+                onUndoMeal={(slot) => void undoMeal(day.date, slot)}
                 notes={notes.filter((n) => n.date === day.date)}
                 recipes={recipesById}
                 ingredients={data.ingredientMap}

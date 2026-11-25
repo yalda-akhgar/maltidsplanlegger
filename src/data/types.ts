@@ -258,6 +258,8 @@ export interface HouseholdSettings {
   // The UI language is NOT here: it is chosen per person/device (#74).
   /** "Make new week plan automatically" (#124, #164). Off when missing. */
   autoWeekPlan?: AutoWeekPlan
+  /** "Use what we have at home first" (#177, #194): dishes using items at home are preferred. Off when missing. */
+  useHomeFirst?: boolean
   /** False until the onboarding wizard has been completed or skipped (#24). */
   onboardingDone: boolean
   updatedAt: Timestamp

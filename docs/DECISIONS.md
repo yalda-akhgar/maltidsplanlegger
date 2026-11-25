@@ -1531,4 +1531,30 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (A) Not a hard rule – keep the dish with a note. (B) Remember "removed by you" separately. (C) Everything the user tapped counts. (D) Keep the user's dishes on "Start over" too.
 - **Rationale:** Product owner's choices ("a" on all), so the rule in `CLAUDE.md` holds for the whole app.
 - **Consequences:** `PlannedMeal.chosenByUser` (set by `setMeal`; removed by ↻, the planner and leftovers). Plans made before this have no marking, so their dishes count as the app's. `adaptToSettings` now replaces dishes only for **newly** unwanted food (as for allergies), so a dish brought back with Undo is not replaced again by a later, unrelated settings change. `save-settings.ts`: `undoReplacements` and per-dish undo steps; `shopping.ts`: `markAsHave`. Tests: 215.
-- **Open question for the product owner:** Undo also brings back a dish that was replaced because of a **new allergy** (the rule says "with Undo"). The allergy label is shown on the day card, but there is no "Pick anyway" question. Should undoing an allergy replacement ask "Pick anyway?" first (#180)?
+- **Open question for the product owner** (answered in #194: ask "Pick anyway?"): Undo also brings back a dish that was replaced because of a **new allergy** (the rule says "with Undo"). The allergy label is shown on the day card, but there is no "Pick anyway" question. Should undoing an allergy replacement ask "Pick anyway?" first (#180)?
+
+## 194. Home (milestone 3D), "List | Categories" on Home and the shopping list, and Undo of allergy replacements
+- **Date:** 2026-11-25
+- **Decision:**
+  1. **Home shows only items the household added or bought** (ticked off on the shopping list, typed, or picked from the list). It starts empty.
+  2. **"List | Categories"** – the same switch on **Home and the shopping list**, to be consistent. **Default "List"** on both, sorted alphabetically (easy to see whether we have something). "Categories" = Protein · Fruit and vegetables · Dairy · Staples · Other on Home, and the store sections on the shopping list. The app remembers the last choice per screen.
+  3. **"Empty"** puts the item on the shopping list right away, with "Olive oil added to the shopping list · Undo".
+  4. **Free typing on Home** too, as on the shopping list; items not in the catalogue (e.g. toothpaste) are allowed.
+  5. **Nothing leaves Home by itself**; "Do you still have …?" comes when the next week is approved (#145).
+  6. **"Use what we have at home first"** (#177): dishes using items at home are **twice as likely**, like favourites; protein items count most.
+  7. The switch sits **right under "Make week plan" / "Fill in empty"**, with the explanation from #177, and is remembered.
+  8. An item is **"Have" until the user changes it** or answers "Do you still have …?".
+  9. **Undo of a dish replaced because of an allergy** or something someone doesn't tolerate asks **"Pick anyway?"** first (#180) – in the "Saved" message, on the dish's ↶ and on the top Undo. Cancel keeps the swap; the other dishes are still brought back.
+- **Alternatives:** (1) All catalogue items. (2) Only categories; store sections on Home; the switch only on Home; shopping list starting in "Categories". (3) Ask first; only at approval. (4) Catalogue only. (5) Set to "Empty" after the week. (6) Dishes with most items at home first. (7) In "More"; in Settings. (8) Grey after 2 weeks. (9) Bring the dish back without asking.
+- **Rationale:** Product owner's choices (2026-11-25). The switch was the product owner's own design; Home and the shopping list must work the same way.
+- **Consequences:** `src/data/pantry.ts` (`homeCategory`, `addTypedToPantry`, `togglePantryIngredient`, `atHomeIds`, `addEmptyToShopping`) with `pantry.test.ts`; `PantryScreen`, `PickFromListSheet`; shared `TwoChoice` ("Have | Buy", "Have | Empty", "List | Categories") and `ViewToggle`. Repository: `savePantry`, device preference `getListView` / `setListView` (key `listViews`). `HouseholdSettings.useHomeFirst` (optional, no migration); `PlannerContext.atHome` and a recipe weight in the planner. Undo: `unsafeUndo` in the planner, a global confirmation dialog (`askConfirm` in `src/lib/confirm.ts`, `ConfirmHost` in `main.tsx`). **The shopping list now opens in "List"** (alphabetical), not by store section as in #190. Tests: 226.
+- **Interpretations made while building (to be approved):**
+  - (a) Typing an item that is "Empty" on Home sets it to "Have" again.
+  - (b) Home has no amounts: "2 l melk" on Home becomes "Melk".
+  - (c) "Pick from the list" leaves out the safe alternatives (gluten-free pasta, lactose-free milk …) to keep it short; they can still be typed.
+  - (d) Switching an item back from "Empty" to "Have" does not remove it from the shopping list (only Undo in the message does).
+  - (e) An "Empty" item that is already on the shopping list is not added twice ("… is already on the shopping list").
+  - (f) Weights: a dish using any item at home (not staples) ×2, and ×3 when its protein item is at home; combined with favourites (×2). ↻ uses the same weights. It also applies to the automatic week plan.
+  - (g) The switch is shown only when the week has empty meals (next to "Fill in empty"), because that is when it has an effect.
+  - (h) Dry goods typed on Home (rice, pasta) land in "Other", since Home has no dry goods group.
+  - (i) The "Pick anyway?" dialog for Undo reads "… was replaced because it doesn't fit the allergies or what someone doesn't tolerate. Bring it back anyway?" with [Keep the swap] / [Pick anyway].

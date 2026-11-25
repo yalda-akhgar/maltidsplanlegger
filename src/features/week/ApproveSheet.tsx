@@ -3,11 +3,11 @@ import { useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
+import { TwoChoice } from '@/components/ui/two-choice'
 import { formatAmount, unitCount } from '@/data/amounts'
 import type { ApprovalRow } from '@/data/shopping'
 import { needKey, type ItemChange } from '@/data/shopping-list'
 import { STORE_SECTIONS, type Id, type ItemChoice, type Language } from '@/data/types'
-import { cn } from '@/lib/utils'
 import { useLanguage } from '@/i18n/useLanguage'
 import { weekdayName } from './week-format'
 
@@ -159,21 +159,14 @@ function usesText(row: ApprovalRow, recipeName: (id: Id) => string, language: La
 export function ChoiceButtons({ name, choice, onChoice }: { name: string; choice: ItemChoice; onChoice: (choice: ItemChoice) => void }) {
   const { t } = useTranslation()
   return (
-    <div role="group" aria-label={t('week.approve.choiceLabel', { name })} className="flex shrink-0 rounded-xl border p-0.5">
-      {(['have', 'buy'] as const).map((c) => (
-        <button
-          key={c}
-          type="button"
-          aria-pressed={choice === c}
-          onClick={() => onChoice(c)}
-          className={cn(
-            'min-h-11 min-w-16 rounded-lg px-3 text-sm font-semibold outline-none focus-visible:ring-2 focus-visible:ring-ring',
-            choice === c ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-secondary',
-          )}
-        >
-          {t(`week.approve.${c}`)}
-        </button>
-      ))}
-    </div>
+    <TwoChoice
+      label={t('week.approve.choiceLabel', { name })}
+      options={[
+        { value: 'have', label: t('week.approve.have') },
+        { value: 'buy', label: t('week.approve.buy') },
+      ]}
+      value={choice}
+      onChange={onChoice}
+    />
   )
 }

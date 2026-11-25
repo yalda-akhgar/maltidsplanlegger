@@ -462,6 +462,10 @@
       "changed_one": "{{count}} new amount",
       "changed_other": "{{count}} new amounts",
       "update": "Update the list"
+    },
+    "homeFirst": {
+      "label": "Use what we have at home first",
+      "hint": "Add your items under Home, and I’ll use them in the plan."
     }
   },
   "household": {
@@ -671,7 +675,11 @@
       "none": "No allergens",
       "hint": "Choose all that are in the item, hidden ones too (e.g. soy sauce = gluten). If you choose nothing, it says “allergens not stated”."
     },
-    "or": "{{a}} or {{b}}"
+    "or": "{{a}} or {{b}}",
+    "undoAnyway": {
+      "description": "{{dishes}} was replaced because it doesn’t fit the allergies or what someone doesn’t tolerate. Bring it back anyway?",
+      "cancel": "Keep the swap"
+    }
   },
   "shopping": {
     "empty": "The shopping list is empty. Type items above, or approve a week plan.",
@@ -710,5 +718,42 @@
     },
     "fromPlan": "+{{amount}} from the plan",
     "notInPlan": "No longer needed in the plan"
+  },
+  "listView": {
+    "label": "View",
+    "list": "List",
+    "categories": "Categories"
+  },
+  "pantry": {
+    "summary": "{{have}} have · {{empty}} empty",
+    "addLabel": "Add items you have at home",
+    "addPlaceholder": "E.g. chicken breast, rice, eggs",
+    "addHint": "Write freely. Separate items with commas or new lines.",
+    "addButton": "Add",
+    "added_one": "{{name}} added",
+    "added_other": "{{count}} items added",
+    "alreadyHave": "{{names}} is already in Home",
+    "choiceLabel": "{{name}}: have or empty",
+    "have": "Have",
+    "empty": "Empty",
+    "edit": "Edit {{name}}",
+    "toList": "{{name}} added to the shopping list",
+    "alreadyOnList": "{{name}} is already on the shopping list",
+    "removed": "{{name}} removed from Home",
+    "remove": "Remove from Home",
+    "emptyState": "What you tick off in the shop lands here by itself. You can also type items or pick them from the list.",
+    "categories": {
+      "protein": "Protein",
+      "produce": "Fruit and vegetables",
+      "dairy": "Dairy",
+      "staples": "Staples",
+      "other": "Other"
+    },
+    "pick": {
+      "open": "Pick from the list",
+      "title": "Pick from the list",
+      "intro": "Tap what you have at home. Tap again to remove.",
+      "done": "Done"
+    }
   }
 }
