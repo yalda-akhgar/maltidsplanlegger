@@ -49,9 +49,12 @@ export function newDraft(kind: 'adult' | 'child'): PersonDraft {
   return { id: newId(), kind, name: '', target: '', dislikes: [], notTolerated: [], lunchAtHome: false, allergies: [] }
 }
 
-/** Turns a draft back into a person. An empty name gets `fallbackName`. */
-export function fromDraft(draft: PersonDraft, fallbackName: string): Person {
-  const person: Person = { id: draft.id, name: draft.name.trim() || fallbackName, kind: draft.kind, dislikedIngredientIds: [...draft.dislikes] }
+/**
+ * Turns a draft back into a person. An empty name stays empty and is shown as
+ * a default name in the current language (`personName`, #195).
+ */
+export function fromDraft(draft: PersonDraft): Person {
+  const person: Person = { id: draft.id, name: draft.name.trim(), kind: draft.kind, dislikedIngredientIds: [...draft.dislikes] }
   if (draft.kind === 'adult') {
     const target = parseTarget(draft.target)
     if (target) person.proteinTargetG = target

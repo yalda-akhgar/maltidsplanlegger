@@ -1,4 +1,4 @@
-import { PencilIcon, XIcon, UsersIcon } from 'lucide-react'
+import { GlobeIcon, PencilIcon, XIcon, UsersIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import type * as React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -6,14 +6,16 @@ import { useNavigate, useSearchParams } from 'react-router'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
-import { newId, repository } from '@/data/repository'
-import { LANGUAGES, type Allergen, type HouseholdSettings, type Id, type Ingredient, type Language, type ProteinSplit, type Weekday } from '@/data/types'
+import { repository } from '@/data/repository'
+import { LANGUAGES, type HouseholdSettings, type Ingredient, type Language, type Weekday } from '@/data/types'
 import { FoodRows } from '@/features/household/FoodRows'
 import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
 import { MealsOnFields } from '@/features/household/MealsOnFields'
 import { mealOn, mealsOn } from '@/data/meals'
-import { fromDraft, parseTarget, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
+import { fromDraft, parseTarget, targetInvalid } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
+import { toWizardDraft, type Draft } from './wizard-draft'
+import { personName } from '@/features/household/person-name'
 import { ProteinTargetField } from '@/features/household/ProteinTargetField'
 import { withExampleFamily } from '@/features/household/example-family'
 import { makeFirstWeekPlan, saveSettings, showSavedToast } from '@/features/household/save-settings'
@@ -22,40 +24,6 @@ import { back, currentStep, edit, isEditing, next, nextReturnsToSummary, skipAll
 
 const STEPS = 6
 
-type Draft = {
-  selfId: string
-  name: string
-  target: string
-  /** My own allergies (#180), food I don't tolerate and dislikes (#181). */
-  allergies: Allergen[]
-  notTolerated: Id[]
-  dislikes: Id[]
-  others: PersonDraft[]
-  excludedTags: string[]
-  excludedTerms: string[]
-  noDinnerAtHomeDays: Weekday[]
-  cheatDays: Weekday[]
-  /** Which meals the household eats: 0 % = off (#183). */
-  proteinSplit: ProteinSplit
-}
-
-function toWizardDraft(household: HouseholdSettings): Draft {
-  const self = selfOf(household)
-  return {
-    selfId: self?.id ?? newId(),
-    name: self?.name ?? '',
-    target: self?.proteinTargetG ? String(self.proteinTargetG) : '',
-    allergies: [...(self?.allergies ?? [])],
-    notTolerated: [...(self?.notToleratedIngredientIds ?? [])],
-    dislikes: [...(self?.dislikedIngredientIds ?? [])],
-    others: household.people.filter((p) => p !== self).map(toDraft),
-    excludedTags: [...household.excludedTags],
-    excludedTerms: [...household.excludedTerms],
-    noDinnerAtHomeDays: [...household.noDinnerAtHomeDays],
-    cheatDays: [...household.cheatDays],
-    proteinSplit: { ...household.proteinSplit },
-  }
-}
 
 /**
  * The onboarding wizard (#24, #158): six full-screen steps, each can be
@@ -96,11 +64,7 @@ export function OnboardingScreen() {
   async function finish() {
     if (!loaded || !draft) return
     setBusy(true)
-    let count = { adult: 1, child: 0 }
-    const others = draft.others.map((d) => {
-      count = { ...count, [d.kind]: count[d.kind] + 1 }
-      return fromDraft(d, `${t(d.kind === 'adult' ? 'household.adult' : 'household.child')} ${count[d.kind]}`)
-    })
+    const others = draft.others.map((d) => fromDraft(d))
     const hasSelf =
       draft.name.trim() !== '' || parseTarget(draft.target) !== undefined || draft.allergies.length > 0 || draft.notTolerated.length > 0 || draft.dislikes.length > 0
     const self = fromDraft(
@@ -113,9 +77,7 @@ export function OnboardingScreen() {
         notTolerated: draft.notTolerated,
         lunchAtHome: false,
         allergies: draft.allergies,
-      },
-      t('onboarding.me'),
-    )
+    })
     const household: HouseholdSettings = {
       ...loaded.household,
       people: hasSelf ? [self, ...others] : others,
@@ -169,6 +131,7 @@ export function OnboardingScreen() {
         </div>
 
         <main className="mt-6 flex flex-1 flex-col gap-5">
+          {step === 1 ? <LanguageRow /> : null}
           <h1 ref={headingRef} tabIndex={-1} className="text-2xl font-bold tracking-tight outline-none">
             {title}
           </h1>
@@ -195,6 +158,7 @@ export function OnboardingScreen() {
                 onChange={(others) => set({ others })}
                 ingredients={loaded.ingredients}
                 lunchOn={mealOn(draft.proteinSplit, 'lunch')}
+                selfId={draft.selfId}
                 self={
                   <div className="space-y-1 rounded-2xl border bg-card p-3">
                     <div className="flex items-center justify-between gap-3">
@@ -222,6 +186,7 @@ export function OnboardingScreen() {
                 noDinnerAtHomeDays={draft.noDinnerAtHomeDays}
                 cheatDays={draft.cheatDays}
                 snackOn={mealOn(draft.proteinSplit, 'snack')}
+                dinnerOn={mealOn(draft.proteinSplit, 'dinner')}
                 lunchOn={mealOn(draft.proteinSplit, 'lunch')}
                 onChange={set}
               />
@@ -268,27 +233,39 @@ function DocumentTitle({ title }: { title: string }) {
   return null
 }
 
-function WelcomeStep({ name, onName }: { name: string; onName: (name: string) => void }) {
+/**
+ * The language choice, at the very top of the first step (#195): the app starts
+ * in the phone's language (English if it has none of the app's languages), and
+ * one tap changes it.
+ */
+function LanguageRow() {
   const { t, i18n } = useTranslation()
   const changeLanguage = (language: Language) => {
     repository.setLanguage(language)
     void i18n.changeLanguage(language)
   }
   return (
+    <div role="group" aria-label={t('settings.language.title')} className="flex flex-wrap items-center gap-2">
+      <GlobeIcon aria-hidden className="size-5 text-muted-foreground" />
+      {LANGUAGES.map((language) => (
+        <Chip key={language} lang={language} selected={i18n.language === language} onClick={() => changeLanguage(language)}>
+          {t(`languages.${language}`)}
+        </Chip>
+      ))}
+    </div>
+  )
+}
+
+function WelcomeStep({ name, onName }: { name: string; onName: (name: string) => void }) {
+  const { t } = useTranslation()
+  return (
     <>
-      <div role="group" aria-label={t('settings.language.title')} className="flex flex-wrap gap-2">
-        {LANGUAGES.map((language) => (
-          <Chip key={language} lang={language} selected={i18n.language === language} onClick={() => changeLanguage(language)}>
-            {t(`languages.${language}`)}
-          </Chip>
-        ))}
-      </div>
       <p className="text-muted-foreground">{t('onboarding.welcome.text')}</p>
       <div className="space-y-1.5">
         <label htmlFor="onboarding-name" className="text-sm font-semibold">
           {t('onboarding.welcome.name')}
         </label>
-        <Input id="onboarding-name" value={name} onChange={(e) => onName(e.target.value)} autoComplete="given-name" />
+        <Input id="onboarding-name" value={name} onChange={(e) => onName(e.target.value)} placeholder={t('onboarding.me')} autoComplete="given-name" />
       </div>
     </>
   )
@@ -300,10 +277,11 @@ function Summary({ draft, again, onEdit }: { draft: Draft; again: boolean; onEdi
   // The user's own name and target are set on steps 1–2, so they get their own row (#189).
   const myTarget = parseTarget(draft.target)
   const me = [draft.name.trim() || t('onboarding.me'), ...(myTarget ? [t('onboarding.done.protein', { target: myTarget })] : [])].join(' · ')
+  const everyone = [{ id: draft.selfId, kind: 'adult' as const }, ...draft.others]
   const adults = draft.others
     .filter((p) => p.kind === 'adult')
-    .map((p) => `${p.name.trim() || t('household.adult')}${parseTarget(p.target) ? ` (${parseTarget(p.target)} g)` : ''}`)
-  const children = draft.others.filter((p) => p.kind === 'child').map((p) => p.name.trim() || t('household.child'))
+    .map((p) => `${personName(p, everyone, t)}${parseTarget(p.target) ? ` (${parseTarget(p.target)} g)` : ''}`)
+  const children = draft.others.filter((p) => p.kind === 'child').map((p) => personName(p, everyone, t))
   const excluded = [...(draft.excludedTags.includes('pork') ? [t('household.food.pork')] : []), ...draft.excludedTerms]
   // [label, value, the first step where it is changed, the last one] (#187, #189)
   const rows: [string, string, number, number?][] = [
@@ -312,7 +290,7 @@ function Summary({ draft, again, onEdit }: { draft: Draft; again: boolean; onEdi
     [t('onboarding.done.children'), children.length > 0 ? children.join(', ') : t('onboarding.done.none'), 3],
     [t('onboarding.done.excluded'), excluded.length > 0 ? excluded.join(', ') : t('onboarding.done.none'), 4],
     [t('onboarding.done.meals'), mealsOn(draft.proteinSplit).map((s) => t(`week.slots.${s}`)).join(', '), 5],
-    [t('onboarding.done.out'), days(draft.noDinnerAtHomeDays), 5],
+    ...(mealOn(draft.proteinSplit, 'dinner') ? [[t('onboarding.done.out'), days(draft.noDinnerAtHomeDays), 5] as [string, string, number]] : []),
     ...(mealOn(draft.proteinSplit, 'snack') ? [[t('onboarding.done.cheat'), days(draft.cheatDays), 5] as [string, string, number]] : []),
   ]
   return (

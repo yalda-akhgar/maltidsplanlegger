@@ -12,7 +12,11 @@ const PEOPLE: Person[] = [
   { id: 'example-ella', name: 'Ella', kind: 'child', dislikedIngredientIds: [] },
 ]
 
-/** Two adults, two children (Noah doesn't like salmon), no dinner at home on Fridays. */
+/**
+ * Two adults, two children (Noah doesn't like salmon), no dinner at home on
+ * Fridays. Always starts with nothing under "Food we don't want" – it is a
+ * demo, and must not take over what an earlier household saved (#188, #195).
+ */
 export function withExampleFamily(household: HouseholdSettings): HouseholdSettings {
-  return { ...household, people: PEOPLE, noDinnerAtHomeDays: [4] }
+  return { ...household, people: PEOPLE, excludedTags: [], excludedTerms: [], noDinnerAtHomeDays: [4] }
 }

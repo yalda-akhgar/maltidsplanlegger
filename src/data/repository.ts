@@ -13,6 +13,7 @@
  * because it must be applied before React renders to avoid a flash.
  */
 
+import { isOldDefaultName } from './default-names'
 import { DEFAULT_CATEGORIES, defaultHousehold } from './defaults'
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import { SEED_RECIPES } from './seed/recipes'
@@ -33,7 +34,7 @@ import {
 } from './types'
 
 /** Bump when the stored format changes, and add a migration below (#73). */
-export const SCHEMA_VERSION = 5
+export const SCHEMA_VERSION = 6
 
 /** Bump when new seed recipes/ingredients should be added to existing installs. */
 export const SEED_VERSION = 3 // v2: allergens + safe alternatives (#180) · v3: blend contents, single spices, milder alternatives, "can be left out" (#181)
@@ -160,7 +161,13 @@ export function createRepository(storage: KeyValueStorage) {
     }
     // v4 adds optional extras on meals (#120): no stored data changes.
     // v5 adds the optional automatic week plan setting (#164): no stored data changes.
-    // Future migrations: if (version < 6) { … }
+    if (version >= 1 && version < 6) {
+      // v6: default names ("Meg", "Voksen 2" …) were saved as real names; now an
+      // empty name is shown in the current language (#195). Typed names are kept.
+      const household = read<HouseholdSettings>(KEYS.household, defaultHousehold())
+      write(KEYS.household, { ...household, people: household.people.map((p) => (isOldDefaultName(p.name, p.kind) ? { ...p, name: '' } : p)) })
+    }
+    // Future migrations: if (version < 7) { … }
 
     write(KEYS.schemaVersion, SCHEMA_VERSION)
   }
@@ -377,7 +384,7 @@ export function createRepository(storage: KeyValueStorage) {
 export type Repository = ReturnType<typeof createRepository>
 
 /**
- * The phone's language if the app has it, otherwise Norwegian (#157).
+ * The phone's language if the app has it, otherwise English (#157, #195).
  * Norwegian Bokmål, Nynorsk and plain "no" all map to nb.
  */
 export function deviceLanguage(languages: readonly string[] = typeof navigator === 'undefined' ? [] : navigator.languages): Language {
@@ -386,7 +393,7 @@ export function deviceLanguage(languages: readonly string[] = typeof navigator =
     if (base === 'nb' || base === 'nn' || base === 'no') return 'nb'
     if ((LANGUAGES as readonly string[]).includes(base)) return base as Language
   }
-  return 'nb'
+  return 'en'
 }
 
 /** The app-wide repository, backed by the browser's localStorage. */

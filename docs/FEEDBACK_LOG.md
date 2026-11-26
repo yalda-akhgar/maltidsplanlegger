@@ -20,6 +20,72 @@ Copy this block for each piece of feedback:
 
 ---
 
+## Product owner acceptance test (milestone 3D), 2026-11-26
+
+### "Have" again should take the item off the shopping list
+- **Who / role:** product owner (acceptance test)
+- **Context:** Home – an item set to "Empty", then back to "Have"
+- **What they said:** "If I set an item from 'Empty' back to 'Have', it should be removed from the shopping list – if 'Empty' put it there and it isn't bought yet. I've said I have it."
+- **Insight:** the user's latest answer is what counts; a leftover item on the list is noise.
+- **Priority:** Medium
+- **What changed and why:** removed from the list when not bought; items the user or the plan added stay (#195, replaces #194 d).
+
+### Dry goods on Home
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "Add the group 'Dry goods' on Home (rice, pasta, oats, lentils, flour …), the same as on the shopping list." Lentils, beans and chickpeas – canned or dried – belong there: "Home should mirror where you keep things."
+- **Insight:** people look for an item where it is stored, not by its nutrition.
+- **Priority:** Medium
+- **What changed and why:** new group "Dry goods"; everything from the dry goods shelf goes there, also protein sources (#195, replaces #194 h).
+
+### Language at first start
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "Follow the phone's/browser's language automatically (nb/de/en, otherwise English). The language choice is clearly at the top and can be changed with one tap."
+- **Insight:** the first screen must be readable for every tester, also outside Norway.
+- **Priority:** High
+- **What changed and why:** English instead of Norwegian as the fallback; the language row sits at the very top of the wizard with a globe icon (#195).
+
+### "Meg" stayed after changing the language
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "If you change the language, it still says 'Meg' in the name field. 'Meg' should be grey help text, not a real value, and translated: Meg / Me / Ich. Names you typed yourself are never changed. Check other default texts too ('Voksen 2', 'Barn 1', 'Ingen')."
+- **Insight:** default texts were saved as real names, so they couldn't follow the language.
+- **Priority:** High
+- **What changed and why:** an untyped name is stored empty and shown in grey / in the current language; saved default names were emptied once. "None" already followed the language (#195).
+
+### Pork was still pre-selected
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "Pork is still pre-selected under 'Food we don't want', although we decided nothing should be pre-selected (#188). If it comes from old saved data, explain it and ask before changing data I've saved. Add a test."
+- **Insight:** data saved before a change in defaults looks like a bug, but it can't be told apart from a real choice.
+- **Priority:** High
+- **What changed and why:** the cause was data saved on the phone before #188; it was left as it is (removed with one tap). The example family no longer takes over saved exclusions. A test checks that nothing is pre-selected for a new household (#195).
+
+### Kid-friendly without children
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "When the household has no children, hide the 'Kid-friendly' filter and the badges on recipe cards. They come back automatically when children are added. The recipe data is kept."
+- **Insight:** options that don't apply make the app feel made for someone else.
+- **Priority:** Medium
+- **What changed and why:** hidden on Recipes, in "Pick a dish", in the recipe and in the recipe form (#195). Guests with children are in BACKLOG #11.
+
+### Meals turned off still showed up
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "When a meal is off (e.g. lunch), hide everything that only concerns that meal – e.g. the 'Lunch' filter under Recipes. The recipes are kept and can still be found under 'All'."
+- **Priority:** Medium
+- **What changed and why:** meal categories, snack type and fixed days without dinner at home are hidden while their meal is off (#195).
+
+### Show only what is relevant – a general rule
+- **Who / role:** product owner (acceptance test)
+- **What they said:** "Show only what is relevant to this household. Options, filters and labels that don't apply are hidden, and reappear automatically when they become relevant. Data is never deleted. Go through the app and show me the list before fixing."
+- **Insight:** a rule for the whole app, not a one-off fix.
+- **Priority:** Medium
+- **What changed and why:** added to `CLAUDE.md`; the audit list was reviewed and A, B, D, E, F were hidden while C, G, H were kept (#195).
+
+### "Delete" was mistaken for "remove from favourites"
+- **Who / role:** product owner (acceptance test)
+- **Context:** a recipe opened from Favourites
+- **What they said:** "'Delete' is easily confused with 'remove from favourites'. The heart should be the clear action. 'Delete recipe' written out and moved away. Big things (recipes, people, own ingredients) need confirmation with the name; small things (shopping list items) are deleted with Undo as today."
+- **Insight:** a destructive button next to a harmless one invites mistakes; Undo in a disappearing message is not enough for big things.
+- **Priority:** High
+- **What changed and why:** "Delete recipe" at the bottom of the recipe with a named confirmation; the heart says "Add to / Remove from favourites"; removing a person asks first. Rule added to `CLAUDE.md` (#195).
+
 ## Product owner acceptance test (milestone 3B and the wizard), 2026-11-22
 
 ### Staples with an amount on the shopping list

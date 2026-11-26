@@ -9,8 +9,10 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { repository } from '@/data/repository'
 import { mealsOn } from '@/data/meals'
+import { hasProteinTarget } from '@/data/relevance'
 import type { HouseholdSettings } from '@/data/types'
 import { selfOf } from '@/features/household/household-draft'
+import { personName } from '@/features/household/person-name'
 import { useHouseholdData } from './SettingsPage'
 
 /** Settings as a grouped list of sub-pages (#163). */
@@ -27,7 +29,9 @@ export function SettingsScreen() {
         {data ? <FamilyGroup household={data.household} /> : null}
 
         <Group title={t('settings.groups.weekPlan')}>
-          <li>
+          {/* Protein alerts only matter when someone has a protein target (#195). */}
+          {data && hasProteinTarget(data.household) ? (
+            <li>
             <label className="flex min-h-14 items-center justify-between gap-3 px-4 py-2">
               <span>
                 <span className="block font-medium">{t('settings.alerts.title')}</span>
@@ -42,6 +46,7 @@ export function SettingsScreen() {
               />
             </label>
           </li>
+          ) : null}
           {data ? (
             <>
               <Row
@@ -86,9 +91,20 @@ function FamilyGroup({ household }: { household: HouseholdSettings }) {
       <Row
         to="/settings/profile"
         title={t('settings.profile.title')}
-        hint={self ? (self.proteinTargetG ? t('settings.profile.summary', { name: self.name, target: self.proteinTargetG }) : self.name) : t('settings.profile.empty')}
+        hint={
+          self
+            ? self.proteinTargetG
+              ? t('settings.profile.summary', { name: personName(self, household.people, t), target: self.proteinTargetG })
+              : personName(self, household.people, t)
+            : t('settings.profile.empty')
+        }
       />
-      <Row to="/settings/household" title={t('settings.household.title')} hint={t('settings.household.summary', { adults, children })} />
+      {/* Without children, children aren't mentioned (#195). */}
+      <Row
+        to="/settings/household"
+        title={t('settings.household.title')}
+        hint={children > 0 ? t('settings.household.summary', { adults, children }) : t('settings.household.summaryAdults', { adults })}
+      />
       <Row
         to="/settings/food-week"
         title={t('settings.foodWeek.title')}

@@ -51,6 +51,7 @@ import type {
   WeekPlan,
 } from './types'
 import { isCurrent, revertChanges, type MealChange } from './undo'
+import { MEAL_SLOTS } from './types'
 import { datesOfWeek, shiftWeek, toIsoDate, weekIdOf } from './week'
 
 export const MAX_DINNER_MINUTES = 30
@@ -1106,4 +1107,30 @@ export function noSafeDish(ctx: PlannerContext, date: IsoDate, slot: MealSlot): 
   const pool =
     slot === 'dinner' ? planner.dinners() : slot === 'breakfast' ? planner.breakfasts() : slot === 'snack' ? planner.snacks(dayIndex) : planner.quickLunches()
   return planner.safe(pool, slot, dayIndex).length === 0
+}
+
+/**
+ * A recipe was deleted (#195): meals with it from `fromDate` on become empty
+ * ("Fill in empty" fills them); days before stay as they were. Leftovers of
+ * the dish go with it. Guests and extras on the meal are kept. Returns only
+ * the plans that changed.
+ */
+export function removeRecipeFromPlans(plans: readonly WeekPlan[], recipeId: Id, fromDate: IsoDate, now = new Date().toISOString()): WeekPlan[] {
+  const changed: WeekPlan[] = []
+  for (const plan of plans) {
+    let touched = false
+    const days = plan.days.map((day) => {
+      if (day.date < fromDate) return day
+      let meals = day.meals
+      for (const slot of MEAL_SLOTS) {
+        const meal = meals[slot]
+        if (meal?.recipeId !== recipeId || (meal.status !== 'planned' && meal.status !== 'leftovers')) continue
+        meals = { ...meals, [slot]: { ...emptyMeal('none', meal.guests), ...(meal.extras ? { extras: meal.extras } : {}) } }
+        touched = true
+      }
+      return meals === day.meals ? day : { ...day, meals }
+    })
+    if (touched) changed.push({ ...plan, days, updatedAt: now })
+  }
+  return changed
 }

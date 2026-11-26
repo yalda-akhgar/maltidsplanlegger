@@ -74,7 +74,8 @@
       "title": "Husholdning",
       "summary": "Voksne: {{adults}} · Barn: {{children}}",
       "selfTarget": "Deg · {{target}} g – endres under Min profil",
-      "selfNoTarget": "Deg – mål settes under Min profil"
+      "selfNoTarget": "Deg – mål settes under Min profil",
+      "summaryAdults": "Voksne: {{adults}}"
     },
     "foodWeek": {
       "title": "Mat og uke",
@@ -227,7 +228,6 @@
     "minutes": "{{count}} min",
     "proteinG": "{{value}} g protein",
     "favorite": "Favoritt: {{name}}",
-    "deleted": "«{{name}}» er slettet",
     "saved": "Oppskriften er lagret",
     "detail": {
       "protein": "protein per porsjon",
@@ -242,8 +242,9 @@
       "steps": "Slik gjør du",
       "nutritionMissing": "Noen ingredienser mangler næringsdata, så tallene kan være for lave.",
       "edit": "Rediger",
-      "delete": "Slett",
-      "favorite": "Favoritt"
+      "favorite": "Legg til i favoritter",
+      "unfavorite": "Fjern fra favoritter",
+      "deleteRecipe": "Slett oppskrift"
     },
     "form": {
       "newTitle": "Ny oppskrift",
@@ -302,6 +303,11 @@
       "hint": "Fyll inn både protein og kcal for å få næringsberegning. Ellers merkes oppskriften «Næring mangler».",
       "save": "Legg til ingrediens",
       "nameRequired": "Skriv inn et navn."
+    },
+    "deleteConfirm": {
+      "title": "Slette «{{name}}»?",
+      "text": "Oppskriften forsvinner fra ukeplanen og favorittene.",
+      "confirm": "Slett"
     }
   },
   "week": {
@@ -588,6 +594,11 @@
       "hint": "Måltider dere ikke spiser, blir ikke planlagt og teller ikke i proteinmålet. Proteinet fordeles på resten.",
       "minOne": "Minst ett av frokost, lunsj og middag må være på.",
       "off": "Spiser ikke"
+    },
+    "removeConfirm": {
+      "title": "Fjerne {{name}} fra husholdningen?",
+      "text": "Allergier og det {{name}} ikke liker eller ikke tåler, forsvinner også.",
+      "confirm": "Fjern"
     }
   },
   "onboarding": {
@@ -776,6 +787,7 @@
       "protein": "Protein",
       "produce": "Frukt og grønt",
       "dairy": "Meieri",
+      "dryGoods": "Tørrvarer",
       "staples": "Basisvarer",
       "other": "Annet"
     },

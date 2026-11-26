@@ -3,6 +3,7 @@ import { withSubstitutions } from '@/data/allergens'
 import { hasAllergyNotes } from '@/features/household/allergy-text'
 import { AllergyNotes, type AllergyNoteTexts } from './AllergyNotes'
 import { useTranslation } from 'react-i18next'
+import { nameById } from '@/features/household/person-name'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
@@ -49,7 +50,7 @@ export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickA
   const eatingOut = meal?.status === 'eatingOut'
   const skipped = meal?.status === 'skipped'
   const showRecipe = recipe && !eatingOut && !skipped
-  const name = (id: string) => data.household.people.find((p) => p.id === id)?.name ?? ''
+  const name = (id: string) => nameById(id, data.household.people, t)
 
   return (
     <BottomSheet
@@ -119,7 +120,8 @@ export function MealSheet({ target, meal, data, portionsToCook, onClose, onPickA
 
           {eatingOut ? <p className="text-muted-foreground">{t('week.meal.eatingOutText')}</p> : null}
 
-          {showRecipe && Object.keys(meal.portions).length > 0 ? (
+          {/* Portions per person only matter when more than one person lives in the household (#195). */}
+          {showRecipe && Object.keys(meal.portions).length > 0 && data.household.people.length > 1 ? (
             <section aria-labelledby="meal-portions">
               <h3 id="meal-portions" className="mb-2 font-semibold">
                 {t('week.meal.portions')}

@@ -2,14 +2,17 @@ import { PlusIcon, SearchIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router'
-import { toast } from '@/lib/toast'
+import { askConfirm } from '@/lib/confirm'
 import { PageHeader } from '@/components/PageHeader'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
 import { Input } from '@/components/ui/input'
 import { localize } from '@/data/localize'
 import { recipeNutrition } from '@/data/nutrition'
+import { removeRecipeFromPlans } from '@/data/planner'
+import { recipeRelevance } from '@/data/relevance'
 import { repository } from '@/data/repository'
+import { toIsoDate } from '@/data/week'
 import type { Recipe } from '@/data/types'
 import { useLanguage } from '@/i18n/useLanguage'
 import { RecipeCard } from './RecipeCard'
@@ -32,23 +35,35 @@ export function RecipesScreen() {
   const [filter, setFilter] = useState<Filter>({ kind: 'all' })
   const [openId, setOpenId] = useState<string | null>(null)
 
+  // Only what is relevant to this household (#195): "Kid-friendly" without children and
+  // meals the household doesn't eat are hidden; an active filter that disappears falls back to "All".
+  const relevance = useMemo(() => (data ? recipeRelevance(data.household, data.categories) : null), [data])
+  const activeFilter = useMemo<Filter>(
+    () =>
+      (filter.kind === 'kidFriendly' && !relevance?.kidFriendly) ||
+      (filter.kind === 'category' && !relevance?.categories.some((c) => c.id === filter.id))
+        ? { kind: 'all' }
+        : filter,
+    [filter, relevance],
+  )
+
   const visible = useMemo(() => {
     if (!data) return []
     const q = query.trim().toLocaleLowerCase(language)
     return data.recipes
       .filter((r) => {
-        if (filter.kind === 'category' && !r.categoryIds.includes(filter.id)) return false
-        if (filter.kind === 'favorites' && !r.favorite) return false
-        if (filter.kind === 'kidFriendly' && !r.kidFriendly) return false
+        if (activeFilter.kind === 'category' && !r.categoryIds.includes(activeFilter.id)) return false
+        if (activeFilter.kind === 'favorites' && !r.favorite) return false
+        if (activeFilter.kind === 'kidFriendly' && !r.kidFriendly) return false
         if (!q) return true
         // Matches the recipe name or any ingredient name in the current language (#92).
         const names = [r.name, ...r.ingredients.map((line) => data.ingredientMap.get(line.ingredientId)?.name)]
         return names.some((name) => localize(name, language).toLocaleLowerCase(language).includes(q))
       })
       .sort((a, b) => localize(a.name, language).localeCompare(localize(b.name, language), language)) // #82
-  }, [data, query, filter, language])
+  }, [data, query, activeFilter, language])
 
-  if (!data) return <PageHeader title={t('screens.recipes.title')} />
+  if (!data || !relevance) return <PageHeader title={t('screens.recipes.title')} />
 
   const openRecipe = data.recipes.find((r) => r.id === openId) ?? null
   const favoriteCount = data.recipes.filter((r) => r.favorite).length
@@ -59,27 +74,29 @@ export function RecipesScreen() {
     void repository.saveRecipe(updated)
   }
 
-  // Delete at once, with undo in the toast (#88).
+  // Deleting a recipe is big: always ask first, naming it (#195, replaces undo in the toast #88).
+  // The dish leaves the week plan from today on; days that have been stay as they were.
   const deleteRecipe = async (recipe: Recipe) => {
+    const name = localize(recipe.name, language)
+    const ok = await askConfirm({
+      title: t('recipes.deleteConfirm.title', { name }),
+      description: t('recipes.deleteConfirm.text'),
+      cancelLabel: t('common.cancel'),
+      confirmLabel: t('recipes.deleteConfirm.confirm'),
+    })
+    if (!ok) return
     setOpenId(null)
     await repository.deleteRecipe(recipe.id)
+    const changed = removeRecipeFromPlans(await repository.listWeekPlans(), recipe.id, toIsoDate(new Date()))
+    for (const plan of changed) await repository.saveWeekPlan(plan)
     await reload()
-    toast(t('recipes.deleted', { name: localize(recipe.name, language) }), {
-      duration: 10000,
-      action: {
-        label: t('common.undo'),
-        onClick: () => {
-          void repository.saveRecipe(recipe).then(reload)
-        },
-      },
-    })
   }
 
   const filters: { filter: Filter; label: string }[] = [
     { filter: { kind: 'all' }, label: t('recipes.all') },
-    ...data.categories.map((c) => ({ filter: { kind: 'category', id: c.id } as Filter, label: localize(c.name, language) })),
+    ...relevance.categories.map((c) => ({ filter: { kind: 'category', id: c.id } as Filter, label: localize(c.name, language) })),
     { filter: { kind: 'favorites' }, label: t('recipes.favorites') },
-    { filter: { kind: 'kidFriendly' }, label: t('recipes.kidFriendly') },
+    ...(relevance.kidFriendly ? [{ filter: { kind: 'kidFriendly' } as Filter, label: t('recipes.kidFriendly') }] : []),
   ]
 
   return (
@@ -110,7 +127,7 @@ export function RecipesScreen() {
 
         <div role="group" aria-label={t('recipes.filters')} className="flex flex-wrap gap-2">
           {filters.map(({ filter: f, label }) => (
-            <Chip key={label} selected={sameFilter(filter, f)} onClick={() => setFilter(f)}>
+            <Chip key={label} selected={sameFilter(activeFilter, f)} onClick={() => setFilter(f)}>
               {label}
             </Chip>
           ))}
@@ -130,7 +147,7 @@ export function RecipesScreen() {
               const name = localize(recipe.name, language)
               const protein = Math.round(recipeNutrition(recipe, data.ingredientMap).proteinG)
               const meta = [
-                categoryNames(recipe, data.categories, language),
+                categoryNames(recipe, relevance.categories, language),
                 t('recipes.minutes', { count: recipe.timeMinutes }),
                 t('recipes.proteinG', { value: protein }),
               ]
@@ -141,7 +158,7 @@ export function RecipesScreen() {
                   <RecipeCard
                     name={name}
                     meta={meta}
-                    badges={recipeBadges(recipe, t)}
+                    badges={recipeBadges(recipe, t, relevance)}
                     favorite={recipe.favorite}
                     onOpen={() => setOpenId(recipe.id)}
                     onToggleFavorite={() => toggleFavorite(recipe)}

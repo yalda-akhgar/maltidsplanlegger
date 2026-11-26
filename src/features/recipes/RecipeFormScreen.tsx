@@ -18,6 +18,7 @@ import { UNITS, type Ingredient, type Language, type LocalizedText, type Recipe,
 import { useLanguage } from '@/i18n/useLanguage'
 import { householdNotTolerated } from '@/data/allergens'
 import { IngredientPicker } from './IngredientPicker'
+import { recipeRelevance } from '@/data/relevance'
 import { useRecipeData, type RecipeData } from './useRecipeData'
 
 type LineState = { key: string; ingredientId: string; amount: string; unit: Unit; note?: LocalizedText; omittable?: boolean }
@@ -137,6 +138,9 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
 
   const ingredientMap = new Map(ingredients.map((i) => [i.id, i]))
   const isSnack = form.categoryIds.includes('snack')
+  // Only what is relevant to this household (#195): meals it doesn't eat, the snack type without
+  // a snack and "Kid-friendly" without children are hidden. Hidden values are kept when saving.
+  const relevance = recipeRelevance(data.household, data.categories)
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) => setForm((f) => ({ ...f, [key]: value }))
 
   const validate = (f: FormState): Errors => {
@@ -262,7 +266,7 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
         <fieldset className="space-y-2" aria-describedby={describedBy('categoryIds')}>
           <legend className="mb-2 text-sm font-medium">{t('recipes.form.categories')}</legend>
           <div className="flex flex-wrap gap-2">
-            {data.categories.map((c) => {
+            {relevance.categories.map((c) => {
               const selected = form.categoryIds.includes(c.id)
               return (
                 <Chip
@@ -280,7 +284,7 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
           {fieldError('categoryIds')}
         </fieldset>
 
-        {isSnack ? (
+        {isSnack && relevance.snackKind ? (
           <fieldset className="space-y-2">
             <legend className="mb-2 text-sm font-medium">{t('recipes.form.snackKind')}</legend>
             <div className="flex flex-wrap gap-2">
@@ -321,12 +325,14 @@ function RecipeForm({ title, recipe, data }: { title: string; recipe: Recipe | u
           </Field>
         </div>
 
-        <div className="flex min-h-11 items-center justify-between gap-4 rounded-xl border bg-card px-4 py-2">
-          <label htmlFor={`${uid}-kid`} className="font-medium">
-            {t('recipes.form.kidFriendly')}
-          </label>
-          <Switch id={`${uid}-kid`} checked={form.kidFriendly} onCheckedChange={(v) => set('kidFriendly', v)} />
-        </div>
+        {relevance.kidFriendly ? (
+          <div className="flex min-h-11 items-center justify-between gap-4 rounded-xl border bg-card px-4 py-2">
+            <label htmlFor={`${uid}-kid`} className="font-medium">
+              {t('recipes.form.kidFriendly')}
+            </label>
+            <Switch id={`${uid}-kid`} checked={form.kidFriendly} onCheckedChange={(v) => set('kidFriendly', v)} />
+          </div>
+        ) : null}
 
         <fieldset className="space-y-3" aria-describedby={describedBy('lines')}>
           <legend className="mb-2 text-lg font-semibold">{t('recipes.form.ingredients')}</legend>

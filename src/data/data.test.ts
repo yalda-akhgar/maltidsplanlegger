@@ -149,12 +149,12 @@ describe('localize', () => {
 })
 
 describe('deviceLanguage (#157)', () => {
-  it("uses the phone's language when the app has it, otherwise Norwegian", () => {
+  it("uses the phone's language when the app has it, otherwise English (#195)", () => {
     expect(deviceLanguage(['de-DE', 'en'])).toBe('de')
     expect(deviceLanguage(['nn-NO'])).toBe('nb')
     expect(deviceLanguage(['no'])).toBe('nb')
     expect(deviceLanguage(['fr-FR', 'en-GB'])).toBe('en')
-    expect(deviceLanguage(['fr-FR'])).toBe('nb')
-    expect(deviceLanguage([])).toBe('nb')
+    expect(deviceLanguage(['fr-FR'])).toBe('en')
+    expect(deviceLanguage([])).toBe('en')
   })
 })

@@ -74,7 +74,8 @@
       "title": "Haushalt",
       "summary": "Erwachsene: {{adults}} · Kinder: {{children}}",
       "selfTarget": "Du · {{target}} g – unter Mein Profil ändern",
-      "selfNoTarget": "Du – Ziel unter Mein Profil festlegen"
+      "selfNoTarget": "Du – Ziel unter Mein Profil festlegen",
+      "summaryAdults": "Erwachsene: {{adults}}"
     },
     "foodWeek": {
       "title": "Essen und Woche",
@@ -196,7 +197,6 @@
     "minutes": "{{count}} Min.",
     "proteinG": "{{value}} g Protein",
     "favorite": "Favorit: {{name}}",
-    "deleted": "„{{name}}“ wurde gelöscht",
     "saved": "Rezept gespeichert",
     "detail": {
       "protein": "Protein pro Portion",
@@ -211,8 +211,9 @@
       "steps": "Zubereitung",
       "nutritionMissing": "Für einige Zutaten fehlen Nährwerte, die Angaben können daher zu niedrig sein.",
       "edit": "Bearbeiten",
-      "delete": "Löschen",
-      "favorite": "Favorit"
+      "favorite": "Zu Favoriten hinzufügen",
+      "unfavorite": "Aus Favoriten entfernen",
+      "deleteRecipe": "Rezept löschen"
     },
     "form": {
       "newTitle": "Neues Rezept",
@@ -271,6 +272,11 @@
       "hint": "Gib Protein und kcal an, damit Nährwerte berechnet werden. Sonst wird das Rezept mit „Nährwerte fehlen“ markiert.",
       "save": "Zutat hinzufügen",
       "nameRequired": "Bitte einen Namen eingeben."
+    },
+    "deleteConfirm": {
+      "title": "„{{name}}“ löschen?",
+      "text": "Das Rezept verschwindet aus dem Wochenplan und den Favoriten.",
+      "confirm": "Löschen"
     }
   },
   "week": {
@@ -557,6 +563,11 @@
       "hint": "Mahlzeiten, die ihr nicht esst, werden nicht geplant und zählen nicht zum Proteinziel. Das Protein verteilt sich auf die anderen.",
       "minOne": "Mindestens Frühstück, Mittagessen oder Abendessen muss an sein.",
       "off": "Esst ihr nicht"
+    },
+    "removeConfirm": {
+      "title": "{{name}} aus dem Haushalt entfernen?",
+      "text": "Allergien und was {{name}} nicht mag oder nicht verträgt, werden ebenfalls entfernt.",
+      "confirm": "Entfernen"
     }
   },
   "onboarding": {
@@ -745,6 +756,7 @@
       "protein": "Protein",
       "produce": "Obst und Gemüse",
       "dairy": "Milchprodukte",
+      "dryGoods": "Trockenwaren",
       "staples": "Vorräte",
       "other": "Sonstiges"
     },

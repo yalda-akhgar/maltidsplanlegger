@@ -1,6 +1,8 @@
 import { HeartIcon, PlusIcon, SearchIcon, UtensilsIcon } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { nameById } from '@/features/household/person-name'
+import { hasChildren } from '@/data/relevance'
 import { BottomSheet } from '@/components/ui/bottom-sheet'
 import { Button } from '@/components/ui/button'
 import { Chip } from '@/components/ui/chip'
@@ -89,18 +91,18 @@ function PickList({ target, ctx, plan, people, onPick, safety, allergyText }: Om
     return allowed.filter((r) => {
       if (inSlot && !r.categoryIds.includes(target.slot)) return false
       if (favorites && !r.favorite) return false
-      if (kidFriendly && !r.kidFriendly) return false
+      if (kidFriendly && hasChildren(ctx.household) && !r.kidFriendly) return false
       if (!q) return true
       const names = [r.name, ...r.ingredients.map((line) => ctx.ingredients.get(line.ingredientId)?.name)]
       return names.some((name) => localize(name, language).toLocaleLowerCase(language).includes(q))
     }).sort((a, b) => rank(a) - rank(b)) // dishes with an allergen last (#180); the sort is stable
-  }, [allowed, query, inSlot, favorites, kidFriendly, target.slot, ctx.ingredients, language, safety])
+  }, [allowed, query, inSlot, favorites, kidFriendly, target.slot, ctx.ingredients, ctx.household, language, safety])
 
   const impacts = useMemo(
     () => pickImpacts(ctx, { plan, date: target.date, slot: target.slot, recipeIds: visible.map((r) => r.id) }),
     [ctx, plan, target, visible],
   )
-  const name = (id: Id) => people.find((p) => p.id === id)?.name ?? ''
+  const name = (id: Id) => nameById(id, people, t)
 
   return (
     <div className="space-y-3">
@@ -122,9 +124,12 @@ function PickList({ target, ctx, plan, people, onPick, safety, allergyText }: Om
         <Chip selected={favorites} onClick={() => setFavorites((v) => !v)}>
           {t('recipes.favorites')}
         </Chip>
-        <Chip selected={kidFriendly} onClick={() => setKidFriendly((v) => !v)}>
-          {t('recipes.kidFriendly')}
-        </Chip>
+        {/* Only with children in the household (#195). */}
+        {hasChildren(ctx.household) ? (
+          <Chip selected={kidFriendly} onClick={() => setKidFriendly((v) => !v)}>
+            {t('recipes.kidFriendly')}
+          </Chip>
+        ) : null}
       </div>
       <p role="status" className="sr-only">
         {t('recipes.showing', { count: visible.length })}

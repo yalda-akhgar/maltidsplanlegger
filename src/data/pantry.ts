@@ -13,20 +13,24 @@ import { memoryKey, normalizeName, resolveEntry, splitEntries, wordSection, type
 import type { Id, Ingredient, PantryItem, ShoppingItem, StoreSection, Timestamp } from './types'
 
 /** Groups for the "Categories" view on Home (#194 point 2). */
-export const HOME_CATEGORIES = ['protein', 'produce', 'dairy', 'staples', 'other'] as const
+export const HOME_CATEGORIES = ['protein', 'produce', 'dairy', 'dryGoods', 'staples', 'other'] as const
 export type HomeCategory = (typeof HOME_CATEGORIES)[number]
 
 const fromSection = (section: StoreSection | undefined): HomeCategory =>
-  section === 'meatFish' ? 'protein' : section === 'produce' ? 'produce' : section === 'dairy' ? 'dairy' : 'other'
+  section === 'meatFish' ? 'protein' : section === 'produce' ? 'produce' : section === 'dairy' ? 'dairy' : section === 'dryGoods' ? 'dryGoods' : 'other'
 
 /**
- * The Home group of an item: staples → "Staples"; a protein source (chicken,
- * eggs, lentils, skyr …) → "Protein"; fruit and vegetables; dairy; the rest
- * "Other". Free-text items are sorted with the built-in word list.
+ * The Home group of an item. Home mirrors where the item is kept (#195):
+ * staples → "Staples"; anything from the dry goods shelf (rice, pasta, oats,
+ * lentils, canned chickpeas and tomatoes …) → "Dry goods", also when it is a
+ * protein source; otherwise a protein source (chicken, eggs, skyr …) →
+ * "Protein"; fruit and vegetables; dairy; the rest "Other". Free-text items
+ * are sorted with the built-in word list.
  */
 export function homeCategory(ingredient: Ingredient | undefined, customName?: string): HomeCategory {
   if (!ingredient) return fromSection(customName ? wordSection(customName) : undefined)
   if (ingredient.isStaple) return 'staples'
+  if (ingredient.storeSection === 'dryGoods') return 'dryGoods'
   if (ingredient.proteinSource) return 'protein'
   if (ingredient.storeSection === 'produce' || (ingredient.nutritionPer100g?.fruitVegPortions ?? 0) > 0) return 'produce'
   return fromSection(ingredient.storeSection)
@@ -121,8 +125,25 @@ export function addEmptyToShopping(
       ? {}
       : { storeSection: options.memory?.[memoryKey({ name: item.customName })] ?? wordSection(item.customName ?? '') ?? 'other' }),
     bought: false,
+    fromEmpty: true,
     createdAt: options.now,
     updatedAt: options.now,
   }
   return { items: [...list, added], added }
+}
+
+/**
+ * Switching an item from "Empty" back to "Have" (#195, replaces #194 d): the
+ * user says they have it, so the item "Empty" put on the shopping list is
+ * removed – unless it is already bought. Items the user or the plan added
+ * are left alone.
+ */
+export function removeEmptyFromShopping(list: ShoppingItem[], item: PantryItem): { items: ShoppingItem[]; removed?: ShoppingItem } {
+  const removed = list.find(
+    (i) =>
+      i.fromEmpty &&
+      !i.bought &&
+      (item.ingredientId ? i.ingredientId === item.ingredientId : !i.ingredientId && normalizeName(i.customName ?? '') === normalizeName(item.customName ?? '')),
+  )
+  return removed ? { items: list.filter((i) => i !== removed), removed } : { items: list }
 }

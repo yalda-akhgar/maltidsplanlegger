@@ -16,6 +16,7 @@ import { MEAL_SLOTS, type HouseholdSettings, type Ingredient, type ProteinSplit 
 import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
 import { fromDraft, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
+import { personName } from '@/features/household/person-name'
 import { ProteinTargetField } from '@/features/household/ProteinTargetField'
 import { saveSettings, showSavedToast } from '@/features/household/save-settings'
 import { useUnsavedChanges } from '@/hooks/useUnsavedChanges'
@@ -67,7 +68,7 @@ function ProfileForm({ household, ingredients }: { household: HouseholdSettings;
   const { dialog, busy, save } = useSave(household, dirty)
 
   const submit = () => {
-    const person = fromDraft({ ...(self ? toDraft(self) : { id: newId(), kind: 'adult' as const, dislikes: [], notTolerated: [], lunchAtHome: false, allergies: [] }), ...form }, t('onboarding.me'))
+    const person = fromDraft({ ...(self ? toDraft(self) : { id: newId(), kind: 'adult' as const, dislikes: [], notTolerated: [], lunchAtHome: false, allergies: [] }), ...form })
     const people = self ? household.people.map((p) => (p.id === self.id ? person : p)) : [person, ...household.people]
     void save({ ...household, people })
   }
@@ -79,7 +80,7 @@ function ProfileForm({ household, ingredients }: { household: HouseholdSettings;
         <label htmlFor="profile-name" className="text-sm font-semibold">
           {t('onboarding.welcome.name')}
         </label>
-        <Input id="profile-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} autoComplete="given-name" />
+        <Input id="profile-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={t('onboarding.me')} autoComplete="given-name" />
       </div>
       <ProteinTargetField label={t('settings.profile.target')} value={form.target} onChange={(target) => setForm({ ...form, target })} withCalculator />
       <FoodRows name={form.name.trim() || t('onboarding.me')} value={form} ingredients={ingredients} onChange={(food) => setForm({ ...form, ...food })} />
@@ -105,11 +106,7 @@ function HouseholdForm({ household, ingredients }: { household: HouseholdSetting
   const invalid = people.some((p) => p.kind === 'adult' && targetInvalid(p.target))
 
   const submit = () => {
-    let count = { adult: 1, child: 0 }
-    const others = people.map((d) => {
-      count = { ...count, [d.kind]: count[d.kind] + 1 }
-      return fromDraft(d, `${t(d.kind === 'adult' ? 'household.adult' : 'household.child')} ${count[d.kind]}`)
-    })
+    const others = people.map((d) => fromDraft(d))
     void save({ ...household, people: self ? [self, ...others] : others })
   }
 
@@ -120,10 +117,11 @@ function HouseholdForm({ household, ingredients }: { household: HouseholdSetting
         onChange={setPeople}
         ingredients={ingredients}
         lunchOn={mealOn(household.proteinSplit, 'lunch')}
+        selfId={self?.id}
         self={
           self ? (
             <div className="flex items-center justify-between gap-3 rounded-2xl border bg-card p-3">
-              <span className="font-semibold">{self.name}</span>
+              <span className="font-semibold">{personName(self, household.people, t)}</span>
               <span className="text-right text-sm text-muted-foreground">
                 {self.proteinTargetG ? t('settings.household.selfTarget', { target: self.proteinTargetG }) : t('settings.household.selfNoTarget')}
               </span>
@@ -169,6 +167,7 @@ function FoodWeekForm({ household }: { household: HouseholdSettings }) {
         noDinnerAtHomeDays={form.noDinnerAtHomeDays}
         cheatDays={form.cheatDays}
         snackOn={mealOn(household.proteinSplit, 'snack')}
+        dinnerOn={mealOn(household.proteinSplit, 'dinner')}
         lunchOn={mealOn(household.proteinSplit, 'lunch')}
         onChange={(v) => setForm({ ...form, ...v })}
       />

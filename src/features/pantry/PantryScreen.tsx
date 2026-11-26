@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
 import { TwoChoice } from '@/components/ui/two-choice'
 import { localize } from '@/data/localize'
-import { addEmptyToShopping, addTypedToPantry, HOME_CATEGORIES, homeCategory, togglePantryIngredient } from '@/data/pantry'
+import { addEmptyToShopping, addTypedToPantry, HOME_CATEGORIES, homeCategory, removeEmptyFromShopping, togglePantryIngredient } from '@/data/pantry'
 import { newId, repository } from '@/data/repository'
 import type { Id, PantryItem } from '@/data/types'
 import { useRecipeData } from '@/features/recipes/useRecipeData'
@@ -72,6 +72,7 @@ export function PantryScreen() {
     if (!text.trim()) return
     const result = addTypedToPantry(itemsRef.current ?? [], text, { ingredients: data!.ingredients, now: new Date().toISOString(), newId })
     persist(result.items)
+    void takeOffShoppingList(result.restocked) // typed again = "Have" again (#195)
     setText('')
     const parts: string[] = []
     const changed = [...result.added, ...result.restocked]
@@ -94,7 +95,11 @@ export function PantryScreen() {
     const before = itemsRef.current ?? []
     const now = new Date().toISOString()
     persist(before.map((i) => (i.id === item.id ? { ...i, status, updatedAt: now } : i)))
-    if (status !== 'empty') return
+    if (status === 'have') {
+      // Back to "Have": the item "Empty" put on the shopping list goes away again, unless bought (#195).
+      await takeOffShoppingList([item])
+      return
+    }
     // "Empty" puts the item on the shopping list right away, with Undo.
     const [list, memory] = await Promise.all([repository.listShoppingItems(), repository.getSectionMemory()])
     const { items: nextList, added } = addEmptyToShopping(list, item, { memory, now, newId })
@@ -109,6 +114,21 @@ export function PantryScreen() {
         },
       },
     })
+  }
+
+  /** Removes what "Empty" put on the shopping list for these items (not bought ones) – #195. */
+  async function takeOffShoppingList(restocked: PantryItem[]) {
+    if (restocked.length === 0) return
+    let list = await repository.listShoppingItems()
+    let changed = false
+    for (const item of restocked) {
+      const result = removeEmptyFromShopping(list, item)
+      if (result.removed) {
+        list = result.items
+        changed = true
+      }
+    }
+    if (changed) await repository.saveShoppingItems(list)
   }
 
   // --- Removing an item -----------------------------------------------------------------------

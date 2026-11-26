@@ -1,7 +1,7 @@
 # CLAUDE.md
 
-## 📍 Status (updated 2026-11-25 – resume here)
-**Phase 3 in progress (decisions #184–#194). 3A–3C done (3C approved with #191–#193). 3D built (2026-11-25, #194) – waiting for the product owner's acceptance test: Home (`src/features/pantry/`, `src/data/pantry.ts`): only added/bought items, Have | Empty (`TwoChoice`), "Empty" → shopping list with Undo, free typing, "Pick from the list" sheet, nothing leaves Home by itself; "List | Categories" (`ViewToggle`) on Home and the shopping list, default List, remembered per screen; "Use what we have at home first" switch under Fill (`HouseholdSettings.useHomeFirst`, `PlannerContext.atHome` weights ×2 / ×3 for protein); Undo of allergy replacements asks "Pick anyway?" (`unsafeUndo`, `askConfirm` + `ConfirmHost`). Fixed rule "Automation never overrides the user's own choices" (#192) audited in #193 (`PlannedMeal.chosenByUser`). Interpretations (a)–(i) in #194 need approval. Tests: 226. NEXT: product owner tests 3D; then 3E swap after approval, then fixed shopping day (#184.7). Published: https://maltidsplanlegger.vercel.app.**
+## 📍 Status (updated 2026-11-26 – resume here)
+**Phase 3 in progress (decisions #184–#195). 3A–3C done. 3D approved with changes in #195 (2026-11-26): "Have" again removes the item "Empty" put on the shopping list (`ShoppingItem.fromEmpty`); Home group "Dry goods" mirrors where items are kept; English is the fallback language and the language row sits at the top of the wizard; default names ("Me", "Adult 2") are placeholders stored empty (`person-name.ts`, schema v6 cleans old ones); example family excludes nothing; "Show only what is relevant" (`src/data/relevance.ts`); deleting recipes and people asks first (`askConfirm`), deleted recipes leave the plan from today (`removeRecipeFromPlans`). Interpretations (a)–(e) in #195 need approval. Tests: 245. NEXT: product owner tests #195; then 3E swap after approval, then fixed shopping day (#184.7). Published: https://maltidsplanlegger.vercel.app.**
 
 Meals the household eats (#183): 0 % in `proteinSplit` = meal off (`src/data/meals.ts`); off meals not planned, not shown, not counted; lunch off → no leftovers portions; settings page "Meals and protein" with switches; wizard step 5 starts with "Which meals do you eat?" (`MealsOnFields`). Tests: 143.
 
@@ -66,13 +66,17 @@ Batch several small choices into one list. If anything is unclear, ask – don't
 
 **Automation never overrides the user's own choices.** Anything the user has set, changed or chosen manually (dishes, lunches, quantities, Have/Buy) is kept when the app recalculates – unless it no longer fits a hard rule (allergy, can't tolerate, meal turned off). Then only that item changes, with Undo. (Decision #192.)
 
+**Show only what is relevant to this household.** Options, filters and labels that don't apply (no children, a meal turned off, no allergies, etc.) are hidden, and reappear automatically when they become relevant. Data is never deleted. (Decision #195.)
+
+**Deleting something big (recipes, people, own ingredients) always asks for confirmation; small items use Undo.** The confirmation names the item and says what happens, with a red button. (Decision #195.)
+
 ---
 
 ## Working agreement
 - The product owner is a beginner. Explanations in chat are in **Norwegian**, short and simple. After each step: 2–4 sentences on what was done, why, and how to see the result.
 - When the product owner must act (create an account, click, approve), give numbered steps with exactly what to click.
 - Work in milestones and **stop after each one**, waiting for "fortsett".
-- **All documentation is in English**: README, `CLAUDE.md`, everything in `docs/`, code comments and commit messages. The app UI is Norwegian by default (German and English via i18n).
+- **All documentation is in English**: README, `CLAUDE.md`, everything in `docs/`, code comments and commit messages. The app UI follows the phone's language (Norwegian, German or English; English otherwise, #195); Norwegian is the fallback for missing texts.
 - **New ideas go to `docs/BACKLOG.md`** (in English) instead of being built right away.
 - **Every decision is logged in `docs/DECISIONS.md`** (date, decision, alternatives, rationale, consequences).
 - Commit after each finished step with short, clear English messages, and push to GitHub.

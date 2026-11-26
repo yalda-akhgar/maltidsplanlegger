@@ -14,6 +14,7 @@ import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
 import { IngredientFactsSheet } from './IngredientFacts'
 import { categoryNames, recipeBadges } from './recipe-format'
+import { recipeRelevance, relevantCategories } from '@/data/relevance'
 import type { RecipeData } from './useRecipeData'
 
 type RecipeDetailSheetProps = {
@@ -37,21 +38,18 @@ export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onE
       open={recipe !== null}
       onOpenChange={(open) => (open ? undefined : onClose())}
       title={recipe ? localize(recipe.name, language) : ''}
-      description={recipe ? categoryNames(recipe, data.categories, language) : undefined}
+      description={recipe ? categoryNames(recipe, relevantCategories(data.categories, data.household), language) : undefined}
       footer={
         recipe ? (
           <div className="flex flex-wrap gap-2 [&>*]:min-w-fit [&>*]:flex-1">
+            {/* The heart is the clear way to remove a favourite; its text says what a tap does (#195). */}
             <Button variant="outline" size="sm" aria-pressed={recipe.favorite} onClick={() => onToggleFavorite(recipe)}>
               <HeartIcon aria-hidden className={cn(recipe.favorite && 'fill-current text-primary-text')} />
-              {t('recipes.detail.favorite')}
+              {recipe.favorite ? t('recipes.detail.unfavorite') : t('recipes.detail.favorite')}
             </Button>
             <Button variant="outline" size="sm" onClick={() => onEdit(recipe)}>
               <PencilIcon aria-hidden />
               {t('recipes.detail.edit')}
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => onDelete(recipe)}>
-              <Trash2Icon aria-hidden />
-              {t('recipes.detail.delete')}
             </Button>
           </div>
         ) : null
@@ -59,6 +57,13 @@ export function RecipeDetailSheet({ recipe, data, onClose, onToggleFavorite, onE
     >
       {/* Keyed so the portion stepper resets when another recipe is opened. */}
       {recipe ? <RecipeDetailBody key={recipe.id} recipe={recipe} data={data} onIngredientSaved={onIngredientSaved} /> : null}
+      {/* "Delete recipe" sits at the very bottom, far from the heart, and always asks first (#195). */}
+      {recipe ? (
+        <Button variant="ghost" className="mt-6 w-full text-destructive" onClick={() => onDelete(recipe)}>
+          <Trash2Icon aria-hidden />
+          {t('recipes.detail.deleteRecipe')}
+        </Button>
+      ) : null}
     </BottomSheet>
   )
 }
@@ -96,7 +101,7 @@ export function RecipeDetailBody({
   const household = householdPortions(data.household)
   const [portions, setPortions] = useState(initialPortions && initialPortions > 0 ? initialPortions : household > 0 ? household : recipe.servings)
   const factor = portions / (recipe.servings || 1)
-  const badges = recipeBadges(recipe, t)
+  const badges = recipeBadges(recipe, t, recipeRelevance(data.household, data.categories))
 
   const stats = [
     { value: t('recipes.detail.grams', { value: Math.round(nutrition.proteinG) }), label: t('recipes.detail.protein') },

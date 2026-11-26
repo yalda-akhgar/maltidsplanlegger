@@ -74,7 +74,8 @@
       "title": "Household",
       "summary": "Adults: {{adults}} · Children: {{children}}",
       "selfTarget": "You · {{target}} g – change under My profile",
-      "selfNoTarget": "You – set your target under My profile"
+      "selfNoTarget": "You – set your target under My profile",
+      "summaryAdults": "Adults: {{adults}}"
     },
     "foodWeek": {
       "title": "Food and week",
@@ -197,7 +198,6 @@
     "minutes": "{{count}} min",
     "proteinG": "{{value}} g protein",
     "favorite": "Favourite: {{name}}",
-    "deleted": "“{{name}}” deleted",
     "saved": "Recipe saved",
     "detail": {
       "protein": "protein per portion",
@@ -212,8 +212,9 @@
       "steps": "Method",
       "nutritionMissing": "Some ingredients have no nutrition data, so the numbers may be too low.",
       "edit": "Edit",
-      "delete": "Delete",
-      "favorite": "Favourite"
+      "favorite": "Add to favourites",
+      "unfavorite": "Remove from favourites",
+      "deleteRecipe": "Delete recipe"
     },
     "form": {
       "newTitle": "New recipe",
@@ -272,6 +273,11 @@
       "hint": "Fill in both protein and kcal to get nutrition values. Otherwise the recipe is marked “Nutrition missing”.",
       "save": "Add ingredient",
       "nameRequired": "Enter a name."
+    },
+    "deleteConfirm": {
+      "title": "Delete “{{name}}”?",
+      "text": "The recipe disappears from the week plan and your favourites.",
+      "confirm": "Delete"
     }
   },
   "week": {
@@ -558,6 +564,11 @@
       "hint": "Meals you don't eat are not planned and don't count towards the protein target. The protein is spread over the others.",
       "minOne": "At least one of breakfast, lunch and dinner must be on.",
       "off": "Don't eat"
+    },
+    "removeConfirm": {
+      "title": "Remove {{name}} from the household?",
+      "text": "Allergies and what {{name}} doesn't like or doesn't tolerate are removed too.",
+      "confirm": "Remove"
     }
   },
   "onboarding": {
@@ -746,6 +757,7 @@
       "protein": "Protein",
       "produce": "Fruit and vegetables",
       "dairy": "Dairy",
+      "dryGoods": "Dry goods",
       "staples": "Staples",
       "other": "Other"
     },

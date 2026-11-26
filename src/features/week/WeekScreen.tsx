@@ -1,6 +1,7 @@
 import { CheckIcon, ChevronLeftIcon, ChevronRightIcon, EllipsisIcon, ListChecksIcon, SparklesIcon, Undo2Icon } from 'lucide-react'
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { nameById } from '@/features/household/person-name'
 import { Link, useNavigate } from 'react-router'
 import { selfOf } from '@/features/household/household-draft'
 import { PLANS_CHANGED } from '@/features/household/save-settings'
@@ -163,7 +164,7 @@ export function WeekScreen() {
     },
     [nutritionById, recipesById, data],
   )
-  const allergyText = useAllergyText(data?.ingredientMap ?? new Map(), (id) => data?.household.people.find((p) => p.id === id)?.name ?? '')
+  const allergyText = useAllergyText(data?.ingredientMap ?? new Map(), (id) => nameById(id, data?.household.people ?? [], t))
   /** Safety of every dish for the meal being picked (#180). */
   const pickSafetyMap = useMemo(() => (ctx && pickTarget ? pickSafety(ctx, pickTarget.date, pickTarget.slot) : undefined), [ctx, pickTarget])
   /** Set while asking "Pick anyway?" for a dish with an allergen (#180). */
@@ -223,7 +224,7 @@ export function WeekScreen() {
 
   // --- Changing the plan --------------------------------------------------
 
-  const personName = (id: Id) => household.people.find((p) => p.id === id)?.name ?? ''
+  const personName = (id: Id) => nameById(id, household.people, t)
 
   /** Saves new plan versions and shows them. Only weeks that actually changed are written. */
   function show(current: Plans, change: Change) {
@@ -628,7 +629,7 @@ export function WeekScreen() {
           </p>
         ) : withoutTarget.length > 0 ? (
           <p className="rounded-2xl bg-secondary p-4 text-sm text-secondary-foreground">
-            {t('week.noTarget', { names: withoutTarget.map((p) => p.name).join(', ') })}{' '}
+            {t('week.noTarget', { names: withoutTarget.map((p) => personName(p.id)).join(', ') })}{' '}
             <Link
               to={withoutTarget[0] === selfOf(household) ? '/settings/profile' : '/settings/household'}
               className="font-semibold underline underline-offset-2"
@@ -679,8 +680,9 @@ export function WeekScreen() {
           ) : null}
         </div>
 
-        {/* "Use what we have at home first" (#177, #194): off by default, remembered for the household. */}
-        {hasEmpty ? (
+        {/* "Use what we have at home first" (#177, #194): off by default, remembered for the household.
+            Shown only when it can have an effect: empty meals, and something at home (#195). */}
+        {hasEmpty && atHome.size > 0 ? (
           <label className="-mt-2 flex items-start justify-between gap-3 rounded-2xl px-1 py-1">
             <span>
               <span className="block font-medium">{t('week.homeFirst.label')}</span>

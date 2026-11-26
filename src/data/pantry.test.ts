@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addEmptyToShopping, addTypedToPantry, atHomeIds, homeCategory, togglePantryIngredient } from './pantry'
+import { addEmptyToShopping, addTypedToPantry, atHomeIds, homeCategory, removeEmptyFromShopping, togglePantryIngredient } from './pantry'
 import { SEED_INGREDIENTS } from './seed/ingredients'
 import type { PantryItem, ShoppingItem } from './types'
 
@@ -19,6 +19,11 @@ describe('homeCategory (#194 point 2)', () => {
     expect(homeCategory(ingredients.get(ing('grated-cheese')))).toBe('protein')
     expect(homeCategory(ingredients.get(ing('ice-cream')))).toBe('other')
     expect(homeCategory(ingredients.get(ing('olive-oil')))).toBe('staples')
+  })
+  it('puts everything from the dry goods shelf under "Dry goods", also protein sources – Home mirrors where items are kept (#195)', () => {
+    for (const key of ['brown-rice', 'wholewheat-pasta', 'oats', 'red-lentils', 'chickpeas']) expect(homeCategory(ingredients.get(ing(key)))).toBe('dryGoods')
+    expect(homeCategory(ingredients.get(ing('salt')))).toBe('staples') // staples stay staples
+    expect(homeCategory(undefined, 'Ris')).toBe('dryGoods')
   })
   it('groups free text with the word list', () => {
     expect(homeCategory(undefined, 'Melk')).toBe('dairy')
@@ -82,5 +87,32 @@ describe('addEmptyToShopping (#194 point 3)', () => {
     const result = addEmptyToShopping([onList], pantryItem({ ingredientId: ing('olive-oil') }), opts)
     expect(result.added).toBeUndefined()
     expect(result.items).toEqual([onList])
+  })
+})
+
+describe('removeEmptyFromShopping (#195, replaces #194 d)', () => {
+  const opts = { now: NOW, newId }
+  const oil = pantryItem({ ingredientId: ing('olive-oil'), status: 'empty' })
+
+  it('removes the item "Empty" put on the list when it is set back to "Have"', () => {
+    const { items } = addEmptyToShopping([], oil, opts)
+    const result = removeEmptyFromShopping(items, oil)
+    expect(result.removed?.ingredientId).toBe(ing('olive-oil'))
+    expect(result.items).toEqual([])
+  })
+  it('keeps it once it is bought', () => {
+    const { items } = addEmptyToShopping([], oil, opts)
+    const bought = items.map((i) => ({ ...i, bought: true }))
+    expect(removeEmptyFromShopping(bought, oil).items).toEqual(bought)
+  })
+  it('never removes items the user or the plan added', () => {
+    const own: ShoppingItem = { id: 'own', ingredientId: ing('olive-oil'), source: 'user', bought: false, createdAt: NOW, updatedAt: NOW }
+    const plan: ShoppingItem = { ...own, id: 'plan', source: 'plan' }
+    expect(removeEmptyFromShopping([own, plan], oil).removed).toBeUndefined()
+  })
+  it('matches free-text items by name', () => {
+    const paste = pantryItem({ customName: 'Tannkrem', status: 'empty' })
+    const { items } = addEmptyToShopping([], paste, opts)
+    expect(removeEmptyFromShopping(items, { ...paste, customName: 'tannkrem' }).items).toEqual([])
   })
 })

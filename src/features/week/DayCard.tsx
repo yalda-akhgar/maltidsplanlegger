@@ -2,6 +2,7 @@ import { CheckIcon, PlusIcon, RefreshCwIcon, Undo2Icon, XIcon } from 'lucide-rea
 import { unitCount } from '@/data/amounts'
 import { forwardRef } from 'react'
 import { useTranslation } from 'react-i18next'
+import { nameById } from '@/features/household/person-name'
 import { Button } from '@/components/ui/button'
 import { localize } from '@/data/localize'
 import type { RecipeNutrition } from '@/data/nutrition'
@@ -52,7 +53,7 @@ export const DayCard = forwardRef<HTMLElement, DayCardProps>(function DayCard(pr
   const language = useLanguage()
   const title = formatDay(day.date, language, t)
   const headingId = `day-${day.date}`
-  const personName = (id: Id) => people.find((p) => p.id === id)?.name ?? ''
+  const personName = (id: Id) => nameById(id, people, t)
 
   return (
     <section

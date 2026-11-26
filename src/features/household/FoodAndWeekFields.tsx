@@ -10,7 +10,7 @@ import { sortedDays } from './household-draft'
 
 const WEEKDAYS: Weekday[] = [0, 1, 2, 3, 4, 5, 6]
 
-/** Food we don't want: pork (preselected, #18) plus the household's own words. */
+/** Food we don't want: pork one tap away (nothing pre-selected, #188) plus the household's own words. */
 export function ExcludedFoodFields({
   excludedTags,
   excludedTerms,
@@ -122,6 +122,7 @@ export function WeekRhythmFields({
   cheatDays,
   snackOn = true,
   lunchOn = true,
+  dinnerOn = true,
   onChange,
 }: {
   noDinnerAtHomeDays: Weekday[]
@@ -130,16 +131,20 @@ export function WeekRhythmFields({
   snackOn?: boolean
   /** "The next day gets a quick lunch" is hidden while the household doesn't eat lunch (#183). */
   lunchOn?: boolean
+  /** Fixed days without dinner at home are hidden while the household doesn't eat dinner (#195). */
+  dinnerOn?: boolean
   onChange: (value: { noDinnerAtHomeDays: Weekday[]; cheatDays: Weekday[] }) => void
 }) {
   const { t } = useTranslation()
   return (
     <div className="space-y-5">
-      <div className="space-y-2">
-        <p className="font-semibold">{t('household.week.outTitle')}</p>
-        <WeekdayPicker label={t('household.week.outTitle')} value={noDinnerAtHomeDays} onChange={(days) => onChange({ cheatDays, noDinnerAtHomeDays: days })} />
-        {lunchOn ? <p className="text-sm text-muted-foreground">{t('household.week.outHint')}</p> : null}
-      </div>
+      {dinnerOn ? (
+        <div className="space-y-2">
+          <p className="font-semibold">{t('household.week.outTitle')}</p>
+          <WeekdayPicker label={t('household.week.outTitle')} value={noDinnerAtHomeDays} onChange={(days) => onChange({ cheatDays, noDinnerAtHomeDays: days })} />
+          {lunchOn ? <p className="text-sm text-muted-foreground">{t('household.week.outHint')}</p> : null}
+        </div>
+      ) : null}
       {snackOn ? (
       <div className="space-y-2">
         <p className="font-semibold">{t('household.week.cheatTitle')}</p>

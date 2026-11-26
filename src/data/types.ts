@@ -414,6 +414,8 @@ export interface ShoppingItem {
   fromPlan?: { amount: number; unit: Unit }
   /** The plan no longer needs an item whose amount the user changed: "No longer needed in the plan" (#192). */
   notInPlan?: true
+  /** Put on the list by "Empty" on Home; switching back to "Have" removes it if not bought (#195). */
+  fromEmpty?: true
   createdAt: Timestamp
   updatedAt: Timestamp
 }
