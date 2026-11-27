@@ -1583,9 +1583,16 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Keep the item on the list (#194 d). (2) Lentils under "Protein". (3) Norwegian as fallback; a language button that opens a list. (4) Keep saved default names. (5) Remove pork from every stored household once. (6) Hide only the Recipes filter; keep the form fields. (7) A "⋯" menu; an Undo message as well; pick a new dish automatically. (11) Build deleting own ingredients now.
 - **Rationale:** Product owner's acceptance test of 3D (FEEDBACK_LOG, 2026-11-26) and choices 1a–12b, A–H.
 - **Consequences:** `ShoppingItem.fromEmpty` and `removeEmptyFromShopping` in `pantry.ts`. `HOME_CATEGORIES` gets `dryGoods`; `homeCategory` checks the dry goods shelf before protein. `deviceLanguage` falls back to `en`. `fromDraft` no longer takes a fallback name; `src/features/household/person-name.ts` (`defaultName`, `personName`, `nameById`) is used wherever a person's name is shown; `src/data/default-names.ts` and schema v6 empty old default names. The wizard draft moved to `src/features/onboarding/wizard-draft.ts` (tested). New `src/data/relevance.ts` (`hasChildren`, `hasProteinTarget`, `relevantCategories`, `recipeRelevance`); `recipeBadges` takes the relevance; `WeekRhythmFields` takes `dinnerOn`. `removeRecipeFromPlans` in `planner.ts`. Deleting uses the global `askConfirm` (#194). Tests: 245 (`relevance.test.ts`, `household.test.ts`, more in `pantry.test.ts`).
-- **Interpretations made while building (to be approved):**
+- **Interpretations made while building** ((a)–(d) approved 2026-11-27; (e) decided in #196):
   - (a) Typing an item on Home that is "Empty" also removes the item "Empty" put on the shopping list – the same as switching it to "Have".
   - (b) Canned tuna, chopped tomatoes and canned sweetcorn are kept on the dry goods shelf, so they go to "Dry goods" on Home too (they were under "Protein" / "Fruit and vegetables").
   - (c) Default names are numbered by kind in household order: "Me" for the first adult, then "Adult 2", "Adult 3"; children "Child 1", "Child 2". Removing someone renumbers the others' default names.
   - (d) When a deleted recipe was a dinner, the leftovers lunch the next day also becomes empty (not a quick lunch).
   - (e) Found during the build and **not changed** (needs a choice): the recipe's portion hint "Adult = 1 portion, child = ½." is also shown without children.
+
+## 196. Portion hint only when the household has children
+- **Date:** 2026-11-27
+- **Decision:** The recipe's portion hint "Adult = 1 portion, child = ½." is shown only when the household has at least one child. It reappears automatically when a child is added. This applies the rule "Show only what is relevant to this household" (#195). Interpretations (a)–(d) in #195 are approved as written.
+- **Alternatives:** (1) Always show the hint. (2) Rewrite the hint for households without children (e.g. "1 portion per person").
+- **Rationale:** Product owner's answer to #195 (e), 2026-11-27: without children the hint is noise.
+- **Consequences:** `RecipeDetailSheet` shows the hint only when `hasChildren(household)`. The text itself is unchanged. BACKLOG #18 is done.

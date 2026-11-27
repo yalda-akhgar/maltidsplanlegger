@@ -14,7 +14,7 @@ import { useLanguage } from '@/i18n/useLanguage'
 import { cn } from '@/lib/utils'
 import { IngredientFactsSheet } from './IngredientFacts'
 import { categoryNames, recipeBadges } from './recipe-format'
-import { recipeRelevance, relevantCategories } from '@/data/relevance'
+import { hasChildren, recipeRelevance, relevantCategories } from '@/data/relevance'
 import type { RecipeData } from './useRecipeData'
 
 type RecipeDetailSheetProps = {
@@ -190,7 +190,7 @@ export function RecipeDetailBody({
             </Button>
           </div>
         </div>
-        <p className="mb-2 text-sm text-muted-foreground">{t('recipes.detail.portionsHint')}</p>
+        {hasChildren(data.household) && <p className="mb-2 text-sm text-muted-foreground">{t('recipes.detail.portionsHint')}</p>}
         <ul className="divide-y rounded-xl border bg-card">
           {recipe.ingredients.map((line, index) => {
             const ingredient = data.ingredientMap.get(line.ingredientId)
