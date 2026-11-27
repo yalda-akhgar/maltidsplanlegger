@@ -116,6 +116,29 @@ export function WeekdayPicker({
   )
 }
 
+/** Fixed shopping day (#198): "No fixed day" or one weekday. */
+export function ShoppingDayField({ value, onChange }: { value: Weekday | undefined; onChange: (day: Weekday | undefined) => void }) {
+  const { t } = useTranslation()
+  return (
+    <div className="space-y-2">
+      <p className="font-semibold">{t('household.week.shoppingDayTitle')}</p>
+      <button
+        type="button"
+        aria-pressed={value === undefined}
+        onClick={() => onChange(undefined)}
+        className={cn(
+          'flex min-h-11 w-full items-center justify-center rounded-xl border text-sm font-medium outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+          value === undefined ? 'border-primary bg-primary text-primary-foreground' : 'border-input bg-card hover:bg-secondary',
+        )}
+      >
+        {t('household.week.shoppingDayNone')}
+      </button>
+      <WeekdayPicker single label={t('household.week.shoppingDayTitle')} value={value === undefined ? [] : [value]} onChange={(days) => onChange(days[0])} />
+      <p className="text-sm text-muted-foreground">{t('household.week.shoppingDayHint')}</p>
+    </div>
+  )
+}
+
 /** "Your week": fixed days without dinner at home (#107) and cheat days (#21). */
 export function WeekRhythmFields({
   noDinnerAtHomeDays,

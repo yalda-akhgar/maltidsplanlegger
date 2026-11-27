@@ -1610,7 +1610,7 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Ask before swapping; only the banner, with the items listed. (2) Every change. (3) Two buttons at the bottom. (4) Everything straight on the list. (5) A button that opens "Pick a dish" with dishes using the item (BACKLOG #22). (6) ↶ only brings back the dish.
 - **Rationale:** Product owner's choices 1a–6a (2026-11-27): the plan and the list never drift apart silently, and the user decides item by item.
 - **Consequences:** New pure module `src/data/swap-list.ts` (`swapListChange`, `applySwapChange`, `revertListUndo`, `ListUndo`), tested in `swap-list.test.ts`. The sheet compares what the week needs before and after the change over the approval's days (#185 F); the approval follows the change, so the banner doesn't show for it, while earlier changes not yet on the list still show in the banner. Only the changed ingredients' items on the list are touched. UI: `src/features/week/SwapListSheet.tsx` (reuses `ChoiceButtons`); undo steps in `undo-store.ts` carry `listUndo`. Tests: 258.
-- **Interpretations made while building (to be approved):**
+- **Interpretations made while building** (approved 2026-11-27):
   - (a) **"Fill in empty"** in an approved week also opens the sheet (titled "Shopping list – new dishes"), since it fills empty meals like "Pick a dish" (2a). "Start over" and "Favourites week" (replace every dish) keep the banner.
   - (b) An item marked **"Keep"** becomes the user's own amount (#191): later updates don't remove it, and it shows "No longer needed in the plan" when the plan doesn't use it (#192). A kept staple becomes the user's own item.
   - (c) An item already on the list as "Buy" just grows ("On the list – the amount grows"), without "Have" / "Buy". A new staple (oil, spices) starts as "Have", without an amount (#184 point 3, #187).
@@ -1620,12 +1620,17 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 
 ## 198. Fixed shopping day: a reminder, the calendar week stays
 - **Date:** 2026-11-27
-- **Decision:** Replaces the shopping period from #113 for now. Not built yet – the next step after 3E.
+- **Decision:** Replaces the shopping period from #113 for now. Built 2026-11-27, after 3E.
   1. **The shopping list still covers one calendar week (7b).** The fixed shopping day is a **reminder**: on that day the week plan shows "Today is shopping day – approve the shopping list" while the week isn't approved (11a).
   2. **Where it is set (8a):** Settings → Food and week: "Shopping day: No fixed day / Mon … Sun". No day is chosen by default (#188).
   3. **Later (BACKLOG):** a shopping period that follows the shopping day (7a), choosing the period by hand, e.g. Mon–Fri (9a), and two shopping days a week (12a).
   - Point 10 (what happens to approved periods when the shopping day changes) falls away with 7b.
 - **Alternatives:** (7a) Approve a shopping period from the shopping day (e.g. Sat–Fri) that can span two weeks. (8b) Also ask in the wizard. (9b) A period picker in the approve sheet. (11b) No reminder. (12b) Two shopping days now.
 - **Rationale:** Product owner's choice (2026-11-27): phase 5 (sharing) matters more before 7 January than a large change here.
-- **Consequences:** A household setting for the shopping day (schema change when built). The reminder follows "Show only what is relevant" (#195): only when a shopping day is set.
+- **Consequences:** `HouseholdSettings.shoppingDay?: Weekday` (optional, so no schema migration; missing = no fixed day). `src/data/shopping-day.ts` (`shoppingReminderWeek`, tested in `shopping-day.test.ts`). Settings: `ShoppingDayField` on "Food and week". The reminder sits on the week plan above the "plan has changed" banner. It follows "Show only what is relevant" (#195): only when a shopping day is set. Tests: 263.
+- **Interpretations made while building (to be approved):**
+  - (a) **Which week the reminder is about:** this week if it isn't approved, otherwise next week; no reminder when both are approved. On Sunday only today is left, so the reminder is for next week.
+  - (b) **The button in the reminder:** "Go to week 49" when another week is shown; "Approve week plan" when the week can be approved; no button while meals are empty ("Fill in empty" is right below).
+  - (c) The reminder **can't be closed**; it goes away when the week is approved or the day is over.
+  - (d) In Settings, **"No fixed day"** is a full-width button above the seven weekdays.
 

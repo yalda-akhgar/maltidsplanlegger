@@ -43,6 +43,7 @@ import {
 import { BOOST_THRESHOLD_G, totalPortions } from '@/data/protein'
 import { newId, repository } from '@/data/repository'
 import { applyApproval, approvalRows, toApproval, usedIngredients, weekNeeds, type ApprovalRow, type ShoppingNeed } from '@/data/shopping'
+import { shoppingReminderWeek } from '@/data/shopping-day'
 import { applySwapChange, isEmptyChange, revertListUndo, swapListChange, type ListUndo, type SwapListChange } from '@/data/swap-list'
 import { weekPlanChanges, type ItemChange } from '@/data/shopping-list'
 import { mealsOn } from '@/data/meals'
@@ -114,6 +115,8 @@ export function WeekScreen() {
   /** What changed since the approval, while the approve sheet is open again (#190 point 9). */
   const [approveChanges, setApproveChanges] = useState<ReadonlyMap<string, ItemChange> | undefined>(undefined)
   const [swapSheet, setSwapSheet] = useState<SwapSheet | null>(null)
+  /** The week the shopping-day reminder is about (#198), if any. */
+  const [reminderWeek, setReminderWeek] = useState<WeekId | undefined>(undefined)
   /** Set while asking before replacing the week: with favourites only or not. */
   const [confirmReplace, setConfirmReplace] = useState<{ favoritesOnly: boolean } | null>(null)
   const [alertsOn] = useState(() => repository.getProteinAlertsSync())
@@ -151,6 +154,22 @@ export function WeekScreen() {
       active = false
     }
   }, [weekId, data])
+
+  // Shopping-day reminder (#198): checked again when an approval changes.
+  const shoppingDay = data?.household.shoppingDay
+  const shownApproval = plans?.approval
+  useEffect(() => {
+    let active = true
+    const thisWeek = weekIdOf(new Date())
+    void Promise.all([repository.getApproval(thisWeek), repository.getApproval(shiftWeek(thisWeek, 1))]).then(([a, b]) => {
+      if (!active) return
+      const approved = new Set([a, b].filter(Boolean).map((x) => x!.weekId))
+      setReminderWeek(shoppingReminderWeek(today, shoppingDay, (w) => approved.has(w)))
+    })
+    return () => {
+      active = false
+    }
+  }, [today, shoppingDay, shownApproval])
 
   // Plans or settings changed elsewhere (settings, wizard, automatic plan): load again (#162, #164).
   useEffect(() => {
@@ -736,6 +755,25 @@ export function WeekScreen() {
           <div className="rounded-2xl bg-secondary p-4 text-sm">
             <p className="font-semibold text-secondary-foreground">{t('week.emptyTitle', { week: weekNumber(weekId) })}</p>
             <p className="mt-1">{t('week.emptyText')}</p>
+          </div>
+        ) : null}
+
+        {/* Fixed shopping day (#198): a reminder while the week isn't approved. */}
+        {reminderWeek ? (
+          <div role="status" className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 rounded-2xl bg-secondary p-3 text-secondary-foreground">
+            <p className="text-sm font-medium">{t('week.shoppingDay.reminder', { week: weekNumber(reminderWeek) })}</p>
+            {reminderWeek !== weekId ? (
+              <Button size="sm" variant="outline" onClick={() => {
+                  toast.dismiss()
+                  setWeekId(reminderWeek)
+                }}>
+                {t('week.shoppingDay.goTo', { week: weekNumber(reminderWeek) })}
+              </Button>
+            ) : canApprove ? (
+              <Button size="sm" onClick={() => void openApprove()}>
+                {t('week.approve.button')}
+              </Button>
+            ) : null}
           </div>
         ) : null}
 

@@ -488,6 +488,10 @@
       "confirm": "Liste aktualisieren",
       "confirmCounts": "Liste aktualisieren ({{counts}})",
       "notNow": "Nicht jetzt"
+    },
+    "shoppingDay": {
+      "reminder": "Heute ist Einkaufstag – gib die Einkaufsliste für Woche {{week}} frei.",
+      "goTo": "Zu Woche {{week}}"
     }
   },
   "household": {
@@ -553,7 +557,10 @@
       "outTitle": "Feste Tage ohne Abendessen zu Hause",
       "outHint": "Am Tag danach gibt es ein schnelles Mittagessen statt Resten.",
       "cheatTitle": "Cheat Days – der Abendsnack darf etwas Leckeres sein",
-      "cheatHint": "Das Proteinziel gilt weiterhin."
+      "cheatHint": "Das Proteinziel gilt weiterhin.",
+      "shoppingDayTitle": "Einkaufstag",
+      "shoppingDayNone": "Kein fester Tag",
+      "shoppingDayHint": "Am Einkaufstag erinnert dich der Wochenplan daran, die Einkaufsliste freizugeben."
     },
     "weekdays": {
       "long": {

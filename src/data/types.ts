@@ -260,6 +260,8 @@ export interface HouseholdSettings {
   autoWeekPlan?: AutoWeekPlan
   /** "Use what we have at home first" (#177, #194): dishes using items at home are preferred. Off when missing. */
   useHomeFirst?: boolean
+  /** Fixed shopping day (#198): the week plan reminds the household to approve the shopping list. None when missing. */
+  shoppingDay?: Weekday
   /** False until the onboarding wizard has been completed or skipped (#24). */
   onboardingDone: boolean
   updatedAt: Timestamp

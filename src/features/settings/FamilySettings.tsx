@@ -13,7 +13,7 @@ import { canTurnOff, mealOn, turnMealOff, turnMealOn } from '@/data/meals'
 import { DEFAULT_PROTEIN_SPLIT } from '@/data/defaults'
 import { newId } from '@/data/repository'
 import { MEAL_SLOTS, type HouseholdSettings, type Ingredient, type ProteinSplit } from '@/data/types'
-import { ExcludedFoodFields, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
+import { ExcludedFoodFields, ShoppingDayField, WeekRhythmFields } from '@/features/household/FoodAndWeekFields'
 import { fromDraft, selfOf, targetInvalid, toDraft, type PersonDraft } from '@/features/household/household-draft'
 import { PeopleEditor } from '@/features/household/PeopleEditor'
 import { personName } from '@/features/household/person-name'
@@ -148,6 +148,7 @@ function FoodWeekForm({ household }: { household: HouseholdSettings }) {
     excludedTerms: h.excludedTerms,
     noDinnerAtHomeDays: h.noDinnerAtHomeDays,
     cheatDays: h.cheatDays,
+    shoppingDay: h.shoppingDay,
   })
   const [initial] = useState(() => pick(household))
   const [form, setForm] = useState(initial)
@@ -171,6 +172,7 @@ function FoodWeekForm({ household }: { household: HouseholdSettings }) {
         lunchOn={mealOn(household.proteinSplit, 'lunch')}
         onChange={(v) => setForm({ ...form, ...v })}
       />
+      <ShoppingDayField value={form.shoppingDay} onChange={(shoppingDay) => setForm({ ...form, shoppingDay })} />
       {dialog}
     </SettingsPage>
   )

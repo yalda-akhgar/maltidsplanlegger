@@ -489,6 +489,10 @@
       "confirm": "Update the list",
       "confirmCounts": "Update the list ({{counts}})",
       "notNow": "Not now"
+    },
+    "shoppingDay": {
+      "reminder": "Today is shopping day – approve the shopping list for week {{week}}.",
+      "goTo": "Go to week {{week}}"
     }
   },
   "household": {
@@ -554,7 +558,10 @@
       "outTitle": "Fixed days you don't eat dinner at home",
       "outHint": "The next day gets a quick lunch instead of leftovers.",
       "cheatTitle": "Cheat days – the evening snack can be a treat",
-      "cheatHint": "The protein target still applies."
+      "cheatHint": "The protein target still applies.",
+      "shoppingDayTitle": "Shopping day",
+      "shoppingDayNone": "No fixed day",
+      "shoppingDayHint": "On shopping day, the week plan reminds you to approve the shopping list."
     },
     "weekdays": {
       "long": {

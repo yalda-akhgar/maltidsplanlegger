@@ -519,6 +519,10 @@
       "confirm": "Oppdater listen",
       "confirmCounts": "Oppdater listen ({{counts}})",
       "notNow": "Ikke nå"
+    },
+    "shoppingDay": {
+      "reminder": "I dag er handledag – godkjenn handlelisten for uke {{week}}.",
+      "goTo": "Gå til uke {{week}}"
     }
   },
   "household": {
@@ -584,7 +588,10 @@
       "outTitle": "Faste dager dere ikke spiser middag hjemme",
       "outHint": "Dagen etter får en rask lunsj i stedet for rester.",
       "cheatTitle": "Cheat days – kveldssnacksen kan være noe godt",
-      "cheatHint": "Proteinmålet gjelder fortsatt."
+      "cheatHint": "Proteinmålet gjelder fortsatt.",
+      "shoppingDayTitle": "Handledag",
+      "shoppingDayNone": "Ingen fast dag",
+      "shoppingDayHint": "På handledagen minner ukeplanen deg på å godkjenne handlelisten."
     },
     "weekdays": {
       "long": {
