@@ -502,6 +502,23 @@
     "homeFirst": {
       "label": "Bruk det vi har hjemme først",
       "hint": "Legg inn varene dine under Hjemme, så bruker jeg dem i planen."
+    },
+    "swapList": {
+      "title": "Handlelisten – {{name}} ({{day}})",
+      "titleMany": "Handlelisten – nye retter",
+      "intro": "Slik endres handlelisten for uke {{week}}.",
+      "addTitle": "Nytt på listen",
+      "removeTitle": "Tas av listen",
+      "boughtTitle": "Allerede kjøpt",
+      "more": "Står på listen – mengden økes",
+      "keep": "Behold",
+      "kept": "Beholdes",
+      "keepLabel": "Behold {{name}} på listen",
+      "keptHint": "Blir stående på listen.",
+      "boughtHint": "Bruke det en annen dag?",
+      "confirm": "Oppdater listen",
+      "confirmCounts": "Oppdater listen ({{counts}})",
+      "notNow": "Ikke nå"
     }
   },
   "household": {

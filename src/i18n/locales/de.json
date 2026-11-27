@@ -471,6 +471,23 @@
     "homeFirst": {
       "label": "Erst verwenden, was wir zu Hause haben",
       "hint": "Trag deine Vorräte unter Zuhause ein, dann verwende ich sie im Plan."
+    },
+    "swapList": {
+      "title": "Einkaufsliste – {{name}} ({{day}})",
+      "titleMany": "Einkaufsliste – neue Gerichte",
+      "intro": "So ändert sich die Einkaufsliste für Woche {{week}}.",
+      "addTitle": "Neu auf der Liste",
+      "removeTitle": "Kommt von der Liste",
+      "boughtTitle": "Schon gekauft",
+      "more": "Steht auf der Liste – die Menge steigt",
+      "keep": "Behalten",
+      "kept": "Bleibt",
+      "keepLabel": "{{name}} auf der Liste behalten",
+      "keptHint": "Bleibt auf der Liste.",
+      "boughtHint": "An einem anderen Tag verwenden?",
+      "confirm": "Liste aktualisieren",
+      "confirmCounts": "Liste aktualisieren ({{counts}})",
+      "notNow": "Nicht jetzt"
     }
   },
   "household": {

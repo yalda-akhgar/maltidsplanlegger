@@ -1,4 +1,5 @@
 import { isCurrent, mealKey, type MealChange } from '@/data/undo'
+import type { ListUndo } from '@/data/swap-list'
 import type { IsoDate, MealSlot, WeekId, WeekPlan } from '@/data/types'
 
 /** What an undo button undoes: a swapped dish, another change to a meal, or a whole-week action. */
@@ -10,11 +11,14 @@ export interface MealStep {
   /** The dish before a swap, for the screen-reader label (#147). */
   previousRecipeId?: string
   changes: MealChange[]
+  /** The shopping list before the swap sheet updated it (#197): ↶ puts it back too. */
+  listUndo?: ListUndo
 }
 
 export interface WeekStep {
   action: WeekAction
   changes: MealChange[]
+  listUndo?: ListUndo
 }
 
 /**
@@ -60,4 +64,16 @@ export function pushWeekStep(weekId: WeekId, step: WeekStep) {
 
 export function popWeekStep(weekId: WeekId): WeekStep | undefined {
   return weekSteps.get(weekId)?.pop()
+}
+
+/** The swap sheet updated the list after the last change to this meal (#197). */
+export function attachMealListUndo(date: IsoDate, slot: MealSlot, listUndo: ListUndo) {
+  const step = mealSteps.get(mealKey(date, slot))?.at(-1)
+  if (step) step.listUndo = listUndo
+}
+
+/** The swap sheet updated the list after the last whole-week action (#197). */
+export function attachWeekListUndo(weekId: WeekId, listUndo: ListUndo) {
+  const step = weekSteps.get(weekId)?.at(-1)
+  if (step) step.listUndo = listUndo
 }

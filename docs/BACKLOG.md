@@ -23,6 +23,9 @@ Ideas we have deliberately postponed to keep the first version focused. Each ide
 | 17 | Vibration when ticking off | A short vibration when an item is ticked off (Android only; iPhone browsers don't support it). | Maybe | Some find it annoying, and it doesn't work the same everywhere (#190, 1d). | 2026-11-25 |
 | 18 | Portion hint without children | The recipe hint "Adult = 1 portion, child = ½." is shown also in households without children (#195 e). | Done | Hidden without children (#196). | 2026-11-26 |
 | 19 | Delete own ingredients | Delete an own ingredient, with a named confirmation (#195). Must decide what happens to recipes that use it. | Later | Not possible today; the rule for big deletions is in place (#195, 11a). | 2026-11-26 |
+| 20 | Shopping period from the shopping day | The shopping list covers the period from the fixed shopping day to the day before the next (e.g. Sat–Fri), approved as one period that can span two weeks. Also choosing the period by hand (e.g. Mon–Fri). | Later | Phase 5 (sharing) comes first; for now the shopping day is a reminder and the list covers the calendar week (#198, 7a, 9a). | 2026-11-27 |
+| 21 | Two shopping days a week | Some families shop twice a week (e.g. Saturday and Wednesday): one list per shopping day. | Later | One shopping day first (#198, 12a). | 2026-11-27 |
+| 22 | Use a bought item another day | In the swap sheet, "Already bought" gets a button that opens "Pick a dish" with dishes using that item. | Maybe | The text "Use it another day?" first (#197, 5a). | 2026-11-27 |
 
 ## How to use this list
 - New idea? Add a row with status **Later** or **Maybe**.

@@ -472,6 +472,23 @@
     "homeFirst": {
       "label": "Use what we have at home first",
       "hint": "Add your items under Home, and I’ll use them in the plan."
+    },
+    "swapList": {
+      "title": "Shopping list – {{name}} ({{day}})",
+      "titleMany": "Shopping list – new dishes",
+      "intro": "This is how the shopping list for week {{week}} changes.",
+      "addTitle": "New on the list",
+      "removeTitle": "Off the list",
+      "boughtTitle": "Already bought",
+      "more": "On the list – the amount grows",
+      "keep": "Keep",
+      "kept": "Kept",
+      "keepLabel": "Keep {{name}} on the list",
+      "keptHint": "Stays on the list.",
+      "boughtHint": "Use it another day?",
+      "confirm": "Update the list",
+      "confirmCounts": "Update the list ({{counts}})",
+      "notNow": "Not now"
     }
   },
   "household": {

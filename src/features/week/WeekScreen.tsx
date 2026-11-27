@@ -42,7 +42,8 @@ import {
 } from '@/data/planner'
 import { BOOST_THRESHOLD_G, totalPortions } from '@/data/protein'
 import { newId, repository } from '@/data/repository'
-import { applyApproval, approvalRows, toApproval, usedIngredients, weekNeeds, type ApprovalRow } from '@/data/shopping'
+import { applyApproval, approvalRows, toApproval, usedIngredients, weekNeeds, type ApprovalRow, type ShoppingNeed } from '@/data/shopping'
+import { applySwapChange, isEmptyChange, revertListUndo, swapListChange, type ListUndo, type SwapListChange } from '@/data/swap-list'
 import { weekPlanChanges, type ItemChange } from '@/data/shopping-list'
 import { mealsOn } from '@/data/meals'
 import { MEAL_SLOTS, type DayPlan, type Id, type IsoDate, type MealSlot, type WeekApproval, type WeekId, type WeekPlan } from '@/data/types'
@@ -61,7 +62,19 @@ import { DayCard } from './DayCard'
 import { MealSheet, type MealTarget } from './MealSheet'
 import { MoreSheet } from './MoreSheet'
 import { PickSheet, type PickTarget } from './PickSheet'
-import { mealUndo, popMealStep, popWeekStep, pushMealStep, pushWeekStep, weekUndo, type MealUndoKind, type WeekAction } from './undo-store'
+import { SwapListSheet } from './SwapListSheet'
+import {
+  attachMealListUndo,
+  attachWeekListUndo,
+  mealUndo,
+  popMealStep,
+  popWeekStep,
+  pushMealStep,
+  pushWeekStep,
+  weekUndo,
+  type MealUndoKind,
+  type WeekAction,
+} from './undo-store'
 import { formatDay, formatWeek, weekdayName, weekNumber } from './week-format'
 
 /** The plans the screen works on: this week, plus its neighbours for leftovers (#13). */
@@ -70,6 +83,15 @@ type Plans = { weekId: WeekId; plan: WeekPlan; previous?: WeekPlan; next?: WeekP
 type Change = { plan: WeekPlan; next?: WeekPlan }
 /** Which undo button a change belongs to: one meal's ↶ or the top button for a whole-week action (#146). */
 type UndoTarget = { meal: { date: IsoDate; slot: MealSlot } } | { week: WeekAction }
+/** The swap sheet (#197): what a change does to the approved week's shopping list. */
+type SwapSheet = {
+  title: string
+  change: SwapListChange
+  before: ShoppingNeed[]
+  after: ShoppingNeed[]
+  /** Where ↶ finds the list to put back. */
+  target: { meal: { date: IsoDate; slot: MealSlot } } | { week: WeekId }
+}
 
 /** Sheets close with an animation and their own history entry; wait before opening the next one. */
 const SHEET_SWITCH_MS = 350
@@ -91,6 +113,7 @@ export function WeekScreen() {
   const [approveRows, setApproveRows] = useState<ApprovalRow[] | null>(null)
   /** What changed since the approval, while the approve sheet is open again (#190 point 9). */
   const [approveChanges, setApproveChanges] = useState<ReadonlyMap<string, ItemChange> | undefined>(undefined)
+  const [swapSheet, setSwapSheet] = useState<SwapSheet | null>(null)
   /** Set while asking before replacing the week: with favourites only or not. */
   const [confirmReplace, setConfirmReplace] = useState<{ favoritesOnly: boolean } | null>(null)
   const [alertsOn] = useState(() => repository.getProteinAlertsSync())
@@ -280,6 +303,8 @@ export function WeekScreen() {
     const [next] = revertChanges([latest.next], changes)
     show(latest, { plan, next })
     afterMealChange(date, plan, t('week.toast.undone'))
+    // Only a full undo puts the list back; otherwise the banner shows what differs (#197).
+    if (changes === step.changes) await revertList(step.listUndo)
   }
 
   /** The top ↶: undoes the last whole-week action, but not meals changed since (#146, #151). */
@@ -295,6 +320,20 @@ export function WeekScreen() {
     show(latest, { plan, next })
     toast.dismiss()
     setAnnouncement(t('week.toast.undone'))
+    if (changes === step.changes) await revertList(step.listUndo)
+  }
+
+  /** ↶ after the swap sheet: the list and the approval as they were; what was bought since stays (#197, 6a). */
+  async function revertList(listUndo: ListUndo | undefined) {
+    if (!listUndo) return
+    await repository.saveShoppingItems(revertListUndo(await repository.listShoppingItems(), listUndo))
+    const saved = await repository.saveApproval(listUndo.approval)
+    const latest = plansRef.current
+    if (latest && latest.weekId === saved.weekId) {
+      const updated = { ...latest, approval: saved }
+      plansRef.current = updated
+      setPlans(updated)
+    }
   }
 
   /**
@@ -375,6 +414,7 @@ export function WeekScreen() {
     apply(result, { meal: { date, slot } })
     const meal = result.plan.days.find((d) => d.date === date)?.meals[slot]
     afterMealChange(date, result.plan, t('week.toast.swapped', { name: recipeName(meal?.recipeId) }))
+    void offerListUpdate(current, t('week.swapList.title', { name: recipeName(meal?.recipeId), day: weekdayName(date, language) }), { meal: { date, slot } })
   }
 
   /** A dish with an allergen for someone at the meal needs "Pick anyway" first (#180). */
@@ -392,6 +432,47 @@ export function WeekScreen() {
     apply(result, { meal: { date, slot } })
     const hadDish = old && (old.status === 'planned' || old.status === 'leftovers')
     afterMealChange(date, result.plan, t(hadDish ? 'week.toast.swapped' : 'week.toast.picked', { name: recipeName(recipeId) }))
+    // The pick sheet closes first.
+    const title = t('week.swapList.title', { name: recipeName(recipeId), day: weekdayName(date, language) })
+    window.setTimeout(() => void offerListUpdate(current, title, { meal: { date, slot } }), SHEET_SWITCH_MS)
+  }
+
+  /**
+   * After a swap or a pick in an approved week: the sheet with what changes on
+   * the shopping list (#173 point 6, #197). Not shown when nothing changes.
+   */
+  async function offerListUpdate(before: Plans, title: string, target: SwapSheet['target']) {
+    const after = plansRef.current
+    const approval = before.approval
+    if (!ctx || !after || !approval || after.weekId !== before.weekId || after.plan.days[6].date < today) return
+    const needsBefore = weekNeeds(ctx, before.plan, { nextWeek: before.next, fromDate: approval.fromDate })
+    const needsAfter = weekNeeds(ctx, after.plan, { nextWeek: after.next, fromDate: approval.fromDate })
+    const [list, pantry] = await Promise.all([repository.listShoppingItems(), repository.listPantry()])
+    const change = swapListChange(needsBefore, needsAfter, approval, list, pantry)
+    if (isEmptyChange(change)) return
+    setSwapSheet({ title, change, before: needsBefore, after: needsAfter, target })
+  }
+
+  /** "Update the list" in the swap sheet. */
+  async function confirmSwapList() {
+    const sheet = swapSheet
+    const current = plansRef.current
+    setSwapSheet(null)
+    if (!sheet || !current?.approval) return
+    const now = new Date().toISOString()
+    const isStaple = (id: Id) => data?.ingredientMap.get(id)?.isStaple ?? false
+    const result = applySwapChange(await repository.listShoppingItems(), current.approval, sheet.change, sheet.before, sheet.after, now, newId, isStaple)
+    await repository.saveShoppingItems(result.items)
+    const saved = await repository.saveApproval(result.approval)
+    if ('meal' in sheet.target) attachMealListUndo(sheet.target.meal.date, sheet.target.meal.slot, result.undo)
+    else attachWeekListUndo(sheet.target.week, result.undo)
+    const latest = plansRef.current ?? current
+    const updated = { ...latest, approval: saved }
+    plansRef.current = updated
+    setPlans(updated)
+    const title = t('week.approve.updated')
+    setAnnouncement(title)
+    toast(title, { action: { label: t('week.approve.seeList'), onClick: () => navigate('/shopping') } })
   }
 
   function eatingOut(date: IsoDate, slot: MealSlot, on: boolean) {
@@ -457,6 +538,8 @@ export function WeekScreen() {
     const action: WeekAction = replace ? 'replace' : favoritesOnly ? 'favorites' : planned ? 'fill' : 'make'
     // Next week's Monday lunch follows a changed Sunday dinner (#143).
     apply({ plan: generated, next: followSundayDinner(ctx, generated, current.next) }, { week: action })
+    // Filling empty meals in an approved week changes the list too (#197); "Start over" gets the banner.
+    if (!replace) void offerListUpdate(current, t('week.swapList.titleMany'), { week: current.weekId })
 
     // One short summary for the whole week, without a button (#152).
     const days = generated.days.filter((d) => d.date >= today)
@@ -807,6 +890,22 @@ export function WeekScreen() {
         onSkip={() => void confirmApprove(false)}
         changes={approveChanges}
         onClose={() => setApproveRows(null)}
+      />
+
+      <SwapListSheet
+        open={swapSheet !== null}
+        title={swapSheet?.title ?? ''}
+        week={weekNumber(weekId)}
+        change={swapSheet?.change ?? null}
+        ingredientName={(id) => localize(data.ingredientMap.get(id)?.name, language)}
+        onChoice={(key, choice) =>
+          setSwapSheet((sheet) => (sheet ? { ...sheet, change: { ...sheet.change, add: sheet.change.add.map((r) => (r.key === key ? { ...r, choice } : r)) } } : null))
+        }
+        onKeep={(key, keep) =>
+          setSwapSheet((sheet) => (sheet ? { ...sheet, change: { ...sheet.change, remove: sheet.change.remove.map((r) => (r.key === key ? { ...r, keep } : r)) } } : null))
+        }
+        onConfirm={() => void confirmSwapList()}
+        onClose={() => setSwapSheet(null)}
       />
 
       <MoreSheet

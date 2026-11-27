@@ -1596,3 +1596,36 @@ A running log of product and technical decisions for Måltidsplanlegger. Each en
 - **Alternatives:** (1) Always show the hint. (2) Rewrite the hint for households without children (e.g. "1 portion per person").
 - **Rationale:** Product owner's answer to #195 (e), 2026-11-27: without children the hint is noise.
 - **Consequences:** `RecipeDetailSheet` shows the hint only when `hasChildren(household)`. The text itself is unchanged. BACKLOG #18 is done.
+
+## 197. Swapping a dish after the week is approved (milestone 3E)
+- **Date:** 2026-11-27
+- **Decision:** Builds #173 point 6. When a change in an approved week changes the shopping list, a sheet "Shopping list – Chicken wok (Tuesday)" shows what changes, in three groups: **New on the list**, **Off the list** and **Already bought**. [Update the list (+2 · −2)] applies it; "Not now" leaves the list as it is, and the banner "The plan has changed" stays.
+  1. **When (1a):** the dish is swapped at once (with ↶ as before); the sheet opens right after, and only when the list actually changes.
+  2. **Which changes (2a):** ↻ and "Pick a dish", also when an empty meal in an approved week is filled. Guests, eating out and removing a meal keep the banner (#184 point 5).
+  3. **Off the list (3a):** items come off by default; each has a **"Keep"** button. This covers both "Swap" and "Keep salmon, add chicken" from #173.
+  4. **New items (4a):** "Have" / "Buy" on each, as in the approve sheet; items Home has start as "Have".
+  5. **Already bought (5a):** only the text "Use it another day?". The item is already "Have" in Home from when it was ticked off (#190).
+  6. **Undo (6a):** ↶ brings back the dish **and** the list as it was; what was bought in between stays.
+  - Only the extra amount comes off when the item is used in another dish that week (#173).
+- **Alternatives:** (1) Ask before swapping; only the banner, with the items listed. (2) Every change. (3) Two buttons at the bottom. (4) Everything straight on the list. (5) A button that opens "Pick a dish" with dishes using the item (BACKLOG #22). (6) ↶ only brings back the dish.
+- **Rationale:** Product owner's choices 1a–6a (2026-11-27): the plan and the list never drift apart silently, and the user decides item by item.
+- **Consequences:** New pure module `src/data/swap-list.ts` (`swapListChange`, `applySwapChange`, `revertListUndo`, `ListUndo`), tested in `swap-list.test.ts`. The sheet compares what the week needs before and after the change over the approval's days (#185 F); the approval follows the change, so the banner doesn't show for it, while earlier changes not yet on the list still show in the banner. Only the changed ingredients' items on the list are touched. UI: `src/features/week/SwapListSheet.tsx` (reuses `ChoiceButtons`); undo steps in `undo-store.ts` carry `listUndo`. Tests: 258.
+- **Interpretations made while building (to be approved):**
+  - (a) **"Fill in empty"** in an approved week also opens the sheet (titled "Shopping list – new dishes"), since it fills empty meals like "Pick a dish" (2a). "Start over" and "Favourites week" (replace every dish) keep the banner.
+  - (b) An item marked **"Keep"** becomes the user's own amount (#191): later updates don't remove it, and it shows "No longer needed in the plan" when the plan doesn't use it (#192). A kept staple becomes the user's own item.
+  - (c) An item already on the list as "Buy" just grows ("On the list – the amount grows"), without "Have" / "Buy". A new staple (oil, spices) starts as "Have", without an amount (#184 point 3, #187).
+  - (d) An item with the user's own amount is never lowered by a swap; if the week needs more, the extra is added with "+200 g from the plan" (#191).
+  - (e) Items the approval marked "Have" don't show when the week needs less of them.
+  - (f) If ↶ can only undo part of a step (an allergy dish not brought back, #194), the list is not put back; the banner shows what differs.
+
+## 198. Fixed shopping day: a reminder, the calendar week stays
+- **Date:** 2026-11-27
+- **Decision:** Replaces the shopping period from #113 for now. Not built yet – the next step after 3E.
+  1. **The shopping list still covers one calendar week (7b).** The fixed shopping day is a **reminder**: on that day the week plan shows "Today is shopping day – approve the shopping list" while the week isn't approved (11a).
+  2. **Where it is set (8a):** Settings → Food and week: "Shopping day: No fixed day / Mon … Sun". No day is chosen by default (#188).
+  3. **Later (BACKLOG):** a shopping period that follows the shopping day (7a), choosing the period by hand, e.g. Mon–Fri (9a), and two shopping days a week (12a).
+  - Point 10 (what happens to approved periods when the shopping day changes) falls away with 7b.
+- **Alternatives:** (7a) Approve a shopping period from the shopping day (e.g. Sat–Fri) that can span two weeks. (8b) Also ask in the wizard. (9b) A period picker in the approve sheet. (11b) No reminder. (12b) Two shopping days now.
+- **Rationale:** Product owner's choice (2026-11-27): phase 5 (sharing) matters more before 7 January than a large change here.
+- **Consequences:** A household setting for the shopping day (schema change when built). The reminder follows "Show only what is relevant" (#195): only when a shopping day is set.
+
